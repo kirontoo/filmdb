@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Container, Grid, LoadingOverlay } from "@mantine/core";
 import { TMDB_API_BASE_URL, TMDB_IMAGE_API_BASE_URL } from "@/lib";
-import { Movie } from '@/lib/types';
+import { Movie } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 
 export default function Home() {
@@ -15,7 +15,7 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     handlers.open();
-    const url = buildTMDBQuery('movie/popular');
+    const url = buildTMDBQuery("movie/popular");
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
@@ -25,31 +25,12 @@ export default function Home() {
       });
   }, []);
 
-  const links = [
-    {
-      link: "/about",
-      label: "Features",
-    },
-    {
-      link: "/pricing",
-      label: "Pricing",
-    },
-    {
-      link: "/learn",
-      label: "Learn",
-    },
-    {
-      link: "/community",
-      label: "Community",
-    },
-  ];
-
   return (
     <>
       <Head>
         <title>FilmDB | Home</title>
       </Head>
-      <Navbar links={links} />
+      <Navbar />
       <main>
         {isLoading ? (
           <LoadingOverlay visible={visible} overlayBlur={2} />
