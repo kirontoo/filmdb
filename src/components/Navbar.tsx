@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import {
   createStyles,
   Header,
@@ -6,10 +6,14 @@ import {
   Group,
   Burger,
   Autocomplete,
+  useMantineTheme,
+  ActionIcon,
   rem,
 } from "@mantine/core";
+import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
+import { buildTMDBQuery } from "@/lib/tmdb";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -75,9 +79,25 @@ interface HeaderSimpleProps {
 }
 
 export default function Navbar({ links }: HeaderSimpleProps) {
+  const theme = useMantineTheme();
   const [opened, { toggle }] = useDisclosure(false);
   const [active, setActive] = useState(links[0].link);
   const { classes, cx } = useStyles();
+
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const searchMedia = (value: string) => {
+    setSearchQuery(value);
+
+    // API call HERE
+    const query = encodeURI(`query=${value}&page=1`);
+    const url = buildTMDBQuery("search/multi", query);
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+      });
+  };
 
   const items = links.map((link) => (
     <Link
@@ -106,9 +126,28 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         </Group>
         <Group>
           <Autocomplete
-            className={classes.search}
             placeholder="Search"
             data={[]}
+            onChange={setSearchQuery}
+            value={searchQuery}
+            icon={<IconSearch size="1.1rem" stroke={1.5} />}
+            onKeyDown={({ key }) =>
+              key === "Enter" ? searchMedia(searchQuery) : null
+            }
+            rightSection={
+              <ActionIcon
+                size={32}
+                color={theme.primaryColor}
+                onClick={() => searchMedia(searchQuery)}
+              >
+                {theme.dir === "ltr" ? (
+                  <IconArrowRight size="1.1rem" stroke={1.5} />
+                ) : (
+                  <IconArrowLeft size="1.1rem" stroke={1.5} />
+                )}
+              </ActionIcon>
+            }
+            rightSectionWidth={42}
           />
         </Group>
 
