@@ -5,6 +5,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Container, Grid, LoadingOverlay } from "@mantine/core";
 import { TMDB_API_BASE_URL, TMDB_IMAGE_API_BASE_URL } from "@/lib";
 import { Movie } from '@/lib/types';
+import { buildTMDBQuery } from "@/lib/tmdb";
 
 export default function Home() {
   const [visible, handlers] = useDisclosure(false);
@@ -14,7 +15,7 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     handlers.open();
-    const url = `${TMDB_API_BASE_URL}/movie/popular?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`;
+    const url = buildTMDBQuery('movie/popular');
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
