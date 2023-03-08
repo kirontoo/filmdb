@@ -5,6 +5,7 @@ import {
   Container,
   Group,
   Burger,
+  Autocomplete,
   rem,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -61,6 +62,12 @@ const useStyles = createStyles((theme) => ({
         .color,
     },
   },
+
+  search: {
+    "&:focus": {
+      width: "100%",
+    },
+  },
 }));
 
 interface HeaderSimpleProps {
@@ -91,9 +98,18 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   return (
     <Header height={60} mb={120}>
       <Container className={classes.header} size="xl">
-        <span>FilmDB</span>
-        <Group spacing={5} className={classes.links}>
-          {items}
+        <Group>
+          <Link href="/">FilmDB</Link>
+          <Group spacing={5} className={classes.links}>
+            {items}
+          </Group>
+        </Group>
+        <Group>
+          <Autocomplete
+            className={classes.search}
+            placeholder="Search"
+            data={[]}
+          />
         </Group>
 
         <Burger
