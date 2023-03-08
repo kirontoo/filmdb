@@ -78,7 +78,6 @@ const useStyles = createStyles((theme) => ({
 interface MovieImageCardProps {
   image: string;
   title: string;
-  link: string;
   releaseDate: string;
   rating: number;
 }
