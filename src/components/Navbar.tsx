@@ -86,13 +86,13 @@ export interface NavLinkProp {
 }
 
 interface HeaderSimpleProps {
-  links: NavLinkProp[];
+  links?: NavLinkProp[];
 }
 
 export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
   const [opened, { toggle }] = useDisclosure(false);
-  const [active, setActive] = useState(links[0].link);
+  const [active, setActive] = useState(links !== undefined ? links[0].link : '');
   const { classes, cx } = useStyles();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -112,7 +112,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
       });
   };
 
-  const items = links.map((link) => (
+  const items = links?.map((link) => (
     <Link
       key={link.label}
       href={link.link}
