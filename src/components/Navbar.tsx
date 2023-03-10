@@ -124,7 +124,6 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         [classes.linkActive]: active === link.link,
       })}
       onClick={(event) => {
-        event.preventDefault();
         setActive(link.link);
       }}
     >
