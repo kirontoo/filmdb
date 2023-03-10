@@ -5,6 +5,8 @@ import Head from "next/head";
 import { MantineProvider } from "@mantine/core";
 import { MovieProvider } from "@/context/MovieProvider";
 
+import { SessionProvider } from "next-auth/react";
+
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
 
@@ -20,11 +22,13 @@ export default function App(props: AppProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <MantineProvider withGlobalStyles withNormalizeCSS>
-        <MovieProvider>
-          <Component {...pageProps} />
-        </MovieProvider>
-      </MantineProvider>
+      <SessionProvider session={pageProps.session}>
+        <MantineProvider withGlobalStyles withNormalizeCSS>
+          <MovieProvider>
+            <Component {...pageProps} />
+          </MovieProvider>
+        </MantineProvider>
+      </SessionProvider>
     </>
   );
 }
