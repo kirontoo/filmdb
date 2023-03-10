@@ -1,22 +1,12 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { Layout, MovieImageCard } from "@/components";
+import { MovieImageCard } from "@/components";
 import { Container, Grid } from "@mantine/core";
 import { useMediaContext } from "@/context/MediaProvider";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 
 function Community() {
   const { medias } = useMediaContext();
-  const links = [
-    {
-      link: "/community/watched",
-      label: "Watched",
-    },
-    {
-      link: "/community/watchlist",
-      label: "Watchlist",
-    },
-  ];
 
   return (
     <>
@@ -29,12 +19,13 @@ function Community() {
             return (
               <Grid.Col sm={2} lg={1} key={m.id}>
                 <MovieImageCard
-                  image={`${TMDB_IMAGE_API_BASE_URL}/w500/${
-                    m.poster_path ?? m.backdrop_path
-                  }`}
+                  image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path ?? m.backdrop_path
+                    }`}
                   title={m.title ?? m.name}
                   releaseDate={m.release_date}
                   rating={m.vote_average}
+                  id={m.id}
+                  mediaType={m.media_type}
                 />
               </Grid.Col>
             );

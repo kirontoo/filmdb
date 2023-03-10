@@ -43,6 +43,8 @@ export default function Home() {
                     title={m.title}
                     releaseDate={m.release_date}
                     rating={m.vote_average}
+                    mediaType={m.media_type}
+                    id={m.id}
                   />
                 </Grid.Col>
               );
