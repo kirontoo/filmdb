@@ -30,32 +30,26 @@ export default function Home() {
       <Head>
         <title>FilmDB | Home</title>
       </Head>
-      <Navbar />
-      <main>
-        {isLoading ? (
-          <LoadingOverlay visible={visible} overlayBlur={2} />
-        ) : (
-          <Container size="xl">
-            <Grid grow={false} columns={4}>
-              {data.map((m) => {
-                return (
-                  <Grid.Col sm={2} lg={1} key={m.id}>
-                    <MovieImageCard
-                      image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
-                      title={m.title}
-                      releaseDate={m.release_date}
-                      rating={m.vote_average}
-                    />
-                  </Grid.Col>
-                );
-              })}
-            </Grid>
-          </Container>
-        )}
-      </main>
-      <footer>
-        <Footer />
-      </footer>
+      {isLoading ? (
+        <LoadingOverlay visible={visible} overlayBlur={2} />
+      ) : (
+        <Container size="xl">
+          <Grid grow={false} columns={4}>
+            {data.map((m) => {
+              return (
+                <Grid.Col sm={2} lg={1} key={m.id}>
+                  <MovieImageCard
+                    image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
+                    title={m.title}
+                    releaseDate={m.release_date}
+                    rating={m.vote_average}
+                  />
+                </Grid.Col>
+              );
+            })}
+          </Grid>
+        </Container>
+      )}
     </>
   );
 }

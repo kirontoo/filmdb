@@ -23,24 +23,24 @@ function Community() {
       <Head>
         <title>FilmDB | search media</title>
       </Head>
-      <Layout links={links}>
-        <Container size="xl">
-          <Grid grow={false} columns={4}>
-            {movies.map((m) => {
-              return (
-                <Grid.Col sm={2} lg={1} key={m.id}>
-                  <MovieImageCard
-                    image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path ?? m.backdrop_path}`}
-                    title={m.title ?? m.name}
-                    releaseDate={m.release_date}
-                    rating={m.vote_average}
-                  />
-                </Grid.Col>
-              );
-            })}
-          </Grid>
-        </Container>
-      </Layout>
+      <Container size="xl">
+        <Grid grow={false} columns={4}>
+          {movies.map((m) => {
+            return (
+              <Grid.Col sm={2} lg={1} key={m.id}>
+                <MovieImageCard
+                  image={`${TMDB_IMAGE_API_BASE_URL}/w500/${
+                    m.poster_path ?? m.backdrop_path
+                  }`}
+                  title={m.title ?? m.name}
+                  releaseDate={m.release_date}
+                  rating={m.vote_average}
+                />
+              </Grid.Col>
+            );
+          })}
+        </Grid>
+      </Container>
     </>
   );
 }
