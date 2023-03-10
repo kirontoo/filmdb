@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { AppProps } from "next/app";
 import Head from "next/head";
 import { MantineProvider } from "@mantine/core";
-import { MovieProvider } from "@/context/MovieProvider";
+import { MediaProvider } from "@/context/MediaProvider";
 
 import { SessionProvider } from "next-auth/react";
 import { Layout } from "@/components";
@@ -35,11 +35,11 @@ export default function App(props: AppProps) {
 
       <SessionProvider session={pageProps.session}>
         <MantineProvider withGlobalStyles withNormalizeCSS>
-          <MovieProvider>
+          <MediaProvider>
             <Layout links={links}>
               <Component {...pageProps} />
             </Layout>
-          </MovieProvider>
+          </MediaProvider>
         </MantineProvider>
       </SessionProvider>
     </>

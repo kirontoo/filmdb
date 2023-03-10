@@ -2,11 +2,11 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { Layout, MovieImageCard } from "@/components";
 import { Container, Grid } from "@mantine/core";
-import { useMovieContext } from "@/context/MovieProvider";
+import { useMediaContext } from "@/context/MediaProvider";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 
 function Community() {
-  const { movies } = useMovieContext();
+  const { medias } = useMediaContext();
   const links = [
     {
       link: "/community/watched",
@@ -25,7 +25,7 @@ function Community() {
       </Head>
       <Container size="xl">
         <Grid grow={false} columns={4}>
-          {movies.map((m) => {
+          {medias.map((m) => {
             return (
               <Grid.Col sm={2} lg={1} key={m.id}>
                 <MovieImageCard

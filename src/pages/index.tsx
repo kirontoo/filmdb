@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Container, Grid, LoadingOverlay } from "@mantine/core";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
-import { Movie } from "@/lib/types";
+import { Media } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 
 export default function Home() {
   const [visible, handlers] = useDisclosure(false);
-  const [data, setData] = useState<Movie[]>([]);
+  const [data, setData] = useState<Media[]>([]);
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
