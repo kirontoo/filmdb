@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import {
   createStyles,
   Header,
@@ -96,6 +97,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
     links !== undefined ? links[0].link : ""
   );
   const { classes, cx } = useStyles();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { setMedias } = useMediaContext();
@@ -113,6 +115,8 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           (m: Media) => m.media_type !== "person"
         );
         setMedias(() => movies);
+
+        router.push('/community');
       });
   };
 
