@@ -5,15 +5,15 @@ import { Container, Grid } from "@mantine/core";
 import { useMovieContext } from "@/context/MovieProvider";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib";
 
-function Search() {
+function Community() {
   const { movies } = useMovieContext();
   const links = [
     {
-      link: "/watched",
+      link: "/community/watched",
       label: "Watched",
     },
     {
-      link: "/watchlist",
+      link: "/community/watchlist",
       label: "Watchlist",
     },
   ];
@@ -45,4 +45,4 @@ function Search() {
   );
 }
 
-export default Search;
+export default Community;
