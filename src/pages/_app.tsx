@@ -4,7 +4,6 @@ import { AppProps } from "next/app";
 import Head from "next/head";
 import { MantineProvider } from "@mantine/core";
 import { MovieProvider } from "@/context/MovieProvider";
-import { LoginBtn } from '@/components';
 
 import { SessionProvider } from "next-auth/react";
 
@@ -26,7 +25,6 @@ export default function App(props: AppProps) {
       <SessionProvider session={pageProps.session}>
         <MantineProvider withGlobalStyles withNormalizeCSS>
           <MovieProvider>
-          <LoginBtn/>
             <Component {...pageProps} />
           </MovieProvider>
         </MantineProvider>

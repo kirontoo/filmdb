@@ -10,16 +10,13 @@ import {
   ActionIcon,
   rem,
 } from "@mantine/core";
-import {
-  IconSearch,
-  IconArrowRight,
-  IconArrowLeft,
-} from "@tabler/icons-react";
+import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
 import { buildTMDBQuery } from "@/lib/tmdb";
 import { useMovieContext } from "@/context/MovieProvider";
 import { Movie } from "@/lib/types";
+import { LoginBtn } from ".";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -74,6 +71,9 @@ const useStyles = createStyles((theme) => ({
   },
 
   search: {
+    [theme.fn.smallerThan("xs")]: {
+      display: "none",
+    },
     "&:focus": {
       width: "100%",
     },
@@ -92,7 +92,9 @@ interface HeaderSimpleProps {
 export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
   const [opened, { toggle }] = useDisclosure(false);
-  const [active, setActive] = useState(links !== undefined ? links[0].link : '');
+  const [active, setActive] = useState(
+    links !== undefined ? links[0].link : ""
+  );
   const { classes, cx } = useStyles();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -107,7 +109,9 @@ export default function Navbar({ links }: HeaderSimpleProps) {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        const movies = data.results.filter((m: Movie) => m.media_type !== "person");
+        const movies = data.results.filter(
+          (m: Movie) => m.media_type !== "person"
+        );
         setMovies(() => movies);
       });
   };
@@ -139,6 +143,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         </Group>
         <Group>
           <Autocomplete
+            className={classes.search}
             placeholder="Search"
             data={[]}
             onChange={setSearchQuery}
@@ -162,6 +167,8 @@ export default function Navbar({ links }: HeaderSimpleProps) {
             }
             rightSectionWidth={42}
           />
+
+          <LoginBtn />
         </Group>
 
         <Burger
