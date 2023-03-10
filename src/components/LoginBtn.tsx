@@ -16,7 +16,7 @@ export default function LoginBtn() {
     return (
       <>
         <span className={classes.button}>
-          Signed in as {session?.user.email}
+          Signed in as {session.user?.email}
         </span>
         <Button className={classes.button} onClick={() => signOut()}>
           Sign out
