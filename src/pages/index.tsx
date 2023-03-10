@@ -3,7 +3,7 @@ import { Footer, Navbar, MovieImageCard } from "@/components";
 import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Container, Grid, LoadingOverlay } from "@mantine/core";
-import { TMDB_API_BASE_URL, TMDB_IMAGE_API_BASE_URL } from "@/lib";
+import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { Movie } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 

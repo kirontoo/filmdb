@@ -3,7 +3,7 @@ import Head from "next/head";
 import { Layout, MovieImageCard } from "@/components";
 import { Container, Grid } from "@mantine/core";
 import { useMovieContext } from "@/context/MovieProvider";
-import { TMDB_IMAGE_API_BASE_URL } from "@/lib";
+import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 
 function Community() {
   const { movies } = useMovieContext();
