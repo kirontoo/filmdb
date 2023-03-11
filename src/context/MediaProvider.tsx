@@ -13,6 +13,7 @@ interface MediaState {
   watchedMedia: Media[];
   watchlist: Media[];
   setMedias: Dispatch<SetStateAction<Media[]>>;
+  addToWatchedMedia: (data: Media) => void;
 }
 
 export const MediaContext = createContext<MediaState>({
@@ -20,6 +21,7 @@ export const MediaContext = createContext<MediaState>({
   watchedMedia: [],
   watchlist: [],
   setMedias: () => null,
+  addToWatchedMedia: (data: Media) => null,
 });
 
 export const useMediaContext = () => {
@@ -35,11 +37,16 @@ export const useMediaProvider = () => {
   const [watchedMedia, setWatchedMedia] = useState<Media[]>([]);
   const [watchlist, setWatchlist] = useState<Media[]>([]);
 
+  const addToWatchedMedia = (data: Media) => {
+    setWatchedMedia((prev) => [...prev, data]);
+  }
+
   return {
     medias,
     setMedias,
     watchlist,
     watchedMedia,
+    addToWatchedMedia
   };
 };
 
