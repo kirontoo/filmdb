@@ -3,3 +3,4 @@ export { default as Layout } from "./Layout";
 export { default as LoginBtn } from "./LoginBtn";
 export { default as MovieImageCard } from "./MovieImageCard";
 export { default as Navbar } from "./Navbar";
+export { default as NothingFoundBackground } from "./NothingFoundBackground";
