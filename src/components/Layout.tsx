@@ -11,7 +11,7 @@ export default function Layout({ links, children }: LayoutProps) {
   return (
     <>
       <Navbar links={links} />
-      <main>{children}</main>
+      <main className="main">{children}</main>
       <footer>
         <Footer />
       </footer>
