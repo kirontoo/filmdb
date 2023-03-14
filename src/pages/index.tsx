@@ -20,6 +20,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         setData(data.results);
+        console.log(data.results)
         setLoading(false);
         handlers.close();
       });
@@ -43,7 +44,7 @@ export default function Home() {
                     title={m.title}
                     releaseDate={m.release_date}
                     rating={m.vote_average}
-                    mediaType={m.media_type}
+                    mediaType="movie"
                     id={m.id}
                   />
                 </Grid.Col>
