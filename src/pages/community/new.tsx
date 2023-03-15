@@ -57,7 +57,7 @@ function NewCommunity() {
     },
 
     validate: {
-      name: hasLength({ min: 5, max: 8 }, "Invalid invite code"),
+      name: hasLength({ min: 4, max: 15 }, "Must be between 4-15 characters"),
     },
   });
 
