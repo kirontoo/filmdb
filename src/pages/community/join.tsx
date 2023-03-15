@@ -13,9 +13,11 @@ import {
   rem,
 } from "@mantine/core";
 
-import { useForm, hasLength, isNotEmpty } from "@mantine/form";
+import { useRouter } from "next/router";
+import { useForm, hasLength } from "@mantine/form";
 import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -48,8 +50,16 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-function CommunityJoin() {
+function JoinCommunity() {
   const { classes } = useStyles();
+  const router = useRouter();
+  const { code } = router.query;
+
+  useEffect(() => {
+    if (code !== undefined) {
+      form.setValues({ inviteCode: code as string});
+    }
+  }, [router.query.code]);
 
   const form = useForm({
     initialValues: {
@@ -68,7 +78,7 @@ function CommunityJoin() {
   return (
     <Container size={460}>
       <Title className={classes.title} align="center">
-        Join a Community
+        Join a community
       </Title>
       <Text c="dimmed" fz="sm" ta="center">
         Enter your invite code
@@ -110,4 +120,4 @@ function CommunityJoin() {
   );
 }
 
-export default CommunityJoin;
+export default JoinCommunity;
