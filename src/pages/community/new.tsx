@@ -48,7 +48,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-function CreateCommunityForm() {
+function NewCommunity() {
   const { classes } = useStyles();
 
   const form = useForm({
@@ -68,8 +68,11 @@ function CreateCommunityForm() {
   return (
     <Container size={460}>
       <Title className={classes.title} align="center">
-        Create a new community
+        Starting a new community?
       </Title>
+      <Text c="dimmed" fz="sm" ta="center">
+        Just enter a name
+      </Text>
       <Paper
         withBorder
         shadow="md"
@@ -80,7 +83,7 @@ function CreateCommunityForm() {
         onSubmit={form.onSubmit(createCommunity)}
       >
         <TextInput
-          label="Community name"
+          label="Name"
           required
           {...form.getInputProps("name")}
         />
@@ -106,4 +109,4 @@ function CreateCommunityForm() {
   );
 }
 
-export default CreateCommunityForm;
+export default NewCommunity;
