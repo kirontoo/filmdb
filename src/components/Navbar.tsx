@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import {
   createStyles,
   Header,
@@ -14,8 +15,8 @@ import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
 import { buildTMDBQuery } from "@/lib/tmdb";
-import { useMovieContext } from "@/context/MovieProvider";
-import { Movie } from "@/lib/types";
+import { useMediaContext } from "@/context/MediaProvider";
+import { Media } from "@/lib/types";
 import { LoginBtn } from ".";
 
 const useStyles = createStyles((theme) => ({
@@ -96,9 +97,10 @@ export default function Navbar({ links }: HeaderSimpleProps) {
     links !== undefined ? links[0].link : ""
   );
   const { classes, cx } = useStyles();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { setMovies } = useMovieContext();
+  const { setMedias } = useMediaContext();
 
   const searchMedia = (value: string) => {
     setSearchQuery(value);
@@ -110,9 +112,11 @@ export default function Navbar({ links }: HeaderSimpleProps) {
       .then((res) => res.json())
       .then((data) => {
         const movies = data.results.filter(
-          (m: Movie) => m.media_type !== "person"
+          (m: Media) => m.media_type !== "person"
         );
-        setMovies(() => movies);
+        setMedias(() => movies);
+
+        router.push('/community');
       });
   };
 
@@ -124,7 +128,6 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         [classes.linkActive]: active === link.link,
       })}
       onClick={(event) => {
-        event.preventDefault();
         setActive(link.link);
       }}
     >

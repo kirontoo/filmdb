@@ -3,13 +3,13 @@ import { Footer, Navbar, MovieImageCard } from "@/components";
 import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Container, Grid, LoadingOverlay } from "@mantine/core";
-import { TMDB_API_BASE_URL, TMDB_IMAGE_API_BASE_URL } from "@/lib";
-import { Movie } from "@/lib/types";
+import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import { Media } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 
 export default function Home() {
   const [visible, handlers] = useDisclosure(false);
-  const [data, setData] = useState<Movie[]>([]);
+  const [data, setData] = useState<Media[]>([]);
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -20,6 +20,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         setData(data.results);
+        console.log(data.results)
         setLoading(false);
         handlers.close();
       });
@@ -30,32 +31,28 @@ export default function Home() {
       <Head>
         <title>FilmDB | Home</title>
       </Head>
-      <Navbar />
-      <main>
-        {isLoading ? (
-          <LoadingOverlay visible={visible} overlayBlur={2} />
-        ) : (
-          <Container size="xl">
-            <Grid grow={false} columns={4}>
-              {data.map((m) => {
-                return (
-                  <Grid.Col sm={2} lg={1} key={m.id}>
-                    <MovieImageCard
-                      image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
-                      title={m.title}
-                      releaseDate={m.release_date}
-                      rating={m.vote_average}
-                    />
-                  </Grid.Col>
-                );
-              })}
-            </Grid>
-          </Container>
-        )}
-      </main>
-      <footer>
-        <Footer />
-      </footer>
+      {isLoading ? (
+        <LoadingOverlay visible={visible} overlayBlur={2} />
+      ) : (
+        <Container size="xl">
+          <Grid grow={false} columns={4}>
+            {data.map((m) => {
+              return (
+                <Grid.Col sm={2} lg={1} key={m.id}>
+                  <MovieImageCard
+                    image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
+                    title={m.title}
+                    releaseDate={m.release_date}
+                    rating={m.vote_average}
+                    mediaType="movie"
+                    id={m.id}
+                  />
+                </Grid.Col>
+              );
+            })}
+          </Grid>
+        </Container>
+      )}
     </>
   );
 }

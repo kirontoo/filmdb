@@ -6,6 +6,7 @@ import {
   Title,
   rem,
 } from "@mantine/core";
+import Link from 'next/link';
 import { IconStarFilled } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
@@ -80,6 +81,8 @@ interface MovieImageCardProps {
   title: string;
   releaseDate: string;
   rating: number;
+  id: number;
+  mediaType: string,
 }
 
 export default function MovieImageCard({
@@ -87,11 +90,13 @@ export default function MovieImageCard({
   title,
   releaseDate,
   rating,
+  id,
+  mediaType,
 }: MovieImageCardProps) {
   const { classes } = useStyles();
 
   return (
-    <Card p="lg" shadow="lg" className={classes.card} radius="md">
+    <Card p="lg" shadow="lg" className={classes.card} radius="md" component={Link} href={`/media/${mediaType}/${id}`}>
       <div
         className={classes.image}
         style={{ backgroundImage: `url(${image})` }}
