@@ -13,6 +13,7 @@ import { Media as MediaType } from "@/lib/types";
 import { useMediaContext } from "@/context/MediaProvider";
 import Head from "next/head";
 import { NextPage } from "next";
+import { NothingFoundBackground } from "@/components";
 
 const useStyles = createStyles((theme) => ({
   addBtn: {
@@ -24,12 +25,16 @@ const useStyles = createStyles((theme) => ({
   infoContainer: {
     width: "100%",
   },
+  imgContainer: {
+    maxWidth: "350px",
+    width: "100%",
+    margin: "auto",
+  },
 }));
 
 interface MediaProps {
   media: MediaType;
 }
-
 const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
   const router = useRouter();
   const slug = (router.query.slug as string[]) || [];
@@ -47,34 +52,40 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
       </Head>
       <Container size="xl">
         <>
-          <Flex
-            gap="md"
-            justify="flex-start"
-            align="flex-start"
-            direction={{ base: "column", lg: "row" }}
-          >
-            <Container>
-              <Image
-                src={buildTMDBImageURL(media?.poster_path, 500)}
-                alt={`${media?.title ?? media?.name} poster`}
-                radius="md"
-              />
-            </Container>
+          {media ? (
+            <Flex
+              gap="md"
+              justify="flex-start"
+              align="flex-start"
+              direction={{ base: "column", lg: "row" }}
+            >
+              <div className={classes.imgContainer}>
+                <Image
+                  src={buildTMDBImageURL(media?.poster_path)}
+                  alt={`${media?.title ?? media?.name} poster`}
+                  radius="md"
+                />
+              </div>
 
-            <Stack spacing="sm">
-              <Text component="h1">{media?.title ?? media?.name}</Text>
-              <Text component="h3">
-                {media?.release_date ?? "unknown release date"}
-              </Text>
-              <Text component="p">{media?.overview}</Text>
-              <Button
-                className={classes.addBtn}
-                onClick={() => addToWatchedList(media)}
-              >
-                Add to watched list
-              </Button>
-            </Stack>
-          </Flex>
+              <Stack spacing="sm">
+                <Text fz="xl" component="h1">
+                  {media?.title ?? media?.name}
+                </Text>
+                <Text component="h3">
+                  {media?.release_date ?? "unknown release date"}
+                </Text>
+                <Text component="p">{media?.overview}</Text>
+                <Button
+                  className={classes.addBtn}
+                  onClick={() => addToWatchedList(media)}
+                >
+                  Add to watched list
+                </Button>
+              </Stack>
+            </Flex>
+          ) : (
+            <NothingFoundBackground />
+          )}
         </>
       </Container>
     </>
@@ -87,6 +98,9 @@ Media.getInitialProps = async (ctx) => {
   const res = await fetch(url);
   const data = await res.json();
   data.media_type = slug![0];
+  if (data.success == false) {
+    return { media: null };
+  }
 
   return { media: data };
 };
