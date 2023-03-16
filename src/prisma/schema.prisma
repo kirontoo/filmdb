@@ -79,7 +79,7 @@ model Media {
 
 model Community {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String  @unique
   inviteCode  String  @map("invite_code")
   description String
   medias      Media[]
