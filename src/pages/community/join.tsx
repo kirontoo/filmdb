@@ -103,7 +103,7 @@ function JoinCommunity() {
             color="dimmed"
             size="sm"
             className={classes.control}
-            href="/community/create"
+            href="/community/new"
             component={Link}
           >
             <Center inline>
