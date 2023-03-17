@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import {
+  Button,
   createStyles,
   Header,
   Container,
@@ -18,6 +19,7 @@ import { buildTMDBQuery } from "@/lib/tmdb";
 import { useMediaContext } from "@/context/MediaProvider";
 import { Media } from "@/lib/types";
 import { LoginBtn } from ".";
+import { useSession } from "next-auth/react";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -98,6 +100,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   );
   const { classes, cx } = useStyles();
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { setMedias } = useMediaContext();
@@ -116,7 +119,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         );
         setMedias(() => movies);
 
-        router.push('/community');
+        router.push("/community");
       });
   };
 
@@ -170,6 +173,12 @@ export default function Navbar({ links }: HeaderSimpleProps) {
             }
             rightSectionWidth={42}
           />
+
+          {!session && (
+            <Button variant="subtle" component={Link} href="/community/join">
+              Join Community
+            </Button>
+          )}
 
           <LoginBtn />
         </Group>

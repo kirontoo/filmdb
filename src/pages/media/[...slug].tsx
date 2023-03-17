@@ -72,7 +72,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                   {media?.title ?? media?.name}
                 </Text>
                 <Text component="h3">
-                  {media?.release_date ?? "unknown release date"}
+                  {media?.release_date ?? "Release Date: N/A"}
                 </Text>
                 <Text component="p">{media?.overview}</Text>
                 <Button
@@ -99,6 +99,10 @@ Media.getInitialProps = async (ctx) => {
   const data = await res.json();
   data.media_type = slug![0];
   if (data.success == false) {
+    if (ctx.res) {
+      ctx.res.writeHead(307, { Location: "/404" });
+      ctx.res.end();
+    }
     return { media: null };
   }
 
