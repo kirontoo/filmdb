@@ -16,6 +16,8 @@ import {
 import { useForm, hasLength } from "@mantine/form";
 import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useState } from "react";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -50,6 +52,8 @@ const useStyles = createStyles((theme) => ({
 
 function NewCommunity() {
   const { classes } = useStyles();
+  const router = useRouter();
+  const [isLoading, setLoading] = useState<boolean>(false);
 
   const form = useForm({
     initialValues: {
@@ -61,8 +65,31 @@ function NewCommunity() {
     },
   });
 
-  const createCommunity = (values: { name: string }) => {
-    console.log("submitted", values);
+  const createCommunity = async (values: { name: string }) => {
+    setLoading(true);
+    const res = await fetch("/api/community", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: values.name }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      router.push(`/community/${data.id}`);
+    } else {
+      if (res.status === 401) {
+        // unauthorized: user must log in
+        form.setErrors({ name: "You must be logged in!" });
+      }
+
+      if (data["message"]) {
+        form.setErrors({ name: data["message"] });
+      }
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -82,11 +109,7 @@ function NewCommunity() {
         component="form"
         onSubmit={form.onSubmit(createCommunity)}
       >
-        <TextInput
-          label="Name"
-          required
-          {...form.getInputProps("name")}
-        />
+        <TextInput label="Name" required {...form.getInputProps("name")} />
         <Group position="apart" mt="lg" className={classes.controls}>
           <Anchor
             color="dimmed"
@@ -100,7 +123,7 @@ function NewCommunity() {
               <Box ml={5}>Got an invite code?</Box>
             </Center>
           </Anchor>
-          <Button type="submit" className={classes.control}>
+          <Button type="submit" className={classes.control} loading={isLoading}>
             Create Community
           </Button>
         </Group>
