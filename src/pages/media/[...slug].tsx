@@ -72,7 +72,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                   {media?.title ?? media?.name}
                 </Text>
                 <Text component="h3">
-                  {media?.release_date ?? "unknown release date"}
+                  {media?.release_date ?? "Release Date: N/A"}
                 </Text>
                 <Text component="p">{media?.overview}</Text>
                 <Button
