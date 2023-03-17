@@ -1,12 +1,57 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { MovieImageCard } from "@/components";
-import { Container, Grid } from "@mantine/core";
-import { useMediaContext } from "@/context/MediaProvider";
-import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import {
+  rem,
+  createStyles,
+  Title,
+  Container,
+  Grid,
+  Paper,
+  Text,
+} from "@mantine/core";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { getServerSession } from "next-auth/next";
+import Link from "next/link";
 
-function Community() {
-  const { medias } = useMediaContext();
+import prisma from "@/lib/prismadb";
+import { GetServerSidePropsContext } from "next";
+import { Community } from "@prisma/client";
+
+const useStyles = createStyles((theme) => ({
+  card: {
+    transition: "transform 150ms ease, box-shadow 100ms ease",
+    minHeight: rem("150px"),
+    "&:hover": {
+      boxShadow: theme.shadows.md,
+      transform: "scale(1.02)",
+    },
+  },
+  title: {
+    marginBottom: rem(16),
+  },
+}));
+
+function pickRandColor() {
+  const colors = [
+    "blue",
+    "red",
+    "pink",
+    "grape",
+    "violet",
+    "indigo",
+    "cyan",
+    "teal",
+    "green",
+    "yellow",
+    "orange",
+    "lime",
+  ];
+
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function Community({ communities }: Data) {
+  const { classes } = useStyles();
 
   return (
     <>
@@ -14,19 +59,27 @@ function Community() {
         <title>FilmDB | search media</title>
       </Head>
       <Container size="xl">
-        <Grid grow={false} columns={4}>
-          {medias.map((m) => {
+        <Title className={classes.title} align="center">
+          Your Communities
+        </Title>
+        <Grid grow={false} columns={3}>
+          {communities.map((c) => {
             return (
-              <Grid.Col sm={2} lg={1} key={m.id}>
-                <MovieImageCard
-                  image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path ?? m.backdrop_path
-                    }`}
-                  title={m.title ?? m.name}
-                  releaseDate={m.release_date}
-                  rating={m.vote_average}
-                  id={m.id}
-                  mediaType={m.media_type}
-                />
+              <Grid.Col sm={2} lg={1} key={c.slug}>
+                <Paper
+                  className={classes.card}
+                  withBorder
+                  shadow="sm"
+                  p="md"
+                  component={Link}
+                  href={`/community/${c.slug}`}
+                  bg={`${pickRandColor()}.4`}
+                >
+                  <Title order={2} size="h3">
+                    {c.name}
+                  </Title>
+                  <Text>{c.description}</Text>
+                </Paper>
               </Grid.Col>
             );
           })}
@@ -34,6 +87,37 @@ function Community() {
       </Container>
     </>
   );
+}
+
+type Data = {
+  communities: Community[];
+};
+
+export async function getServerSideProps(ctx: GetServerSidePropsContext) {
+  const { req, res } = ctx;
+  const session = await getServerSession(req, res, authOptions);
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session!.user!.email as string,
+      },
+      include: {
+        communities: true,
+      },
+    });
+
+    return {
+      props: {
+        communities: user?.communities || [],
+      },
+    };
+  } catch (error) {
+    return {
+      redirect: {
+        destination: "/404",
+      },
+    };
+  }
 }
 
 export default Community;
