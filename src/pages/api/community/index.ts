@@ -1,6 +1,7 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
+import slugify from "slugify";
 
 import prisma from "@/lib/prismadb";
 import { generateInviteCode } from "@/lib/util";
@@ -29,6 +30,7 @@ export default async function handler(
           if (user) {
             const { name, description } = body;
             const inviteCode = generateInviteCode(5);
+            const slug = slugify(name, { lower: true });
 
             const community = await prisma.community.create({
               data: {
@@ -36,6 +38,7 @@ export default async function handler(
                 ownerId: user.id,
                 description,
                 inviteCode,
+                slug,
               },
             });
 
@@ -52,6 +55,7 @@ export default async function handler(
             });
           }
         } catch (e) {
+          console.log(e);
           if (e instanceof PrismaClientKnownRequestError) {
             if (e.code === "P2002") {
               if (e.meta!.target === "communities_name_key") {
