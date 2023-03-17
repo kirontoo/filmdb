@@ -4,7 +4,7 @@ import { NavLinkProp } from "./Navbar";
 
 interface LayoutProps {
   children: ReactNode;
-  links: NavLinkProp[]
+  links?: NavLinkProp[]
 }
 
 export default function Layout({ links, children }: LayoutProps) {

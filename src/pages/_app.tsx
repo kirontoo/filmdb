@@ -10,16 +10,6 @@ import { Layout } from "@/components";
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
-  const links = [
-    {
-      link: "/community/watched",
-      label: "Watched",
-    },
-    {
-      link: "/community/watchlist",
-      label: "Watchlist",
-    },
-  ];
 
   return (
     <>
@@ -36,7 +26,7 @@ export default function App(props: AppProps) {
       <SessionProvider session={pageProps.session}>
         <MantineProvider withGlobalStyles withNormalizeCSS>
           <MediaProvider>
-            <Layout links={links}>
+            <Layout>
               <Component {...pageProps} />
             </Layout>
           </MediaProvider>
