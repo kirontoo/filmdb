@@ -77,7 +77,7 @@ function NewCommunity() {
     const data = await res.json();
 
     if (res.ok) {
-      router.push(`/community/${data.id}`);
+      router.push(`/community/${data.slug}`);
     } else {
       if (res.status === 401) {
         // unauthorized: user must log in
