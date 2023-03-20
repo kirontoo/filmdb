@@ -74,18 +74,18 @@ function NewCommunity() {
       },
       body: JSON.stringify({ name: values.name }),
     });
-    const data = await res.json();
+    const {message, data} = await res.json();
 
     if (res.ok) {
-      router.push(`/community/${data.slug}`);
+      router.push(`/community/${data.community.slug}`);
     } else {
       if (res.status === 401) {
         // unauthorized: user must log in
         form.setErrors({ name: "You must be logged in!" });
       }
 
-      if (data["message"]) {
-        form.setErrors({ name: data["message"] });
+      if (message) {
+        form.setErrors({ name: message});
       }
     }
 
