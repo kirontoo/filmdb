@@ -15,9 +15,6 @@ import {
 import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
-import { buildTMDBQuery } from "@/lib/tmdb";
-import { useMediaContext } from "@/context/MediaProvider";
-import { Media } from "@/lib/types";
 import { LoginBtn } from ".";
 import { useSession } from "next-auth/react";
 
@@ -103,24 +100,12 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   const { data: session } = useSession();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { setMedias } = useMediaContext();
 
   const searchMedia = (value: string) => {
-    setSearchQuery(value);
-
-    // API call HERE
-    const query = encodeURI(`query=${value}&page=1`);
-    const url = buildTMDBQuery("search/multi", query);
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        const movies = data.results.filter(
-          (m: Media) => m.media_type !== "person"
-        );
-        setMedias(() => movies);
-
-        router.push("/community");
-      });
+    if (value !== "") {
+      setSearchQuery(value);
+      router.push(`/media/search?media=${encodeURI(value)}`);
+    }
   };
 
   const items = links?.map((link) => (
