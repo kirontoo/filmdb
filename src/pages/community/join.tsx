@@ -17,7 +17,7 @@ import { useRouter } from "next/router";
 import { useForm, hasLength } from "@mantine/form";
 import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -54,10 +54,11 @@ function JoinCommunity() {
   const { classes } = useStyles();
   const router = useRouter();
   const { code } = router.query;
+  const [isLoading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (code !== undefined) {
-      form.setValues({ inviteCode: code as string});
+      form.setValues({ inviteCode: code as string });
     }
   }, [router.query.code]);
 
@@ -71,8 +72,28 @@ function JoinCommunity() {
     },
   });
 
-  const joinCommunity = () => {
-    console.log("submitted");
+  const joinCommunity = async (values: { inviteCode: string }) => {
+    setLoading(true);
+    const res = await fetch(
+      `/api/community/join?inviteCode=${values.inviteCode}`,
+      { method: "POST" }
+    );
+    const { message, data } = await res.json();
+
+    if (res.ok) {
+      router.push(`/community/${data.community.slug}`);
+    } else {
+      if (res.status === 401) {
+        // unauthorized: user must log in
+        form.setErrors({ inviteCode: "You must be logged in!" });
+      }
+
+      if (message) {
+        form.setErrors({ inviteCode: message });
+      }
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -111,7 +132,7 @@ function JoinCommunity() {
               <Box ml={5}>Create a new community</Box>
             </Center>
           </Anchor>
-          <Button type="submit" className={classes.control}>
+          <Button type="submit" className={classes.control} loading={isLoading}>
             Join Community
           </Button>
         </Group>

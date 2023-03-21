@@ -35,10 +35,13 @@ export default async function handler(
             const community = await prisma.community.create({
               data: {
                 name,
-                ownerId: user.id,
+                createdBy: user.id,
                 description,
                 inviteCode,
                 slug,
+                members: {
+                  connect: [{ id: user.id }],
+                },
               },
             });
 
