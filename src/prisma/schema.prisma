@@ -48,8 +48,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  communityIds  String[]    @db.ObjectId
-  communities   Community[]
+  communities   Community[] @relation(fields: [communityIds], references: [id])
+  communityIds   String[]     @db.ObjectId
 
   @@map("users")
 }
@@ -78,14 +78,15 @@ model Media {
 }
 
 model Community {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  name        String  @unique
-  inviteCode  String  @unique @map("invite_code")
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  inviteCode  String   @unique @map("invite_code")
   description String?
   medias      Media[]
-  owner       User    @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  ownerId     String  @db.ObjectId
-  slug        String  @unique
+  members     User[]   @relation(fields: [memberIds], references: [id])
+  memberIds   String[] @db.ObjectId
+  createdBy   String   @map("created_by") @db.ObjectId
+  slug        String
 
   @@map("communities")
 }
