@@ -49,7 +49,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   communities   Community[] @relation(fields: [communityIds], references: [id])
-  communityIds   String[]     @db.ObjectId
+  communityIds  String[]    @db.ObjectId
 
   @@map("users")
 }
@@ -65,14 +65,14 @@ model VerificationToken {
 }
 
 model Media {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   tmdbId      String
-  dateWatched DateTime   @map("date_watched")
+  dateWatched DateTime  @map("date_watched")
   media_type  String
-  rating      Float      @default(0)
+  rating      Float     @default(0)
   watched     Boolean
-  community   Community? @relation(fields: [communityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  communityId String?    @db.ObjectId
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  communityId String    @db.ObjectId
 
   @@map("medias")
 }
