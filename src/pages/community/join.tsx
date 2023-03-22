@@ -74,26 +74,31 @@ function JoinCommunity() {
 
   const joinCommunity = async (values: { inviteCode: string }) => {
     setLoading(true);
-    const res = await fetch(
-      `/api/community/join?inviteCode=${values.inviteCode}`,
-      { method: "POST" }
-    );
-    const { message, data } = await res.json();
+    try {
+      const res = await fetch(`/api/community/join?code=${values.inviteCode}`, {
+        method: "POST",
+      });
 
-    if (res.ok) {
-      router.push(`/community/${data.community.slug}`);
-    } else {
-      if (res.status === 401) {
-        // unauthorized: user must log in
-        form.setErrors({ inviteCode: "You must be logged in!" });
-      }
+      const { message, data } = await res.json();
 
-      if (message) {
-        form.setErrors({ inviteCode: message });
+      if (res.ok) {
+        router.push(`/community/${data.community.slug}`);
+      } else {
+        if (res.status === 401) {
+          // unauthorized: user must log in
+          form.setErrors({ inviteCode: "You must be logged in!" });
+        }
+
+        if (message) {
+          form.setErrors({ inviteCode: message });
+        }
       }
+    } catch (e) {
+      console.log(e);
+      form.setErrors({ inviteCode: "server error" });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

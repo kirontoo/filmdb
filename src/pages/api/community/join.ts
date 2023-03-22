@@ -69,7 +69,8 @@ export default async function handler(
                 status: "success",
                 data: { community },
               });
-            }
+            } 
+            console.log(community)
           }
         } catch (e) {
           console.log(e);
@@ -91,7 +92,10 @@ export default async function handler(
     }
   } else {
     // Not Signed in
-    res.status(401);
+    res.status(401).send({
+      status: "error",
+      message: "user must be logged in"
+    });
   }
 
   res.end();
