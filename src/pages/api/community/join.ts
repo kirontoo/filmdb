@@ -19,8 +19,8 @@ export default async function handler(
       case "POST":
         // query: api/community/join?code=some_code
         try {
-          const { inviteCode } = query;
-          if (!inviteCode) {
+          const { inviteCode: code } = query;
+          if (!code) {
             return res.status(400).send({
               status: "fail",
               message: "invalid code",
@@ -39,11 +39,11 @@ export default async function handler(
           });
 
           if (user) {
-            const code = Array.isArray(inviteCode) ? inviteCode[0] : inviteCode;
+            const inviteCode = Array.isArray(code) ? code[0] : code;
 
             // check if user is already in the community
             const foundCommunity = user.communities.find(
-              (c) => c.inviteCode === code
+              (c) => c.inviteCode === inviteCode
             );
             if (foundCommunity) {
               return res.status(403).send({
@@ -55,7 +55,7 @@ export default async function handler(
             // add user to community
             const community = await prisma.community.update({
               where: {
-                inviteCode: code,
+                inviteCode: inviteCode,
               },
               data: {
                 members: {
