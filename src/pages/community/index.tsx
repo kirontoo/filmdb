@@ -73,7 +73,7 @@ function Community({ communities }: Data) {
                   p="md"
                   component={Link}
                   href={`/community/${c.slug}`}
-                  bg={`${pickRandColor()}.4`}
+                  bg={`${pickRandColor()}.2`}
                 >
                   <Title order={2} size="h3">
                     {c.name}
@@ -96,22 +96,30 @@ type Data = {
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const { req, res } = ctx;
   const session = await getServerSession(req, res, authOptions);
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session!.user!.email as string,
-      },
-      include: {
-        communities: true,
-      },
-    });
+  if (session) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: session!.user!.email as string,
+        },
+        include: {
+          communities: true,
+        },
+      });
 
-    return {
-      props: {
-        communities: user?.communities || [],
-      },
-    };
-  } catch (error) {
+      return {
+        props: {
+          communities: user?.communities || [],
+        },
+      };
+    } catch (error) {
+      return {
+        redirect: {
+          destination: "/404",
+        },
+      };
+    }
+  } else {
     return {
       redirect: {
         destination: "/404",
