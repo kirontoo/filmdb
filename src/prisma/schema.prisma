@@ -50,6 +50,8 @@ model User {
   sessions      Session[]
   communities   Community[] @relation(fields: [communityIds], references: [id])
   communityIds  String[]    @db.ObjectId
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -66,13 +68,17 @@ model VerificationToken {
 
 model Media {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  tmdbId      String
+  tmdbId      String    @unique
   dateWatched DateTime  @map("date_watched")
-  media_type  String
+  mediaType   String    @map("media_type")
+  title       String
+  posterPath  String?   @map("poster_path")
   rating      Float     @default(0)
   watched     Boolean
-  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  community   Community @relation(fields: [communityId], references: [id])
   communityId String    @db.ObjectId
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("medias")
 }
@@ -87,6 +93,8 @@ model Community {
   memberIds   String[] @db.ObjectId
   createdBy   String   @map("created_by") @db.ObjectId
   slug        String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("communities")
 }
