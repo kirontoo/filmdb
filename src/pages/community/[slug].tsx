@@ -10,6 +10,7 @@ import {
   Card,
   Text,
   Stack,
+  Divider
 } from "@mantine/core";
 import { GetServerSidePropsContext } from "next";
 import { useMediaContext } from "@/context/MediaProvider";
@@ -108,6 +109,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                     </Card>
                   </Flex>
                 </Paper>
+                <Divider my="md"/>
                 <Grid grow={false} columns={4}>
                   {medias.map((m) => {
                     return (
@@ -196,8 +198,9 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
         };
       }
       console.log(community);
-      return { props: { community } };
+      return { props: { community: JSON.parse(JSON.stringify(community)) } };
     } catch (error) {
+      // TODO: set up proper errors
       console.log(error);
       return {
         props: {},
