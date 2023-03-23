@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import {
+  Menu,
   Stack,
   Text,
   Button,
@@ -12,8 +13,12 @@ import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
 import { Media as MediaType } from "@/lib/types";
 import { useMediaContext } from "@/context/MediaProvider";
 import Head from "next/head";
-import { NextPage } from "next";
+import { GetServerSidePropsContext, NextPage} from "next";
 import { NothingFoundBackground } from "@/components";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]";
+import prisma from "@/lib/prismadb";
+import { getSession, useSession } from "next-auth/react";
 
 const useStyles = createStyles((theme) => ({
   addBtn: {
@@ -33,22 +38,25 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface MediaProps {
-  media: MediaType;
+  media?: MediaType;
+  communities?: { name: string; slug: string; id: string }[];
 }
-const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
+
+const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
   const router = useRouter();
-  const slug = (router.query.slug as string[]) || [];
   const { classes } = useStyles();
   const { addToWatchedMedia } = useMediaContext();
   const addToWatchedList = (media: MediaType) => {
-    media.media_type = slug[0];
     addToWatchedMedia(media);
   };
+  const { status } = useSession();
+
+  const addToQueue = (media: MediaType) => {};
 
   return (
     <>
       <Head>
-        <title>FilmDB | {media?.name ?? media?.title}</title>
+        <title>FilmDB | {`${media?.name ?? media?.title}`}</title>
       </Head>
       <Container size="xl">
         <>
@@ -75,12 +83,33 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                   {media?.release_date ?? "Release Date: N/A"}
                 </Text>
                 <Text component="p">{media?.overview}</Text>
-                <Button
-                  className={classes.addBtn}
-                  onClick={() => addToWatchedList(media)}
-                >
-                  Add to watched list
-                </Button>
+                {status == "authenticated" && (
+                  <Flex gap="sm">
+                    <Button
+                      className={classes.addBtn}
+                      variant="subtle"
+                      onClick={() => addToQueue(media)}
+                    >
+                      Add to queue
+                    </Button>
+                    {communities && (
+                      <Menu shadow="md" width={200} trigger="hover">
+                        <Menu.Target>
+                          <Button className={classes.addBtn}>
+                            Add to watchedlist
+                          </Button>
+                        </Menu.Target>
+
+                        <Menu.Dropdown>
+                          <Menu.Label>Your Communities</Menu.Label>
+                          {communities.map((c) => (
+                            <Menu.Item key={c.id}>{c.name}</Menu.Item>
+                          ))}
+                        </Menu.Dropdown>
+                      </Menu>
+                    )}
+                  </Flex>
+                )}
               </Stack>
             </Flex>
           ) : (
@@ -92,21 +121,57 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
   );
 };
 
-Media.getInitialProps = async (ctx) => {
-  const slug = ctx.query.slug;
+export async function getServerSideProps({
+  req,
+  res,
+  query,
+}: GetServerSidePropsContext) {
+  const slug = query.slug;
   const url = buildTMDBQuery(`${slug![0]}/${slug![1]}`);
-  const res = await fetch(url);
-  const data = await res.json();
+  const dataRes = await fetch(url);
+  const data = await dataRes.json();
+
   data.media_type = slug![0];
-  if (data.success == false) {
-    if (ctx.res) {
-      ctx.res.writeHead(307, { Location: "/404" });
-      ctx.res.end();
+
+  if (data.success == false || !dataRes.ok) {
+    if (res) {
+      res.writeHead(307, { Location: "/404" });
+      res.end();
     }
-    return { media: null };
   }
 
-  return { media: data };
-};
+  const session = await getServerSession(req, res, authOptions);
+  if (session) {
+    const communities = await prisma.community.findMany({
+      where: {
+        members: {
+          some: {
+            email: session!.user!.email,
+          },
+        },
+      },
+      select: {
+        name: true,
+        slug: true,
+        id: true,
+      },
+    });
+    console.log(communities);
+
+    return {
+      props: {
+        media: data,
+        communities: communities
+          ? JSON.parse(JSON.stringify(communities))
+          : null,
+      },
+    };
+  }
+  return {
+    props: {
+      media: data,
+    },
+  };
+}
 
 export default Media;
