@@ -13,12 +13,12 @@ import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
 import { Media as MediaType } from "@/lib/types";
 import { useMediaContext } from "@/context/MediaProvider";
 import Head from "next/head";
-import { GetServerSidePropsContext, NextPage} from "next";
+import { GetServerSidePropsContext, NextPage } from "next";
 import { NothingFoundBackground } from "@/components";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
 import prisma from "@/lib/prismadb";
-import { getSession, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 const useStyles = createStyles((theme) => ({
   addBtn: {
@@ -46,12 +46,31 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
   const router = useRouter();
   const { classes } = useStyles();
   const { addToWatchedMedia } = useMediaContext();
-  const addToWatchedList = (media: MediaType) => {
-    addToWatchedMedia(media);
+
+  const addToWatchedList = async (media: MediaType, communityId: string) => {
+    const body = {
+      ...media,
+      tmdbId: media.id,
+      mediaType: media.media_type,
+      title: media.title ?? media.name,
+      watched: true
+    };
+
+    const res = await fetch(`/api/community/${communityId}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      addToWatchedMedia(media);
+    }
   };
   const { status } = useSession();
 
-  const addToQueue = (media: MediaType) => {};
+  const addToQueue = (media: MediaType) => { };
 
   return (
     <>
@@ -103,7 +122,12 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
                         <Menu.Dropdown>
                           <Menu.Label>Your Communities</Menu.Label>
                           {communities.map((c) => (
-                            <Menu.Item key={c.id}>{c.name}</Menu.Item>
+                            <Menu.Item
+                              key={c.id}
+                              onClick={() => addToWatchedList(media, c.id)}
+                            >
+                              {c.name}
+                            </Menu.Item>
                           ))}
                         </Menu.Dropdown>
                       </Menu>
@@ -130,7 +154,6 @@ export async function getServerSideProps({
   const url = buildTMDBQuery(`${slug![0]}/${slug![1]}`);
   const dataRes = await fetch(url);
   const data = await dataRes.json();
-
   data.media_type = slug![0];
 
   if (data.success == false || !dataRes.ok) {
@@ -156,7 +179,6 @@ export async function getServerSideProps({
         id: true,
       },
     });
-    console.log(communities);
 
     return {
       props: {
