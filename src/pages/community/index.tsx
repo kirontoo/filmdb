@@ -107,9 +107,11 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
         },
       });
 
+      const data = JSON.parse(JSON.stringify(user?.communities));
+
       return {
         props: {
-          communities: user?.communities || [],
+          communities: data ?? [],
         },
       };
     } catch (error) {
