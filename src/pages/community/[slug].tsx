@@ -11,10 +11,15 @@ import {
   Text,
   Stack,
   Divider,
+  createStyles,
 } from "@mantine/core";
 import { GetServerSidePropsContext } from "next";
-import { useMediaContext } from "@/context/MediaProvider";
-import { MediaImageCard } from "@/components";
+import format from "date-format";
+import {
+  MediaImageCard,
+  MediaImageCardHeader,
+  MediaImageCardFooter,
+} from "@/components";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { useState } from "react";
 import { useClipboard, useDisclosure } from "@mantine/hooks";
@@ -29,14 +34,27 @@ type CommunityWithMedia = {
 } & Community;
 
 interface CommunityDashboardProps {
-  community: Community | null;
+  community: CommunityWithMedia | null;
 }
 
+const useStyles = createStyles((theme) => ({
+  cardHeader: {
+    color: theme.white,
+  },
+  date: {
+    color: theme.white,
+    opacity: 0.7,
+    fontWeight: 700,
+    textTransform: "uppercase",
+  },
+}));
+
 function CommunityDashboard({ community }: CommunityDashboardProps) {
-  const { medias } = useMediaContext();
   const [visible, handlers] = useDisclosure(false);
   const [isLoading, setLoading] = useState(false);
   const clipboard = useClipboard();
+  const { classes } = useStyles();
+
   return (
     <>
       <Container size="xl">
@@ -111,17 +129,26 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                 </Paper>
                 <Divider my="md" />
                 <Grid grow={false} columns={4}>
-                  {medias.map((m) => {
+                  {community.medias.map((m) => {
                     return (
                       <Grid.Col sm={2} lg={1} key={m.id}>
                         <MediaImageCard
-                          image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
-                          title={m.title}
-                          releaseDate={m.release_date}
-                          rating={m.vote_average}
-                          mediaType="movie"
-                          id={m.id}
-                        />
+                          component="button"
+                          key={m.id}
+                          image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.posterPath}`}
+                        >
+                          <MediaImageCardHeader className={classes.cardHeader}>
+                            <>
+                              <Text align="left" className={classes.date} size="xs">
+                                {format("yyyy/MM/dd", new Date(m.createdAt))}
+                              </Text>
+                              <Title order={3} align="left">
+                                {m.title}
+                              </Title>
+                            </>
+                          </MediaImageCardHeader>
+                          <MediaImageCardFooter>hi</MediaImageCardFooter>
+                        </MediaImageCard>
                       </Grid.Col>
                     );
                   })}
