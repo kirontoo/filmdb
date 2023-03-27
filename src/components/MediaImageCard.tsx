@@ -2,12 +2,11 @@ import {
   getStylesRef,
   createStyles,
   Card,
-  Text,
-  Title,
   rem,
+  createPolymorphicComponent,
 } from "@mantine/core";
-import Link from 'next/link';
-import { IconStarFilled } from "@tabler/icons-react";
+import { ReactNode, forwardRef } from "react";
+import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -78,43 +77,62 @@ const useStyles = createStyles((theme) => ({
 
 interface MediaImageCardProps {
   image: string;
-  title: string;
-  releaseDate: string;
-  rating: number;
-  id: number;
-  mediaType: string,
+  children: ReactNode;
 }
 
-export default function MediaImageCard({
-  image,
-  title,
-  releaseDate,
-  rating,
-  id,
-  mediaType,
-}: MediaImageCardProps) {
-  const { classes } = useStyles();
+const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
+  ({ image, children, ...others }, ref) => {
+    const { classes } = useStyles();
 
+    return (
+      <Card
+        ref={ref}
+        p="lg"
+        shadow="lg"
+        className={classes.card}
+        radius="md"
+        component="div"
+        {...others}
+      >
+        <div
+          className={classes.image}
+          style={{ backgroundImage: `url(${image ?? ""})` }}
+        />
+        <div className={classes.overlay} />
+        {children}
+      </Card>
+    );
+  }
+);
+
+export function MediaImageCardHeader({
+  children,
+  className,
+  ...props
+}: {
+  children: ReactNode;
+  className?: any;
+}): ReactJSXElement {
+  const { classes, cx } = useStyles();
   return (
-    <Card p="lg" shadow="lg" className={classes.card} radius="md" component={Link} href={`/media/${mediaType}/${id}`}>
-      <div
-        className={classes.image}
-        style={{ backgroundImage: `url(${image})` }}
-      />
-      <div className={classes.overlay} />
-
-      <div className={classes.content}>
-        <Text className={classes.date} size="xs">
-          {releaseDate}
-        </Text>
-        <Title order={3} className={classes.title}>
-          {title}
-        </Title>
-      </div>
-      <div className={classes.rating}>
-        <IconStarFilled style={{ position: "relative", color: "yellow" }} />
-        <Text>{rating}</Text>
-      </div>
-    </Card>
+    <header className={cx(classes.content, className)} {...props}>
+      {children}
+    </header>
   );
 }
+
+export function MediaImageCardFooter({
+  children,
+  ...props
+}: {
+  children: ReactNode;
+  className?: any;
+}): ReactJSXElement {
+  return <footer {...props}>{children}</footer>;
+}
+
+const MediaImageCard = createPolymorphicComponent<"div", MediaImageCardProps>(
+  _MediaImageCard
+);
+
+export default MediaImageCard;
