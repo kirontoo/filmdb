@@ -23,7 +23,7 @@ function SearchMedia({ medias, message }: SearchMediaProps) {
                     title={m.title}
                     releaseDate={m.release_date}
                     rating={m.vote_average}
-                    mediaType="movie"
+                    mediaType={m.media_type}
                     id={m.id}
                   />
                 </Grid.Col>
