@@ -53,7 +53,7 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
       tmdbId: media.id,
       mediaType: media.media_type,
       title: media.title ?? media.name,
-      watched: true
+      watched: true,
     };
 
     const res = await fetch(`/api/community/${communityId}`, {
@@ -70,7 +70,7 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
   };
   const { status } = useSession();
 
-  const addToQueue = (media: MediaType) => { };
+  const addToQueue = (media: MediaType) => {};
 
   return (
     <>
@@ -157,10 +157,11 @@ export async function getServerSideProps({
   data.media_type = slug![0];
 
   if (data.success == false || !dataRes.ok) {
-    if (res) {
-      res.writeHead(307, { Location: "/404" });
-      res.end();
-    }
+    return {
+      redirect: {
+        destination: "/404",
+      },
+    };
   }
 
   const session = await getServerSession(req, res, authOptions);
