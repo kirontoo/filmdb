@@ -76,7 +76,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-interface MovieImageCardProps {
+interface MediaImageCardProps {
   image: string;
   title: string;
   releaseDate: string;
@@ -85,14 +85,14 @@ interface MovieImageCardProps {
   mediaType: string,
 }
 
-export default function MovieImageCard({
+export default function MediaImageCard({
   image,
   title,
   releaseDate,
   rating,
   id,
   mediaType,
-}: MovieImageCardProps) {
+}: MediaImageCardProps) {
   const { classes } = useStyles();
 
   return (

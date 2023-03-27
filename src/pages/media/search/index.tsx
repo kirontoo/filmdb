@@ -1,5 +1,5 @@
 import { Container, Grid, Title } from "@mantine/core";
-import { MovieImageCard } from "@/components";
+import { MediaImageCard } from "@/components";
 import { buildTMDBQuery, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { Media } from "@/lib/types";
 import { GetServerSideProps } from "next";
@@ -18,7 +18,7 @@ function SearchMedia({ medias, message }: SearchMediaProps) {
             {medias.map((m) => {
               return (
                 <Grid.Col sm={2} lg={1} key={m.id}>
-                  <MovieImageCard
+                  <MediaImageCard
                     image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
                     title={m.title}
                     releaseDate={m.release_date}

@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { Footer, Navbar, MovieImageCard } from "@/components";
+import { MediaImageCard } from "@/components";
 import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Container, Grid, LoadingOverlay } from "@mantine/core";
@@ -13,17 +13,18 @@ export default function Home() {
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    handlers.open();
-    const url = buildTMDBQuery("movie/popular");
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data.results);
-        console.log(data.results)
-        setLoading(false);
-        handlers.close();
-      });
+    if (!data.length) {
+      setLoading(true);
+      handlers.open();
+      const url = buildTMDBQuery("movie/popular");
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+          setData(data.results);
+          setLoading(false);
+          handlers.close();
+        });
+    }
   }, []);
 
   return (
@@ -39,7 +40,7 @@ export default function Home() {
             {data.map((m) => {
               return (
                 <Grid.Col sm={2} lg={1} key={m.id}>
-                  <MovieImageCard
+                  <MediaImageCard
                     image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
                     title={m.title}
                     releaseDate={m.release_date}
