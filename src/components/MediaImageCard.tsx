@@ -22,8 +22,9 @@ const useStyles = createStyles((theme) => ({
         ? theme.colors.dark[6]
         : theme.colors.gray[0],
     [`&:hover .${getStylesRef("image")}`]: {
-      transform: "scale(1.15)",
+      transform: "scale(1.05)",
     },
+    minWidth: rem(300),
   },
 
   image: {
@@ -41,33 +42,6 @@ const useStyles = createStyles((theme) => ({
     bottom: 0,
     backgroundImage:
       "linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 90%)",
-  },
-
-  title: {
-    fontFamily: `Greycliff CF ${theme.fontFamily}`,
-    fontWeight: 900,
-    color: theme.white,
-    lineHeight: 1.2,
-    fontSize: rem(32),
-    marginTop: theme.spacing.xs,
-  },
-
-  date: {
-    color: theme.white,
-    opacity: 0.7,
-    fontWeight: 700,
-    textTransform: "uppercase",
-  },
-
-  rating: {
-    color: theme.white,
-    opacity: 0.9,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: rem(5),
   },
 
   content: {
@@ -110,7 +84,7 @@ export function MediaImageCardHeader({
   className,
   ...props
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   className?: any;
 }): ReactJSXElement {
   const { classes, cx } = useStyles();
@@ -125,7 +99,7 @@ export function MediaImageCardFooter({
   children,
   ...props
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   className?: any;
 }): ReactJSXElement {
   return <footer {...props}>{children}</footer>;
