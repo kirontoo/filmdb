@@ -1,4 +1,5 @@
 import {
+  Tabs,
   Container,
   Grid,
   LoadingOverlay,
@@ -46,6 +47,17 @@ const useStyles = createStyles((theme) => ({
     opacity: 0.7,
     fontWeight: 700,
     textTransform: "uppercase",
+  },
+
+  mediaCard: {
+    margin: "auto",
+    [`@media (min-width:${theme.breakpoints.md})`]: {
+      margin: 0,
+    },
+  },
+
+  grid: {
+    paddingTop: theme.spacing.lg,
   },
 }));
 
@@ -128,31 +140,104 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                   </Flex>
                 </Paper>
                 <Divider my="md" />
-                <Grid grow={false} columns={4}>
-                  {community.medias.map((m) => {
-                    return (
-                      <Grid.Col sm={2} lg={1} key={m.id}>
-                        <MediaImageCard
-                          component="button"
-                          key={m.id}
-                          image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.posterPath}`}
-                        >
-                          <MediaImageCardHeader className={classes.cardHeader}>
-                            <>
-                              <Text align="left" className={classes.date} size="xs">
-                                {format("yyyy/MM/dd", new Date(m.createdAt))}
-                              </Text>
-                              <Title order={3} align="left">
-                                {m.title}
-                              </Title>
-                            </>
-                          </MediaImageCardHeader>
-                          <MediaImageCardFooter>hi</MediaImageCardFooter>
-                        </MediaImageCard>
-                      </Grid.Col>
-                    );
-                  })}
-                </Grid>
+                <Tabs
+                  defaultValue="watched"
+                  keepMounted={false}
+                >
+                  <Tabs.List>
+                    <Tabs.Tab value="watched">Watched</Tabs.Tab>
+                    <Tabs.Tab value="queue">Queue</Tabs.Tab>
+                  </Tabs.List>
+
+                  <Tabs.Panel value="watched">
+                    <Grid
+                      grow={false}
+                      columns={4}
+                      gutter="sm"
+                      className={classes.grid}
+                    >
+                      {community.medias
+                        .filter((m) => m.watched)
+                        .map((m) => {
+                          return (
+                            <Grid.Col sm={2} lg={1} key={m.id}>
+                              <MediaImageCard
+                                component="button"
+                                key={m.id}
+                                image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.posterPath}`}
+                                className={classes.mediaCard}
+                              >
+                                <MediaImageCardHeader
+                                  className={classes.cardHeader}
+                                >
+                                  <>
+                                    <Text
+                                      align="left"
+                                      className={classes.date}
+                                      size="xs"
+                                    >
+                                      {format(
+                                        "yyyy/MM/dd",
+                                        new Date(m.createdAt)
+                                      )}
+                                    </Text>
+                                    <Title order={3} align="left">
+                                      {m.title}
+                                    </Title>
+                                  </>
+                                </MediaImageCardHeader>
+                                <MediaImageCardFooter>hi</MediaImageCardFooter>
+                              </MediaImageCard>
+                            </Grid.Col>
+                          );
+                        })}
+                    </Grid>
+                  </Tabs.Panel>
+                  <Tabs.Panel value="queue">
+                    <Grid grow={false} columns={4} gutter="sm">
+                      {community.medias
+                        .filter((m) => !m.watched)
+                        .map((m) => {
+                          return (
+                            <Grid.Col
+                              sm={2}
+                              lg={1}
+                              key={m.id}
+                              className={classes.grid}
+                            >
+                              <MediaImageCard
+                                component="button"
+                                key={m.id}
+                                image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.posterPath}`}
+                                className={classes.mediaCard}
+                              >
+                                <MediaImageCardHeader
+                                  className={classes.cardHeader}
+                                >
+                                  <>
+                                    <Text
+                                      align="left"
+                                      className={classes.date}
+                                      size="xs"
+                                    >
+                                      {format(
+                                        "yyyy/MM/dd",
+                                        new Date(m.createdAt)
+                                      )}
+                                    </Text>
+                                    <Title order={3} align="left">
+                                      {m.title}
+                                    </Title>
+                                  </>
+                                </MediaImageCardHeader>
+                                <MediaImageCardFooter>hi</MediaImageCardFooter>
+                              </MediaImageCard>
+                            </Grid.Col>
+                          );
+                        })}
+                    </Grid>
+                  </Tabs.Panel>
+                </Tabs>
               </>
             )}
           </>
@@ -224,7 +309,6 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
           },
         };
       }
-      console.log(community);
       return { props: { community: JSON.parse(JSON.stringify(community)) } };
     } catch (error) {
       // TODO: set up proper errors
