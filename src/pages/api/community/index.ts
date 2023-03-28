@@ -76,7 +76,7 @@ export default async function handler(
           });
         }
       case "GET":
-        res.status(501);
+        return getCommunities(req, res, session!.user!.email as string);
       default:
         res.setHeader("Allow", ["GET", "POST"]);
         return res.status(405).end(`Method ${method} Not Allowed`);
@@ -88,3 +88,42 @@ export default async function handler(
 
   res.end();
 }
+
+const getCommunities = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  email: string
+) => {
+  try {
+    const communities = await prisma.community.findMany({
+      where: {
+        members: {
+          some: {
+            email: email,
+          },
+        },
+      },
+      include: {
+        members: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        communities: JSON.parse(JSON.stringify(communities)),
+      },
+    });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send({
+      status: "error",
+      message: "could not find communities",
+    });
+  }
+};
