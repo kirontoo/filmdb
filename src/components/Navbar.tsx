@@ -15,7 +15,7 @@ import {
 import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
-import { LoginBtn } from ".";
+import { LoginBtn, ToggleDarkTheme } from ".";
 import { useSession } from "next-auth/react";
 
 const useStyles = createStyles((theme) => ({
@@ -166,6 +166,8 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           )}
 
           <LoginBtn />
+
+          <ToggleDarkTheme/>
         </Group>
 
         <Burger

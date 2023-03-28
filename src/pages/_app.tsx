@@ -2,14 +2,28 @@ import "@/styles/globals.css";
 
 import { AppProps } from "next/app";
 import Head from "next/head";
-import { MantineProvider } from "@mantine/core";
+import {
+  MantineProvider,
+  ColorSchemeProvider,
+  ColorScheme,
+} from "@mantine/core";
 import { MediaProvider } from "@/context/MediaProvider";
 
 import { SessionProvider } from "next-auth/react";
 import { Layout } from "@/components";
+import { useLocalStorage } from "@mantine/hooks";
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
+
+  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+    key: "mantine-color-scheme",
+    defaultValue: "light",
+    getInitialValueInEffect: true,
+  });
+
+  const toggleColorScheme = (value?: ColorScheme) =>
+    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
 
   return (
     <>
@@ -24,13 +38,22 @@ export default function App(props: AppProps) {
       </Head>
 
       <SessionProvider session={pageProps.session}>
-        <MantineProvider withGlobalStyles withNormalizeCSS>
-          <MediaProvider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </MediaProvider>
-        </MantineProvider>
+        <ColorSchemeProvider
+          colorScheme={colorScheme}
+          toggleColorScheme={toggleColorScheme}
+        >
+          <MantineProvider
+            theme={{ colorScheme }}
+            withGlobalStyles
+            withNormalizeCSS
+          >
+            <MediaProvider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </MediaProvider>
+          </MantineProvider>
+        </ColorSchemeProvider>
       </SessionProvider>
     </>
   );
