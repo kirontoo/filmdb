@@ -34,6 +34,9 @@ const useStyles = createStyles((theme) => ({
     maxWidth: "350px",
     width: "100%",
     margin: "auto",
+    [`@media (min-width:${theme.breakpoints.md})`]: {
+      margin: 0,
+    },
   },
 }));
 
@@ -47,13 +50,18 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
   const { classes } = useStyles();
   const { addToWatchedMedia } = useMediaContext();
 
-  const addToWatchedList = async (media: MediaType, communityId: string) => {
+  const addToList = async (
+    media: MediaType,
+    communityId: string,
+    watched: boolean
+  ) => {
     const body = {
       ...media,
       tmdbId: media.id,
       mediaType: media.media_type,
-      title: media.title ?? media.name,
-      watched: true,
+      title: media.title ?? media.name ?? media.original_title,
+      watched,
+      posterPath: media.poster_path,
     };
 
     const res = await fetch(`/api/community/${communityId}`, {
@@ -69,8 +77,6 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
     }
   };
   const { status } = useSession();
-
-  const addToQueue = (media: MediaType) => {};
 
   return (
     <>
@@ -102,36 +108,54 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
                   {media?.release_date ?? "Release Date: N/A"}
                 </Text>
                 <Text component="p">{media?.overview}</Text>
-                {status == "authenticated" && (
+                {status == "authenticated" && communities && (
                   <Flex gap="sm">
-                    <Button
-                      className={classes.addBtn}
-                      variant="subtle"
-                      onClick={() => addToQueue(media)}
+                    <Menu
+                      shadow="md"
+                      width={200}
+                      trigger="hover"
+                      position="bottom-start"
                     >
-                      Add to queue
-                    </Button>
-                    {communities && (
-                      <Menu shadow="md" width={200} trigger="hover">
-                        <Menu.Target>
-                          <Button className={classes.addBtn}>
-                            Add to watchedlist
-                          </Button>
-                        </Menu.Target>
+                      <Menu.Target>
+                        <Button className={classes.addBtn}>Add to queue</Button>
+                      </Menu.Target>
 
-                        <Menu.Dropdown>
-                          <Menu.Label>Your Communities</Menu.Label>
-                          {communities.map((c) => (
-                            <Menu.Item
-                              key={c.id}
-                              onClick={() => addToWatchedList(media, c.id)}
-                            >
-                              {c.name}
-                            </Menu.Item>
-                          ))}
-                        </Menu.Dropdown>
-                      </Menu>
-                    )}
+                      <Menu.Dropdown>
+                        <Menu.Label>Your Communities</Menu.Label>
+                        {communities.map((c) => (
+                          <Menu.Item
+                            key={c.id}
+                            onClick={() => addToList(media, c.id, false)}
+                          >
+                            {c.name}
+                          </Menu.Item>
+                        ))}
+                      </Menu.Dropdown>
+                    </Menu>
+                    <Menu
+                      shadow="md"
+                      width={200}
+                      trigger="hover"
+                      position="bottom-start"
+                    >
+                      <Menu.Target>
+                        <Button className={classes.addBtn}>
+                          Add to watchedlist
+                        </Button>
+                      </Menu.Target>
+
+                      <Menu.Dropdown>
+                        <Menu.Label>Your Communities</Menu.Label>
+                        {communities.map((c) => (
+                          <Menu.Item
+                            key={c.id}
+                            onClick={() => addToList(media, c.id, true)}
+                          >
+                            {c.name}
+                          </Menu.Item>
+                        ))}
+                      </Menu.Dropdown>
+                    </Menu>
                   </Flex>
                 )}
               </Stack>
