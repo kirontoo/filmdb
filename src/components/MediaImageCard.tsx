@@ -79,6 +79,8 @@ const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
   }
 );
 
+_MediaImageCard.displayName = '_MediaImageCard';
+
 export function MediaImageCardHeader({
   children,
   className,
