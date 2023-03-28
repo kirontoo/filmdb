@@ -25,6 +25,7 @@ const useStyles = createStyles((theme) => ({
       transform: "scale(1.05)",
     },
     minWidth: rem(300),
+    border: "none",
   },
 
   image: {
@@ -79,7 +80,7 @@ const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
   }
 );
 
-_MediaImageCard.displayName = '_MediaImageCard';
+_MediaImageCard.displayName = "_MediaImageCard";
 
 export function MediaImageCardHeader({
   children,
