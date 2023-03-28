@@ -86,7 +86,7 @@ export default function Home() {
                 <Grid.Col sm={2} lg={1} key={m.id}>
                   <MediaImageCard
                     component={Link}
-                    href={`/media/${m.media_type}/${m.id}`}
+                    href={`/media/movie/${m.id}`}
                     image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
                   >
                     <MediaImageCardHeader>
