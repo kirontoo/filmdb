@@ -25,6 +25,7 @@ const useStyles = createStyles((theme) => ({
       boxShadow: theme.shadows.md,
       transform: "scale(1.02)",
     },
+    color: "black",
   },
   title: {
     marginBottom: rem(16),
