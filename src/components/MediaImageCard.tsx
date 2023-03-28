@@ -24,7 +24,7 @@ const useStyles = createStyles((theme) => ({
     [`&:hover .${getStylesRef("image")}`]: {
       transform: "scale(1.05)",
     },
-    minWidth: rem(300),
+    width: rem(300),
     border: "none",
   },
 
