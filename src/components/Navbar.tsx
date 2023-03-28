@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
+  Center,
+  Menu,
   Button,
   createStyles,
   Header,
@@ -12,11 +14,17 @@ import {
   ActionIcon,
   rem,
 } from "@mantine/core";
-import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
+import {
+  IconSearch,
+  IconArrowRight,
+  IconArrowLeft,
+  IconChevronDown,
+} from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
 import { LoginBtn, ToggleDarkTheme } from ".";
 import { useSession } from "next-auth/react";
+import { Community } from "@prisma/client";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -69,6 +77,9 @@ const useStyles = createStyles((theme) => ({
         .color,
     },
   },
+  linkLabel: {
+    marginRight: rem(5),
+  },
 
   search: {
     [theme.fn.smallerThan("xs")]: {
@@ -89,6 +100,11 @@ interface HeaderSimpleProps {
   links?: NavLinkProp[];
 }
 
+interface CommunityLink {
+  name: string;
+  slug: string;
+}
+
 export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
   const [opened, { toggle }] = useDisclosure(false);
@@ -98,8 +114,23 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   const { classes, cx } = useStyles();
   const router = useRouter();
   const { data: session } = useSession();
+  const [communities, setCommunities] = useState<CommunityLink[]>([]);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let res = await fetch("/api/community");
+        let data = await res.json();
+        let c = data.data.communities.map((c: Community) => ({
+          name: c.name,
+          slug: c.slug,
+        }));
+        setCommunities(c);
+      } catch (e) { setCommunities([])}
+    })();
+  }, [session]);
 
   const searchMedia = (value: string) => {
     if (value !== "") {
@@ -130,6 +161,30 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           <Link href="/">FilmDB</Link>
           <Group spacing={5} className={classes.links}>
             {items}
+            {session && (
+              <Menu trigger="hover" transitionProps={{ exitDuration: 0 }}>
+                <Menu.Target>
+                  <Link href="/community" className={classes.link}>
+                    <Center>
+                      <span className={classes.linkLabel}>community</span>
+                      <IconChevronDown size="0.9rem" stroke={1.5} />
+                    </Center>
+                  </Link>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Your Communities</Menu.Label>
+                  {communities.map((c) => (
+                    <Menu.Item
+                      key={c.slug}
+                      component={Link}
+                      href={`/community/${c.slug}`}
+                    >
+                      {c.name}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+            )}
           </Group>
         </Group>
         <Group>
@@ -167,7 +222,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
 
           <LoginBtn />
 
-          <ToggleDarkTheme/>
+          <ToggleDarkTheme />
         </Group>
 
         <Burger
