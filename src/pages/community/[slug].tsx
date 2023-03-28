@@ -141,58 +141,60 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                       </Stack>
                     </Stack>
 
-                    <Card
-                      withBorder
-                      radius="md"
-                      sx={(theme) => ({
-                        backgroundColor:
-                          theme.colorScheme === "dark"
-                            ? theme.colors.dark[7]
-                            : theme.white,
-                      })}
-                    >
-                      <Flex justify="space-between" align="center" gap="md">
-                        <Stack spacing={0}>
-                          <Text
-                            fz="xs"
-                            tt="uppercase"
-                            fw={700}
-                            c="dimmed"
-                            component="span"
-                          >
-                            Invite Code
-                          </Text>
-                          <Text fz="xl" fw={500} component="span">
-                            {community.inviteCode}
-                          </Text>
-                        </Stack>
-                        <CopyButton
-                          value={`${origin}/community/join?code=${community.inviteCode}`}
-                          timeout={2000}
-                        >
-                          {({ copied, copy }) => (
-                            <Tooltip
-                              label={copied ? "Copied" : "Copy"}
-                              withArrow
-                              withinPortal
+                    <div>
+                      <Card
+                        withBorder
+                        radius="md"
+                        sx={(theme) => ({
+                          backgroundColor:
+                            theme.colorScheme === "dark"
+                              ? theme.colors.dark[7]
+                              : theme.white,
+                        })}
+                      >
+                        <Flex justify="space-between" align="center" gap="md">
+                          <Stack spacing={0}>
+                            <Text
+                              fz="xs"
+                              tt="uppercase"
+                              fw={700}
+                              c="dimmed"
+                              component="span"
                             >
-                              <ActionIcon
-                                color={copied ? "green" : "blue"}
-                                onClick={copy}
-                                size="lg"
-                                variant="subtle"
+                              Invite Code
+                            </Text>
+                            <Text fz="xl" fw={500} component="span">
+                              {community.inviteCode}
+                            </Text>
+                          </Stack>
+                          <CopyButton
+                            value={`${origin}/community/join?code=${community.inviteCode}`}
+                            timeout={2000}
+                          >
+                            {({ copied, copy }) => (
+                              <Tooltip
+                                label={copied ? "Copied" : "Copy"}
+                                withArrow
+                                withinPortal
                               >
-                                {copied ? (
-                                  <IconCheck size="1.5rem" />
-                                ) : (
-                                  <IconCopy size="1.5rem" />
-                                )}
-                              </ActionIcon>
-                            </Tooltip>
-                          )}
-                        </CopyButton>
-                      </Flex>
-                    </Card>
+                                <ActionIcon
+                                  color={copied ? "green" : "blue"}
+                                  onClick={copy}
+                                  size="lg"
+                                  variant="subtle"
+                                >
+                                  {copied ? (
+                                    <IconCheck size="1.5rem" />
+                                  ) : (
+                                    <IconCopy size="1.5rem" />
+                                  )}
+                                </ActionIcon>
+                              </Tooltip>
+                            )}
+                          </CopyButton>
+                        </Flex>
+                      </Card>
+                    </div>
                   </Flex>
                 </Paper>
 
