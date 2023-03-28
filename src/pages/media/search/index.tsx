@@ -54,7 +54,6 @@ const useStyles = createStyles((theme) => ({
 
 function SearchMedia({ medias, message }: SearchMediaProps) {
   const { classes } = useStyles();
-  console.log(medias)
   return (
     <>
       <Container size="xl">
