@@ -53,18 +53,19 @@ const useStyles = createStyles((theme) => ({
 interface MediaImageCardProps {
   image: string;
   children: ReactNode;
+  className?: any;
 }
 
 const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
-  ({ image, children, ...others }, ref) => {
-    const { classes } = useStyles();
+  ({ image, children, className, ...others }, ref) => {
+    const { classes, cx } = useStyles();
 
     return (
       <Card
         ref={ref}
         p="lg"
         shadow="lg"
-        className={classes.card}
+        className={cx(classes.card, className)}
         radius="md"
         component="div"
         {...others}
