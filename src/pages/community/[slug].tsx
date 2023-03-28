@@ -1,13 +1,15 @@
 import {
+  Avatar,
+  ActionIcon,
+  CopyButton,
+  Tooltip,
   Tabs,
   Container,
   Grid,
   LoadingOverlay,
   Title,
   Paper,
-  Button,
   Flex,
-  rem,
   Card,
   Text,
   Stack,
@@ -21,9 +23,9 @@ import {
   MediaImageCardHeader,
   MediaImageCardFooter,
 } from "@/components";
-import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import { buildTMDBImageURL } from "@/lib/tmdb";
 import { useState } from "react";
-import { useClipboard, useDisclosure } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import { Community, Media } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
@@ -32,6 +34,7 @@ import { IconCopy, IconCheck } from "@tabler/icons-react";
 
 type CommunityWithMedia = {
   medias: Media[];
+  members: { name: string; image: string }[];
 } & Community;
 
 interface CommunityDashboardProps {
@@ -64,7 +67,6 @@ const useStyles = createStyles((theme) => ({
 function CommunityDashboard({ community }: CommunityDashboardProps) {
   const [visible, handlers] = useDisclosure(false);
   const [isLoading, setLoading] = useState(false);
-  const clipboard = useClipboard();
   const { classes } = useStyles();
 
   return (
@@ -85,11 +87,63 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                     <Stack spacing="sm">
                       <Title>{community.name}</Title>
                       <Text component="p">{community.description}</Text>
+                      <Stack spacing={0}>
+                        <Text
+                          fz="xs"
+                          tt="uppercase"
+                          fw={700}
+                          c="dimmed"
+                          component="span"
+                        >
+                          members
+                        </Text>
+                        <Tooltip.Group openDelay={300} closeDelay={100}>
+                          <Avatar.Group spacing="sm">
+                            <>
+                              {community.members.length < 5
+                                ? community.members.map((m) => (
+                                    <Tooltip
+                                      label={m.name}
+                                      withArrow
+                                      key={m.name}
+                                    >
+                                      <Avatar
+                                        src={m.image ?? "image.png"}
+                                        radius="xl"
+                                      />
+                                    </Tooltip>
+                                  ))
+                                : community.members
+                                    .slice(
+                                      0,
+                                      Math.min(4, community.members.length)
+                                    )
+                                    .map((m) => {
+                                      <Tooltip
+                                        label={m.name}
+                                        withArrow
+                                        key={m.name}
+                                      >
+                                        <Avatar
+                                          src={m.image ?? "image.png"}
+                                          radius="xl"
+                                        />
+                                      </Tooltip>;
+                                    })}
+                              {community.members.length > 4 && (
+                                <Avatar radius="xl">
+                                  +{community.members.length - 4}
+                                </Avatar>
+                              )}
+                            </>
+                          </Avatar.Group>
+                        </Tooltip.Group>
+                      </Stack>
                     </Stack>
+
                     <Card
                       withBorder
                       radius="md"
-                      padding="xl"
                       sx={(theme) => ({
                         backgroundColor:
                           theme.colorScheme === "dark"
@@ -98,7 +152,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                       })}
                     >
                       <Flex justify="space-between" align="center" gap="md">
-                        <Stack spacing="xs">
+                        <Stack spacing={0}>
                           <Text
                             fz="xs"
                             tt="uppercase"
@@ -112,38 +166,39 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                             {community.inviteCode}
                           </Text>
                         </Stack>
-                        <Button
-                          variant="light"
-                          rightIcon={
-                            clipboard.copied ? (
-                              <IconCheck size="1.2rem" stroke={1.5} />
-                            ) : (
-                              <IconCopy size="1.2rem" stroke={1.5} />
-                            )
-                          }
-                          radius="xl"
-                          size="md"
-                          styles={{
-                            root: { paddingRight: rem(14), height: rem(48) },
-                            rightIcon: { marginLeft: rem(22) },
-                          }}
-                          onClick={() =>
-                            clipboard.copy(
-                              `${window.location.host}/community/join?code=${community.inviteCode}`
-                            )
-                          }
+                        <CopyButton
+                          value={`${origin}/community/join?code=${community.inviteCode}`}
+                          timeout={2000}
                         >
-                          Copy invite link to clipboard
-                        </Button>
+                          {({ copied, copy }) => (
+                            <Tooltip
+                              label={copied ? "Copied" : "Copy"}
+                              withArrow
+                              withinPortal
+                            >
+                              <ActionIcon
+                                color={copied ? "green" : "blue"}
+                                onClick={copy}
+                                size="lg"
+                                variant="subtle"
+                              >
+                                {copied ? (
+                                  <IconCheck size="1.5rem" />
+                                ) : (
+                                  <IconCopy size="1.5rem" />
+                                )}
+                              </ActionIcon>
+                            </Tooltip>
+                          )}
+                        </CopyButton>
                       </Flex>
                     </Card>
                   </Flex>
                 </Paper>
+
                 <Divider my="md" />
-                <Tabs
-                  defaultValue="watched"
-                  keepMounted={false}
-                >
+
+                <Tabs defaultValue="watched" keepMounted={false}>
                   <Tabs.List>
                     <Tabs.Tab value="watched">Watched</Tabs.Tab>
                     <Tabs.Tab value="queue">Queue</Tabs.Tab>
@@ -164,7 +219,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                               <MediaImageCard
                                 component="button"
                                 key={m.id}
-                                image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.posterPath}`}
+                                image={buildTMDBImageURL(m.posterPath)}
                                 className={classes.mediaCard}
                               >
                                 <MediaImageCardHeader
@@ -193,6 +248,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                         })}
                     </Grid>
                   </Tabs.Panel>
+
                   <Tabs.Panel value="queue">
                     <Grid grow={false} columns={4} gutter="sm">
                       {community.medias
@@ -208,7 +264,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                               <MediaImageCard
                                 component="button"
                                 key={m.id}
-                                image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.posterPath}`}
+                                image={buildTMDBImageURL(m.posterPath)}
                                 className={classes.mediaCard}
                               >
                                 <MediaImageCardHeader
