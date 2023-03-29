@@ -12,6 +12,8 @@ import { MediaProvider } from "@/context/MediaProvider";
 import { SessionProvider } from "next-auth/react";
 import { Layout } from "@/components";
 import { useLocalStorage } from "@mantine/hooks";
+import { ModalsProvider } from "@mantine/modals";
+import { CommunityFormModal } from "@/components";
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
@@ -24,6 +26,10 @@ export default function App(props: AppProps) {
 
   const toggleColorScheme = (value?: ColorScheme) =>
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
+
+  const modals = {
+    communityForm: CommunityFormModal,
+  };
 
   return (
     <>
@@ -47,11 +53,13 @@ export default function App(props: AppProps) {
             withGlobalStyles
             withNormalizeCSS
           >
-            <MediaProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </MediaProvider>
+            <ModalsProvider modals={modals}>
+              <MediaProvider>
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </MediaProvider>
+            </ModalsProvider>
           </MantineProvider>
         </ColorSchemeProvider>
       </SessionProvider>

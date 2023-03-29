@@ -1,22 +1,24 @@
 import {
-  Avatar,
   ActionIcon,
-  CopyButton,
-  Tooltip,
-  Tabs,
+  Avatar,
+  Card,
   Container,
+  CopyButton,
+  Divider,
+  Flex,
   Grid,
   LoadingOverlay,
-  Title,
   Paper,
-  Flex,
-  Card,
-  Text,
   Stack,
-  Divider,
+  Tabs,
+  Text,
+  Title,
+  Tooltip,
   createStyles,
+  Button,
 } from "@mantine/core";
 import { GetServerSidePropsContext } from "next";
+import Head from "next/head";
 import format from "date-format";
 import {
   MediaImageCard,
@@ -30,7 +32,8 @@ import { Community, Media } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
 import prisma from "@/lib/prismadb";
-import { IconCopy, IconCheck } from "@tabler/icons-react";
+import { IconCopy, IconCheck, IconEdit } from "@tabler/icons-react";
+import { modals } from "@mantine/modals";
 
 type CommunityWithMedia = {
   medias: Media[];
@@ -71,6 +74,9 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
 
   return (
     <>
+      <Head>
+        <title>FilmDB | {`${community && community.name}`}</title>
+      </Head>
       <Container size="xl">
         {isLoading ? (
           <LoadingOverlay visible={visible} overlayBlur={2} />
@@ -102,6 +108,23 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                             <>
                               {community.members.length < 5
                                 ? community.members.map((m) => (
+                                  <Tooltip
+                                    label={m.name}
+                                    withArrow
+                                    key={m.name}
+                                  >
+                                    <Avatar
+                                      src={m.image ?? "image.png"}
+                                      radius="xl"
+                                    />
+                                  </Tooltip>
+                                ))
+                                : community.members
+                                  .slice(
+                                    0,
+                                    Math.min(4, community.members.length)
+                                  )
+                                  .map((m) => {
                                     <Tooltip
                                       label={m.name}
                                       withArrow
@@ -111,25 +134,8 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                         src={m.image ?? "image.png"}
                                         radius="xl"
                                       />
-                                    </Tooltip>
-                                  ))
-                                : community.members
-                                    .slice(
-                                      0,
-                                      Math.min(4, community.members.length)
-                                    )
-                                    .map((m) => {
-                                      <Tooltip
-                                        label={m.name}
-                                        withArrow
-                                        key={m.name}
-                                      >
-                                        <Avatar
-                                          src={m.image ?? "image.png"}
-                                          radius="xl"
-                                        />
-                                      </Tooltip>;
-                                    })}
+                                    </Tooltip>;
+                                  })}
                               {community.members.length > 4 && (
                                 <Avatar radius="xl">
                                   +{community.members.length - 4}
@@ -141,7 +147,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                       </Stack>
                     </Stack>
 
-                    <div>
+                    <Stack spacing="sm">
                       <Card
                         withBorder
                         radius="md"
@@ -194,7 +200,25 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                           </CopyButton>
                         </Flex>
                       </Card>
-                    </div>
+                      <Button
+                        leftIcon={<IconEdit size="1rem" />}
+                        variant="light"
+                        onClick={() => {
+                          modals.openContextModal({
+                            modal: "communityForm",
+                            title: "Edit Community",
+                            size: 'md',
+                            innerProps: {
+                              name: community.name,
+                              description: community.description ?? "",
+                              communityId: community.id
+                            },
+                          });
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </Stack>
                   </Flex>
                 </Paper>
 
