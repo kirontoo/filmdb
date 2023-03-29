@@ -6,6 +6,7 @@ specifiers:
   '@mantine/core': ^6.0.0
   '@mantine/form': ^6.0.2
   '@mantine/hooks': ^6.0.0
+  '@mantine/modals': ^6.0.5
   '@mantine/next': ^6.0.0
   '@next-auth/prisma-adapter': ^1.0.5
   '@prisma/client': ^4.11.0
@@ -31,6 +32,7 @@ dependencies:
   '@mantine/core': 6.0.0_2anhyhi6fovdpc2mtkpggnnsdu
   '@mantine/form': 6.0.2_react@18.2.0
   '@mantine/hooks': 6.0.0_react@18.2.0
+  '@mantine/modals': 6.0.5_uziugpv5zwkk3pqsn64qbjkxrm
   '@mantine/next': 6.0.0_a7hn2ezcj5vhoyhoix22hbrmtq
   '@next-auth/prisma-adapter': 1.0.5_knaw3qxw4zwoiwojd3fn43zthi
   '@prisma/client': 4.11.0_prisma@4.11.0
@@ -321,6 +323,21 @@ packages:
       react: 18.2.0
     dev: false
 
+  /@mantine/modals/6.0.5_uziugpv5zwkk3pqsn64qbjkxrm:
+    resolution: {integrity: sha512-fTMpAvjFxRwcDqu/eutT0fbxofGBfzwihutISrF7TQxPOpWn7GT6k0n8P3kOvZjU2P0bbOcdfN/cQvKGbbUFAA==}
+    peerDependencies:
+      '@mantine/core': 6.0.5
+      '@mantine/hooks': 6.0.5
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    dependencies:
+      '@mantine/core': 6.0.0_2anhyhi6fovdpc2mtkpggnnsdu
+      '@mantine/hooks': 6.0.0_react@18.2.0
+      '@mantine/utils': 6.0.5_react@18.2.0
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /@mantine/next/6.0.0_a7hn2ezcj5vhoyhoix22hbrmtq:
     resolution: {integrity: sha512-hJdTi0aLJdwnjavfyxuKnpkbpAhjr4xdGBm9wIWwjHC+wdav9x4oo3/6ZO1sK1+3ENWEgU7ahyYu0fws2d0AZQ==}
     peerDependencies:
@@ -370,6 +387,14 @@ packages:
 
   /@mantine/utils/6.0.0_react@18.2.0:
     resolution: {integrity: sha512-1AalSgzINKP4uv1DBTkJe/jh6yGwC2xaCQE4Atlr2bSHiLezYFMy/deGQ8XLFFv2AL0sjvewLW4ernlFujGMZg==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+    dev: false
+
+  /@mantine/utils/6.0.5_react@18.2.0:
+    resolution: {integrity: sha512-P2FVcBd2oZ9ANOsZUtTwJ4+FV6NgCRE5B7trsT8gEFUbMeQLietcsZEgAe5xhzEu9Afp5V8X8a+E9yx1blMpNg==}
     peerDependencies:
       react: '>=16.8.0'
     dependencies:
