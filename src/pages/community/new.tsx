@@ -61,7 +61,7 @@ function NewCommunity() {
     },
 
     validate: {
-      name: hasLength({ min: 4, max: 15 }, "Must be between 4-15 characters"),
+      name: hasLength({ min: 3, max: 30 }, "Must be between 3-30 characters"),
     },
   });
 
