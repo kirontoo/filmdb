@@ -36,7 +36,7 @@ export default async function handler(
               data: {
                 name,
                 createdBy: user.id,
-                description,
+                description: description ?? "",
                 inviteCode,
                 slug,
                 members: {
