@@ -1,4 +1,11 @@
-import { createStyles, Text, Button, TextInput, Textarea } from "@mantine/core";
+import {
+  createStyles,
+  Group,
+  Text,
+  Button,
+  TextInput,
+  Textarea,
+} from "@mantine/core";
 import { ContextModalProps } from "@mantine/modals";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -76,7 +83,15 @@ export default function CommunityFormModal({
           {...form.getInputProps("description")}
         />
         <Text>{error}</Text>
-        <Button type="submit">Edit</Button>
+        <Group position="right">
+          <Button
+            variant="subtle"
+            onClick={() => context.closeContextModal(id)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit">Update</Button>
+        </Group>
       </form>
     </>
   );

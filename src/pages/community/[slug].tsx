@@ -206,7 +206,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                         onClick={() => {
                           modals.openContextModal({
                             modal: "communityForm",
-                            title: "Edit Community",
+                            title: `Update ${community.name}`,
                             size: 'md',
                             innerProps: {
                               name: community.name,
@@ -216,7 +216,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                           });
                         }}
                       >
-                        Edit
+                        Update
                       </Button>
                     </Stack>
                   </Flex>
