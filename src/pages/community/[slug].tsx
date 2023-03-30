@@ -75,6 +75,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
 
   const openTransferListModal = (media: Media) =>
     modals.openConfirmModal({
+      modalId: `${media.title}-${media.id}`,
       title: media.watched
         ? `Move ${media.title} to queue`
         : `Move ${media.title} to watched`,
@@ -94,8 +95,21 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
         variant: "subtle",
         color: "dark",
       },
-      onCancel: () => console.log("Cancel"),
-      onConfirm: () => console.log("Confirmed"),
+      closeOnConfirm: false,
+      onConfirm: async () => {
+        const res = await fetch(`/api/media/${media.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            watched: !media.watched,
+          }),
+        });
+        if (res.ok) {
+          modals.close(`${media.title}-${media.id}`);
+        }
+      },
     });
 
   return (
@@ -134,6 +148,23 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                             <>
                               {community.members.length < 5
                                 ? community.members.map((m) => (
+                                  <Tooltip
+                                    label={m.name}
+                                    withArrow
+                                    key={m.name}
+                                  >
+                                    <Avatar
+                                      src={m.image ?? "image.png"}
+                                      radius="xl"
+                                    />
+                                  </Tooltip>
+                                ))
+                                : community.members
+                                  .slice(
+                                    0,
+                                    Math.min(4, community.members.length)
+                                  )
+                                  .map((m) => {
                                     <Tooltip
                                       label={m.name}
                                       withArrow
@@ -143,25 +174,8 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                         src={m.image ?? "image.png"}
                                         radius="xl"
                                       />
-                                    </Tooltip>
-                                  ))
-                                : community.members
-                                    .slice(
-                                      0,
-                                      Math.min(4, community.members.length)
-                                    )
-                                    .map((m) => {
-                                      <Tooltip
-                                        label={m.name}
-                                        withArrow
-                                        key={m.name}
-                                      >
-                                        <Avatar
-                                          src={m.image ?? "image.png"}
-                                          radius="xl"
-                                        />
-                                      </Tooltip>;
-                                    })}
+                                    </Tooltip>;
+                                  })}
                               {community.members.length > 4 && (
                                 <Avatar radius="xl">
                                   +{community.members.length - 4}
