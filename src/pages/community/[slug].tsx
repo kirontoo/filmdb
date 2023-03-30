@@ -60,6 +60,7 @@ const useStyles = createStyles((theme) => ({
     [`@media (min-width:${theme.breakpoints.md})`]: {
       margin: 0,
     },
+    cursor: "pointer",
   },
 
   grid: {
@@ -71,6 +72,31 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
   const [visible, handlers] = useDisclosure(false);
   const [isLoading, setLoading] = useState(false);
   const { classes } = useStyles();
+
+  const openTransferListModal = (media: Media) =>
+    modals.openConfirmModal({
+      title: media.watched
+        ? `Move ${media.title} to queue`
+        : `Move ${media.title} to watched`,
+      children: (
+        <Text size="sm">
+          Click "confirm" to move <strong>{media.title}</strong> to{" "}
+          {media.watched ? "queue" : "watched"} list
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      confirmProps: {
+        uppercase: true,
+      },
+      cancelProps: {
+        uppercase: true,
+        variant: "subtle",
+        color: "dark",
+      },
+      onCancel: () => console.log("Cancel"),
+      onConfirm: () => console.log("Confirmed"),
+    });
 
   return (
     <>
@@ -108,23 +134,6 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                             <>
                               {community.members.length < 5
                                 ? community.members.map((m) => (
-                                  <Tooltip
-                                    label={m.name}
-                                    withArrow
-                                    key={m.name}
-                                  >
-                                    <Avatar
-                                      src={m.image ?? "image.png"}
-                                      radius="xl"
-                                    />
-                                  </Tooltip>
-                                ))
-                                : community.members
-                                  .slice(
-                                    0,
-                                    Math.min(4, community.members.length)
-                                  )
-                                  .map((m) => {
                                     <Tooltip
                                       label={m.name}
                                       withArrow
@@ -134,8 +143,25 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                         src={m.image ?? "image.png"}
                                         radius="xl"
                                       />
-                                    </Tooltip>;
-                                  })}
+                                    </Tooltip>
+                                  ))
+                                : community.members
+                                    .slice(
+                                      0,
+                                      Math.min(4, community.members.length)
+                                    )
+                                    .map((m) => {
+                                      <Tooltip
+                                        label={m.name}
+                                        withArrow
+                                        key={m.name}
+                                      >
+                                        <Avatar
+                                          src={m.image ?? "image.png"}
+                                          radius="xl"
+                                        />
+                                      </Tooltip>;
+                                    })}
                               {community.members.length > 4 && (
                                 <Avatar radius="xl">
                                   +{community.members.length - 4}
@@ -207,11 +233,11 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                           modals.openContextModal({
                             modal: "communityForm",
                             title: `Update ${community.name}`,
-                            size: 'md',
+                            size: "md",
                             innerProps: {
                               name: community.name,
                               description: community.description ?? "",
-                              communityId: community.id
+                              communityId: community.id,
                             },
                           });
                         }}
@@ -247,6 +273,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                 key={m.id}
                                 image={buildTMDBImageURL(m.posterPath)}
                                 className={classes.mediaCard}
+                                onClick={() => openTransferListModal(m)}
                               >
                                 <MediaImageCardHeader
                                   className={classes.cardHeader}
@@ -292,6 +319,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                 key={m.id}
                                 image={buildTMDBImageURL(m.posterPath)}
                                 className={classes.mediaCard}
+                                onClick={() => openTransferListModal(m)}
                               >
                                 <MediaImageCardHeader
                                   className={classes.cardHeader}
