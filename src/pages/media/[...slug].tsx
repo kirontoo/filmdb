@@ -105,7 +105,7 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
                   {media?.title ?? media?.name}
                 </Text>
                 <Text component="h3">
-                  {media?.release_date ?? "Release Date: N/A"}
+                  {media?.release_date ?? media?.first_air_date ?? "Release Date: N/A"}
                 </Text>
                 <Text component="p">{media?.overview}</Text>
                 <Flex gap="sm">
