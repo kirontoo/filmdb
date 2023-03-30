@@ -75,8 +75,8 @@ model Media {
   posterPath  String?   @map("poster_path")
   rating      Float     @default(0)
   watched     Boolean   @default(false)
-  community   Community? @relation(fields: [communityId], references: [id])
-  communityId String?    @db.ObjectId
+  community   Community @relation(fields: [communityId], references: [id])
+  communityId String    @db.ObjectId
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
