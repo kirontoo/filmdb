@@ -70,7 +70,6 @@ export default async function handler(
                 data: { community },
               });
             } 
-            console.log(community)
           }
         } catch (e) {
           console.log(e);
