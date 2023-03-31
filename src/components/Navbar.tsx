@@ -24,7 +24,7 @@ import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
 import { LoginBtn, ToggleDarkTheme } from ".";
 import { useSession } from "next-auth/react";
-import { Community } from "@prisma/client";
+import { useCommunityContext } from "@/context/CommunityProvider";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -100,11 +100,6 @@ interface HeaderSimpleProps {
   links?: NavLinkProp[];
 }
 
-interface CommunityLink {
-  name: string;
-  slug: string;
-}
-
 export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
   const [opened, { toggle }] = useDisclosure(false);
@@ -114,7 +109,9 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   const { classes, cx } = useStyles();
   const router = useRouter();
   const { data: session } = useSession();
-  const [communities, setCommunities] = useState<CommunityLink[]>([]);
+  // const [communities, setCommunities] = useState<CommunityLink[]>([]);
+  const { communities, setCommunities, setCurrentCommunityIndex } =
+    useCommunityContext();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -122,13 +119,15 @@ export default function Navbar({ links }: HeaderSimpleProps) {
     (async () => {
       try {
         let res = await fetch("/api/community");
-        let data = await res.json();
-        let c = data.data.communities.map((c: Community) => ({
-          name: c.name,
-          slug: c.slug,
-        }));
-        setCommunities(c);
-      } catch (e) { setCommunities([])}
+        let { data } = await res.json();
+        setCommunities(data.communities);
+        if (data.communities.length > 0) {
+          setCurrentCommunityIndex(0);
+        }
+      } catch (e) {
+        setCommunities([]);
+        setCurrentCommunityIndex(-1);
+      }
     })();
   }, [session]);
 
@@ -146,7 +145,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
       className={cx(classes.link, {
         [classes.linkActive]: active === link.link,
       })}
-      onClick={(event) => {
+      onClick={() => {
         setActive(link.link);
       }}
     >
