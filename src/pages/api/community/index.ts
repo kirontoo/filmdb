@@ -83,7 +83,10 @@ export default async function handler(
     }
   } else {
     // Not Signed in
-    res.status(401);
+    res.status(401).send({
+      status: "error",
+      message: "user must be logged in",
+    });
   }
 
   res.end();
