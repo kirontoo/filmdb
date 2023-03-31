@@ -1,22 +1,24 @@
 import { Community } from "@prisma/client";
-import { Session } from "next-auth/core/types";
 import {
   useState,
   useContext,
   createContext,
-  useEffect,
   Dispatch,
   ReactNode,
   SetStateAction,
   useMemo,
 } from "react";
 
+type CommunityWithMembers = {
+  members: { name: string; image: string }[];
+} & Community;
+
 interface CommunityState {
-  communities: Community[];
-  currentCommunity: Community | null;
+  communities: CommunityWithMembers[];
+  currentCommunity: CommunityWithMembers | null;
   currentCommunityIndex: number;
 
-  setCommunities: Dispatch<SetStateAction<Community[]>>;
+  setCommunities: Dispatch<SetStateAction<CommunityWithMembers[]>>;
   setCurrentCommunityIndex: Dispatch<SetStateAction<number>>;
   setCurrentCommunity: (slug: string) => void;
   resetCommunityContext: () => void;
@@ -43,19 +45,27 @@ export const useCommunityContext = () => {
 };
 
 export const useCommunityProvider = (): CommunityState => {
-  const [communities, setCommunities] = useState<Community[]>([]);
+  const [communities, setCommunities] = useState<CommunityWithMembers[]>([]);
   const [currentCommunityIndex, setCurrentCommunityIndex] =
     useState<number>(-1);
 
   const setCurrentCommunity = (slug: string) => {
     const index = communities.findIndex((c) => c.slug == slug);
+    if (index === -1) {
+      throw new Error("community does not exist");
+    }
     setCurrentCommunityIndex(index);
   };
 
-  const currentCommunity = useMemo<Community | null>(() => {
+  const currentCommunity = useMemo<CommunityWithMembers | null>(() => {
     if (communities.length === 0) {
       return null;
     }
+
+    if (currentCommunityIndex === -1) {
+      return null;
+    }
+
     return communities[currentCommunityIndex];
   }, [communities]);
 
