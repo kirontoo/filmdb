@@ -29,6 +29,8 @@ export default async function handler(
     });
   }
 
+
+
   if (session) {
     // Signed in
 
@@ -120,8 +122,13 @@ export default async function handler(
           });
         }
       case "PATCH":
-          const communityId: string = Array.isArray(id) ? id[0] : id;
-        await updateCommunity(req, res, communityId, session!.user!.email as string);
+        const communityId: string = Array.isArray(id) ? id[0] : id;
+        return await updateCommunity(
+          req,
+          res,
+          communityId,
+          session!.user!.email as string
+        );
       default:
         res.setHeader("Allow", ["POST", "PATCH"]);
         return res.status(405).end(`Method ${method} Not Allowed`);
@@ -203,7 +210,7 @@ const updateCommunity = async (
 
     return res.status(500).send({
       status: "error",
-      message: "",
+      message: "could not update community",
     });
   }
 };
