@@ -17,7 +17,6 @@ import {
   createStyles,
   Button,
 } from "@mantine/core";
-import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import format from "date-format";
 import {
@@ -26,23 +25,14 @@ import {
   MediaImageCardFooter,
 } from "@/components";
 import { buildTMDBImageURL } from "@/lib/tmdb";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Community, Media } from "@prisma/client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]";
-import prisma from "@/lib/prismadb";
 import { IconCopy, IconCheck, IconEdit } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
-
-type CommunityWithMedia = {
-  medias: Media[];
-  members: { name: string; image: string }[];
-} & Community;
-
-interface CommunityDashboardProps {
-  community: CommunityWithMedia | null;
-}
+import { useCommunityContext } from "@/context/CommunityProvider";
+import { useRouter } from "next/router";
+import { useMediaContext } from "@/context/MediaProvider";
 
 const useStyles = createStyles((theme) => ({
   cardHeader: {
@@ -68,10 +58,40 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-function CommunityDashboard({ community }: CommunityDashboardProps) {
+// function CommunityDashboard({ community }: CommunityDashboardProps) {
+function CommunityDashboard() {
+  const router = useRouter();
   const [visible, handlers] = useDisclosure(false);
   const [isLoading, setLoading] = useState(false);
   const { classes } = useStyles();
+  const { currentCommunity, setCurrentCommunity } = useCommunityContext();
+  const { medias, setMedias } = useMediaContext();
+
+  useEffect(() => {
+    setLoading(true);
+    try {
+      const { slug } = router.query;
+
+      const fetchMedias = async (community: string) => {
+        const query = encodeURI(`community=${community}`);
+        const res = await fetch(`/api/media?${query}`);
+        if (res.ok) {
+          const { data } = await res.json();
+          setMedias(data.medias);
+        }
+      };
+
+      const name = Array.isArray(slug) ? slug[0] : slug;
+      if (name) {
+        fetchMedias(name);
+        setCurrentCommunity(name);
+      }
+    } catch (e) {
+      router.push("/404");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const openTransferListModal = (media: Media) =>
     modals.openConfirmModal({
@@ -115,14 +135,14 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
   return (
     <>
       <Head>
-        <title>FilmDB | {`${community && community.name}`}</title>
+        <title>FilmDB | {`${currentCommunity && currentCommunity.name}`}</title>
       </Head>
       <Container size="xl">
         {isLoading ? (
           <LoadingOverlay visible={visible} overlayBlur={2} />
         ) : (
           <>
-            {community && (
+            {currentCommunity && (
               <>
                 <Paper>
                   <Flex
@@ -131,8 +151,8 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                     gap="md"
                   >
                     <Stack spacing="sm">
-                      <Title>{community.name}</Title>
-                      <Text component="p">{community.description}</Text>
+                      <Title>{currentCommunity.name}</Title>
+                      <Text component="p">{currentCommunity.description}</Text>
                       <Stack spacing={0}>
                         <Text
                           fz="xs"
@@ -146,8 +166,8 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                         <Tooltip.Group openDelay={300} closeDelay={100}>
                           <Avatar.Group spacing="sm">
                             <>
-                              {community.members.length < 5
-                                ? community.members.map((m) => (
+                              {currentCommunity.members.length < 5
+                                ? currentCommunity.members.map((m) => (
                                   <Tooltip
                                     label={m.name}
                                     withArrow
@@ -159,10 +179,13 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                     />
                                   </Tooltip>
                                 ))
-                                : community.members
+                                : currentCommunity.members
                                   .slice(
                                     0,
-                                    Math.min(4, community.members.length)
+                                    Math.min(
+                                      4,
+                                      currentCommunity.members.length
+                                    )
                                   )
                                   .map((m) => {
                                     <Tooltip
@@ -176,9 +199,9 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                                       />
                                     </Tooltip>;
                                   })}
-                              {community.members.length > 4 && (
+                              {currentCommunity.members.length > 4 && (
                                 <Avatar radius="xl">
-                                  +{community.members.length - 4}
+                                  +{currentCommunity.members.length - 4}
                                 </Avatar>
                               )}
                             </>
@@ -210,11 +233,11 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                               Invite Code
                             </Text>
                             <Text fz="xl" fw={500} component="span">
-                              {community.inviteCode}
+                              {currentCommunity.inviteCode}
                             </Text>
                           </Stack>
                           <CopyButton
-                            value={`${origin}/community/join?code=${community.inviteCode}`}
+                            value={`${origin}/currentCommunity/join?code=${currentCommunity.inviteCode}`}
                             timeout={2000}
                           >
                             {({ copied, copy }) => (
@@ -245,13 +268,13 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                         variant="light"
                         onClick={() => {
                           modals.openContextModal({
-                            modal: "communityForm",
-                            title: `Update ${community.name}`,
+                            modal: "currentCommunityForm",
+                            title: `Update ${currentCommunity.name}`,
                             size: "md",
                             innerProps: {
-                              name: community.name,
-                              description: community.description ?? "",
-                              communityId: community.id,
+                              name: currentCommunity.name,
+                              description: currentCommunity.description ?? "",
+                              currentCommunityId: currentCommunity.id,
                             },
                           });
                         }}
@@ -277,7 +300,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
                       gutter="sm"
                       className={classes.grid}
                     >
-                      {community.medias
+                      {medias
                         .filter((m) => m.watched)
                         .map((m) => {
                           return (
@@ -318,7 +341,7 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
 
                   <Tabs.Panel value="queue">
                     <Grid grow={false} columns={4} gutter="sm">
-                      {community.medias
+                      {medias
                         .filter((m) => !m.watched)
                         .map((m) => {
                           return (
@@ -372,80 +395,3 @@ function CommunityDashboard({ community }: CommunityDashboardProps) {
 }
 
 export default CommunityDashboard;
-
-export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  // should only be able to grab community data if you are a member of that community
-  const { req, res, query } = ctx;
-  const { slug } = query;
-
-  const name = Array.isArray(slug) ? slug[0] : slug;
-
-  const session = await getServerSession(req, res, authOptions);
-  if (session && name) {
-    try {
-      const community = await prisma.community.findFirst({
-        where: {
-          slug: name,
-          members: {
-            some: {
-              email: session!.user!.email as string,
-            },
-          },
-        },
-        include: {
-          medias: true,
-          members: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-      });
-
-      const isAMember = await prisma.user.findFirst({
-        where: {
-          email: session!.user!.email as string,
-          communities: {
-            some: {
-              slug: name,
-            },
-          },
-        },
-        select: {
-          communities: {
-            include: {
-              members: {
-                select: {
-                  name: true,
-                  image: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!isAMember) {
-        return {
-          redirect: {
-            destination: "/404",
-          },
-        };
-      }
-      return { props: { community: JSON.parse(JSON.stringify(community)) } };
-    } catch (error) {
-      // TODO: set up proper errors
-      console.log(error);
-      return {
-        props: {},
-      };
-    }
-  } else {
-    return {
-      redirect: {
-        destination: "/404",
-      },
-    };
-  }
-}
