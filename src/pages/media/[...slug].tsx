@@ -15,7 +15,7 @@ import { Media as MediaType } from "@/lib/types";
 import { useMediaContext } from "@/context/MediaProvider";
 import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
-import { NothingFoundBackground } from "@/components";
+import { CommunityMenu, NothingFoundBackground } from "@/components";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
 import prisma from "@/lib/prismadb";
@@ -48,7 +48,6 @@ interface MediaProps {
 
 const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
   const { classes } = useStyles();
-  const { addToWatchedMedia } = useMediaContext();
 
   const addToList = async (
     media: MediaType,
@@ -73,7 +72,7 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
     });
     const data = await res.json();
     if (res.ok) {
-      addToWatchedMedia(media);
+      // addToWatchedMedia(data.media);
     }
   };
   const { status } = useSession();
@@ -105,7 +104,9 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
                   {media?.title ?? media?.name}
                 </Text>
                 <Text component="h3">
-                  {media?.release_date ?? media?.first_air_date ?? "Release Date: N/A"}
+                  {media?.release_date ??
+                    media?.first_air_date ??
+                    "Release Date: N/A"}
                 </Text>
                 <Text component="p">{media?.overview}</Text>
                 <Flex gap="sm">
@@ -118,54 +119,18 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
                   )}
                   {status == "authenticated" && communities && (
                     <>
-                      <Menu
-                        shadow="md"
-                        width={200}
-                        trigger="hover"
-                        position="bottom-start"
+                      <CommunityMenu
+                        menuAction={(id: string) => addToList(media, id, false)}
                       >
-                        <Menu.Target>
-                          <Button className={classes.addBtn}>
-                            Add to queue
-                          </Button>
-                        </Menu.Target>
-
-                        <Menu.Dropdown>
-                          <Menu.Label>Your Communities</Menu.Label>
-                          {communities.map((c) => (
-                            <Menu.Item
-                              key={c.id}
-                              onClick={() => addToList(media, c.id, false)}
-                            >
-                              {c.name}
-                            </Menu.Item>
-                          ))}
-                        </Menu.Dropdown>
-                      </Menu>
-                      <Menu
-                        shadow="md"
-                        width={200}
-                        trigger="hover"
-                        position="bottom-start"
+                        <Button className={classes.addBtn}>Add to queue</Button>
+                      </CommunityMenu>
+                      <CommunityMenu
+                        menuAction={(id: string) => addToList(media, id, true)}
                       >
-                        <Menu.Target>
-                          <Button className={classes.addBtn}>
-                            Add to watchedlist
-                          </Button>
-                        </Menu.Target>
-
-                        <Menu.Dropdown>
-                          <Menu.Label>Your Communities</Menu.Label>
-                          {communities.map((c) => (
-                            <Menu.Item
-                              key={c.id}
-                              onClick={() => addToList(media, c.id, true)}
-                            >
-                              {c.name}
-                            </Menu.Item>
-                          ))}
-                        </Menu.Dropdown>
-                      </Menu>
+                        <Button className={classes.addBtn}>
+                          Add to watchedlist
+                        </Button>
+                      </CommunityMenu>
                     </>
                   )}
                 </Flex>
