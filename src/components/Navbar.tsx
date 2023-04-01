@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import {
   Center,
@@ -110,26 +110,9 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   const router = useRouter();
   const { data: session } = useSession();
   // const [communities, setCommunities] = useState<CommunityLink[]>([]);
-  const { communities, setCommunities, setCurrentCommunityIndex } =
-    useCommunityContext();
+  const { communities } = useCommunityContext();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  useEffect(() => {
-    (async () => {
-      try {
-        let res = await fetch("/api/community");
-        let { data } = await res.json();
-        setCommunities(data.communities);
-        if (data.communities.length > 0) {
-          setCurrentCommunityIndex(0);
-        }
-      } catch (e) {
-        setCommunities([]);
-        setCurrentCommunityIndex(-1);
-      }
-    })();
-  }, [session]);
 
   const searchMedia = (value: string) => {
     if (value !== "") {

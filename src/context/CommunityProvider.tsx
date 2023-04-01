@@ -1,5 +1,8 @@
 import { Community } from "@prisma/client";
+import { Session } from "next-auth/core/types";
+import { useSession } from "next-auth/react";
 import {
+  useEffect,
   useState,
   useContext,
   createContext,
@@ -48,6 +51,24 @@ export const useCommunityProvider = (): CommunityState => {
   const [communities, setCommunities] = useState<CommunityWithMembers[]>([]);
   const [currentCommunityIndex, setCurrentCommunityIndex] =
     useState<number>(-1);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status == "authenticated")
+      (async () => {
+        try {
+          let res = await fetch("/api/community");
+          let { data } = await res.json();
+          setCommunities(data.communities);
+          if (data.communities.length > 0) {
+            setCurrentCommunityIndex(0);
+          }
+        } catch (e) {
+          setCommunities([]);
+          setCurrentCommunityIndex(-1);
+        }
+      })();
+  }, [session]);
 
   const setCurrentCommunity = (slug: string) => {
     const index = communities.findIndex((c) => c.slug == slug);
@@ -67,7 +88,7 @@ export const useCommunityProvider = (): CommunityState => {
     }
 
     return communities[currentCommunityIndex];
-  }, [communities]);
+  }, [currentCommunityIndex]);
 
   const resetCommunityContext = () => {
     setCommunities([]);
