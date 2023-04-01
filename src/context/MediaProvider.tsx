@@ -1,3 +1,4 @@
+import { Media } from "@prisma/client";
 import {
   useState,
   useContext,
@@ -5,13 +6,13 @@ import {
   ReactNode,
   Dispatch,
   SetStateAction,
+  useMemo,
 } from "react";
-import { Media } from "@/lib/types";
 
 interface MediaState {
   medias: Media[];
   watchedMedia: Media[];
-  watchlist: Media[];
+  queuedMedia: Media[];
   setMedias: Dispatch<SetStateAction<Media[]>>;
   addToWatchedMedia: (data: Media) => void;
 }
@@ -19,7 +20,7 @@ interface MediaState {
 export const MediaContext = createContext<MediaState>({
   medias: [],
   watchedMedia: [],
-  watchlist: [],
+  queuedMedia: [],
   setMedias: () => null,
   addToWatchedMedia: (data: Media) => null,
 });
@@ -34,19 +35,25 @@ export const useMediaContext = () => {
 
 export const useMediaProvider = () => {
   const [medias, setMedias] = useState<Media[]>([]);
-  const [watchedMedia, setWatchedMedia] = useState<Media[]>([]);
-  const [watchlist, setWatchlist] = useState<Media[]>([]);
 
   const addToWatchedMedia = (data: Media) => {
-    setWatchedMedia((prev) => [...prev, data]);
-  }
+    setMedias((prev) => [...prev, data]);
+  };
+
+  const watchedMedia = useMemo<Media[]>(() => {
+    return medias.filter((m: Media) => m.watched);
+  }, [medias]);
+
+  const queuedMedia = useMemo<Media[]>(() => {
+    return medias.filter((m) => !m.watched);
+  }, [medias]);
 
   return {
     medias,
     setMedias,
-    watchlist,
+    queuedMedia,
     watchedMedia,
-    addToWatchedMedia
+    addToWatchedMedia,
   };
 };
 

@@ -65,13 +65,12 @@ function CommunityDashboard() {
   const [isLoading, setLoading] = useState(false);
   const { classes } = useStyles();
   const { currentCommunity, setCurrentCommunity } = useCommunityContext();
-  const { medias, setMedias } = useMediaContext();
+  const { setMedias, watchedMedia, queuedMedia } = useMediaContext();
+  const { slug } = router.query;
 
   useEffect(() => {
     setLoading(true);
     try {
-      const { slug } = router.query;
-
       const fetchMedias = async (community: string) => {
         const query = encodeURI(`community=${community}`);
         const res = await fetch(`/api/media?${query}`);
@@ -82,16 +81,19 @@ function CommunityDashboard() {
       };
 
       const name = Array.isArray(slug) ? slug[0] : slug;
+      // BUG: race condition, community context does not load fast enough 
+      // so on reload, there's a 404
       if (name) {
         fetchMedias(name);
         setCurrentCommunity(name);
       }
     } catch (e) {
+      console.log(e);
       router.push("/404");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [slug]);
 
   const openTransferListModal = (media: Media) =>
     modals.openConfirmModal({
@@ -300,88 +302,84 @@ function CommunityDashboard() {
                       gutter="sm"
                       className={classes.grid}
                     >
-                      {medias
-                        .filter((m) => m.watched)
-                        .map((m) => {
-                          return (
-                            <Grid.Col sm={2} lg={1} key={m.id}>
-                              <MediaImageCard
-                                component="button"
-                                key={m.id}
-                                image={buildTMDBImageURL(m.posterPath)}
-                                className={classes.mediaCard}
-                                onClick={() => openTransferListModal(m)}
+                      {watchedMedia.map((m) => {
+                        return (
+                          <Grid.Col sm={2} lg={1} key={m.id}>
+                            <MediaImageCard
+                              component="button"
+                              key={m.id}
+                              image={buildTMDBImageURL(m.posterPath)}
+                              className={classes.mediaCard}
+                              onClick={() => openTransferListModal(m)}
+                            >
+                              <MediaImageCardHeader
+                                className={classes.cardHeader}
                               >
-                                <MediaImageCardHeader
-                                  className={classes.cardHeader}
-                                >
-                                  <>
-                                    <Text
-                                      align="left"
-                                      className={classes.date}
-                                      size="xs"
-                                    >
-                                      {format(
-                                        "yyyy/MM/dd",
-                                        new Date(m.createdAt)
-                                      )}
-                                    </Text>
-                                    <Title order={3} align="left">
-                                      {m.title}
-                                    </Title>
-                                  </>
-                                </MediaImageCardHeader>
-                                <MediaImageCardFooter>hi</MediaImageCardFooter>
-                              </MediaImageCard>
-                            </Grid.Col>
-                          );
-                        })}
+                                <>
+                                  <Text
+                                    align="left"
+                                    className={classes.date}
+                                    size="xs"
+                                  >
+                                    {format(
+                                      "yyyy/MM/dd",
+                                      new Date(m.createdAt)
+                                    )}
+                                  </Text>
+                                  <Title order={3} align="left">
+                                    {m.title}
+                                  </Title>
+                                </>
+                              </MediaImageCardHeader>
+                              <MediaImageCardFooter>hi</MediaImageCardFooter>
+                            </MediaImageCard>
+                          </Grid.Col>
+                        );
+                      })}
                     </Grid>
                   </Tabs.Panel>
 
                   <Tabs.Panel value="queue">
                     <Grid grow={false} columns={4} gutter="sm">
-                      {medias
-                        .filter((m) => !m.watched)
-                        .map((m) => {
-                          return (
-                            <Grid.Col
-                              sm={2}
-                              lg={1}
+                      {queuedMedia.map((m) => {
+                        return (
+                          <Grid.Col
+                            sm={2}
+                            lg={1}
+                            key={m.id}
+                            className={classes.grid}
+                          >
+                            <MediaImageCard
+                              component="button"
                               key={m.id}
-                              className={classes.grid}
+                              image={buildTMDBImageURL(m.posterPath)}
+                              className={classes.mediaCard}
+                              onClick={() => openTransferListModal(m)}
                             >
-                              <MediaImageCard
-                                component="button"
-                                key={m.id}
-                                image={buildTMDBImageURL(m.posterPath)}
-                                className={classes.mediaCard}
-                                onClick={() => openTransferListModal(m)}
+                              <MediaImageCardHeader
+                                className={classes.cardHeader}
                               >
-                                <MediaImageCardHeader
-                                  className={classes.cardHeader}
-                                >
-                                  <>
-                                    <Text
-                                      align="left"
-                                      className={classes.date}
-                                      size="xs"
-                                    >
-                                      {format(
-                                        "yyyy/MM/dd",
-                                        new Date(m.createdAt)
-                                      )}
-                                    </Text>
-                                    <Title order={3} align="left">
-                                      {m.title}
-                                    </Title>
-                                  </>
-                                </MediaImageCardHeader>
-                                <MediaImageCardFooter>hi</MediaImageCardFooter>
-                              </MediaImageCard>
-                            </Grid.Col>
-                          );
-                        })}
+                                <>
+                                  <Text
+                                    align="left"
+                                    className={classes.date}
+                                    size="xs"
+                                  >
+                                    {format(
+                                      "yyyy/MM/dd",
+                                      new Date(m.createdAt)
+                                    )}
+                                  </Text>
+                                  <Title order={3} align="left">
+                                    {m.title}
+                                  </Title>
+                                </>
+                              </MediaImageCardHeader>
+                              <MediaImageCardFooter>hi</MediaImageCardFooter>
+                            </MediaImageCard>
+                          </Grid.Col>
+                        );
+                      })}
                     </Grid>
                   </Tabs.Panel>
                 </Tabs>
