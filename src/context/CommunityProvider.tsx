@@ -20,6 +20,7 @@ interface CommunityState {
   communities: CommunityWithMembers[];
   currentCommunity: CommunityWithMembers | null;
   currentCommunityIndex: number;
+  isFetching: boolean;
 
   setCommunities: Dispatch<SetStateAction<CommunityWithMembers[]>>;
   setCurrentCommunityIndex: Dispatch<SetStateAction<number>>;
@@ -31,6 +32,7 @@ export const CommunityContext = createContext<CommunityState>({
   communities: [],
   currentCommunity: null,
   currentCommunityIndex: -1,
+  isFetching: false,
   setCommunities: () => null,
   setCurrentCommunityIndex: () => null,
   setCurrentCommunity: () => null,
@@ -53,30 +55,27 @@ export const useCommunityProvider = (): CommunityState => {
     useState<number>(-1);
   const { status } = useSession();
   const { setLoading } = useLoadingContext();
+  const [isFetching, setIsFetching] = useState<boolean>(true);
 
   useEffect(() => {
     setLoading(true);
-    if (status == "authenticated") {
+    if (status === "authenticated") {
       (async () => {
         try {
           let res = await fetch("/api/community");
           let { data } = await res.json();
           setCommunities(data.communities);
-          if (data.communities.length > 0) {
-            setCurrentCommunityIndex(0);
-          }
         } catch (e) {
           setCommunities([]);
           setCurrentCommunityIndex(-1);
         } finally {
           setLoading(false);
+          setIsFetching(false);
         }
       })();
     } else {
-      resetCommunityContext();
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [status]);
 
   const setCurrentCommunity = (slug: string) => {
@@ -112,6 +111,7 @@ export const useCommunityProvider = (): CommunityState => {
     setCurrentCommunityIndex,
     setCurrentCommunity,
     resetCommunityContext,
+    isFetching,
   };
 };
 

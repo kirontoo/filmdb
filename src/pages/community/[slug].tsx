@@ -7,7 +7,6 @@ import {
   Divider,
   Flex,
   Grid,
-  LoadingOverlay,
   Paper,
   Stack,
   Tabs,
@@ -25,14 +24,15 @@ import {
   MediaImageCardFooter,
 } from "@/components";
 import { buildTMDBImageURL } from "@/lib/tmdb";
-import { useState, useEffect } from "react";
-import { useDisclosure } from "@mantine/hooks";
-import { Community, Media } from "@prisma/client";
+import { useEffect } from "react";
+import { Media } from "@prisma/client";
 import { IconCopy, IconCheck, IconEdit } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useCommunityContext } from "@/context/CommunityProvider";
 import { useRouter } from "next/router";
 import { useMediaContext } from "@/context/MediaProvider";
+import { useLoadingContext } from "@/context/LoadingProvider";
+import { useSession } from "next-auth/react";
 
 const useStyles = createStyles((theme) => ({
   cardHeader: {
@@ -61,39 +61,47 @@ const useStyles = createStyles((theme) => ({
 // function CommunityDashboard({ community }: CommunityDashboardProps) {
 function CommunityDashboard() {
   const router = useRouter();
-  const [visible, handlers] = useDisclosure(false);
-  const [isLoading, setLoading] = useState(false);
+  const { setLoading } = useLoadingContext();
   const { classes } = useStyles();
-  const { currentCommunity, setCurrentCommunity } = useCommunityContext();
+  const { currentCommunity, setCurrentCommunity, isFetching } =
+    useCommunityContext();
   const { setMedias, watchedMedia, queuedMedia } = useMediaContext();
   const { slug } = router.query;
+  const { data: session } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.push("/404");
+    },
+  });
+  const fetchCommunities = async (community: string) => {
+    const query = encodeURI(`community=${community}`);
+    const res = await fetch(`/api/media?${query}`);
+    if (res.ok) {
+      const { data } = await res.json();
+      setMedias(data.medias);
+    }
+  };
 
   useEffect(() => {
+    if (session && !isFetching) {
+      loadData();
+    }
+  }, [slug, session, isFetching]);
+
+  async function loadData() {
     setLoading(true);
     try {
-      const fetchMedias = async (community: string) => {
-        const query = encodeURI(`community=${community}`);
-        const res = await fetch(`/api/media?${query}`);
-        if (res.ok) {
-          const { data } = await res.json();
-          setMedias(data.medias);
-        }
-      };
-
-      const name = Array.isArray(slug) ? slug[0] : slug;
-      // BUG: race condition, community context does not load fast enough 
-      // so on reload, there's a 404
-      if (name) {
-        fetchMedias(name);
-        setCurrentCommunity(name);
+      const community = Array.isArray(slug) ? slug[0] : slug;
+      if (community) {
+        setCurrentCommunity(community);
+        await fetchCommunities(community);
       }
     } catch (e) {
-      console.log(e);
       router.push("/404");
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }
 
   const openTransferListModal = (media: Media) =>
     modals.openConfirmModal({
@@ -103,7 +111,7 @@ function CommunityDashboard() {
         : `Move ${media.title} to watched`,
       children: (
         <Text size="sm">
-          Click "confirm" to move <strong>{media.title}</strong> to{" "}
+          Click &quot;confirm&quot; to move <strong>{media.title}</strong> to{" "}
           {media.watched ? "queue" : "watched"} list
         </Text>
       ),
@@ -140,36 +148,50 @@ function CommunityDashboard() {
         <title>FilmDB | {`${currentCommunity && currentCommunity.name}`}</title>
       </Head>
       <Container size="xl">
-        {isLoading ? (
-          <LoadingOverlay visible={visible} overlayBlur={2} />
-        ) : (
-          <>
-            {currentCommunity && (
-              <>
-                <Paper>
-                  <Flex
-                    justify="space-between"
-                    direction={{ base: "column", lg: "row" }}
-                    gap="md"
-                  >
-                    <Stack spacing="sm">
-                      <Title>{currentCommunity.name}</Title>
-                      <Text component="p">{currentCommunity.description}</Text>
-                      <Stack spacing={0}>
-                        <Text
-                          fz="xs"
-                          tt="uppercase"
-                          fw={700}
-                          c="dimmed"
-                          component="span"
-                        >
-                          members
-                        </Text>
-                        <Tooltip.Group openDelay={300} closeDelay={100}>
-                          <Avatar.Group spacing="sm">
-                            <>
-                              {currentCommunity.members.length < 5
-                                ? currentCommunity.members.map((m) => (
+        <>
+          {currentCommunity && (
+            <>
+              <Paper>
+                <Flex
+                  justify="space-between"
+                  direction={{ base: "column", lg: "row" }}
+                  gap="md"
+                >
+                  <Stack spacing="sm">
+                    <Title>{currentCommunity.name}</Title>
+                    <Text component="p">{currentCommunity.description}</Text>
+                    <Stack spacing={0}>
+                      <Text
+                        fz="xs"
+                        tt="uppercase"
+                        fw={700}
+                        c="dimmed"
+                        component="span"
+                      >
+                        members
+                      </Text>
+                      <Tooltip.Group openDelay={300} closeDelay={100}>
+                        <Avatar.Group spacing="sm">
+                          <>
+                            {currentCommunity.members.length < 5
+                              ? currentCommunity.members.map((m) => (
+                                <Tooltip
+                                  label={m.name}
+                                  withArrow
+                                  key={m.name}
+                                >
+                                  <Avatar
+                                    src={m.image ?? "image.png"}
+                                    radius="xl"
+                                  />
+                                </Tooltip>
+                              ))
+                              : currentCommunity.members
+                                .slice(
+                                  0,
+                                  Math.min(4, currentCommunity.members.length)
+                                )
+                                .map((m) => {
                                   <Tooltip
                                     label={m.name}
                                     withArrow
@@ -179,214 +201,187 @@ function CommunityDashboard() {
                                       src={m.image ?? "image.png"}
                                       radius="xl"
                                     />
-                                  </Tooltip>
-                                ))
-                                : currentCommunity.members
-                                  .slice(
-                                    0,
-                                    Math.min(
-                                      4,
-                                      currentCommunity.members.length
-                                    )
-                                  )
-                                  .map((m) => {
-                                    <Tooltip
-                                      label={m.name}
-                                      withArrow
-                                      key={m.name}
-                                    >
-                                      <Avatar
-                                        src={m.image ?? "image.png"}
-                                        radius="xl"
-                                      />
-                                    </Tooltip>;
-                                  })}
-                              {currentCommunity.members.length > 4 && (
-                                <Avatar radius="xl">
-                                  +{currentCommunity.members.length - 4}
-                                </Avatar>
-                              )}
-                            </>
-                          </Avatar.Group>
-                        </Tooltip.Group>
-                      </Stack>
-                    </Stack>
-
-                    <Stack spacing="sm">
-                      <Card
-                        withBorder
-                        radius="md"
-                        sx={(theme) => ({
-                          backgroundColor:
-                            theme.colorScheme === "dark"
-                              ? theme.colors.dark[7]
-                              : theme.white,
-                        })}
-                      >
-                        <Flex justify="space-between" align="center" gap="md">
-                          <Stack spacing={0}>
-                            <Text
-                              fz="xs"
-                              tt="uppercase"
-                              fw={700}
-                              c="dimmed"
-                              component="span"
-                            >
-                              Invite Code
-                            </Text>
-                            <Text fz="xl" fw={500} component="span">
-                              {currentCommunity.inviteCode}
-                            </Text>
-                          </Stack>
-                          <CopyButton
-                            value={`${origin}/currentCommunity/join?code=${currentCommunity.inviteCode}`}
-                            timeout={2000}
-                          >
-                            {({ copied, copy }) => (
-                              <Tooltip
-                                label={copied ? "Copied" : "Copy"}
-                                withArrow
-                                withinPortal
-                              >
-                                <ActionIcon
-                                  color={copied ? "green" : "blue"}
-                                  onClick={copy}
-                                  size="lg"
-                                  variant="subtle"
-                                >
-                                  {copied ? (
-                                    <IconCheck size="1.5rem" />
-                                  ) : (
-                                    <IconCopy size="1.5rem" />
-                                  )}
-                                </ActionIcon>
-                              </Tooltip>
+                                  </Tooltip>;
+                                })}
+                            {currentCommunity.members.length > 4 && (
+                              <Avatar radius="xl">
+                                +{currentCommunity.members.length - 4}
+                              </Avatar>
                             )}
-                          </CopyButton>
-                        </Flex>
-                      </Card>
-                      <Button
-                        leftIcon={<IconEdit size="1rem" />}
-                        variant="light"
-                        onClick={() => {
-                          modals.openContextModal({
-                            modal: "currentCommunityForm",
-                            title: `Update ${currentCommunity.name}`,
-                            size: "md",
-                            innerProps: {
-                              name: currentCommunity.name,
-                              description: currentCommunity.description ?? "",
-                              currentCommunityId: currentCommunity.id,
-                            },
-                          });
-                        }}
-                      >
-                        Update
-                      </Button>
+                          </>
+                        </Avatar.Group>
+                      </Tooltip.Group>
                     </Stack>
-                  </Flex>
-                </Paper>
+                  </Stack>
 
-                <Divider my="md" />
-
-                <Tabs defaultValue="watched" keepMounted={false}>
-                  <Tabs.List>
-                    <Tabs.Tab value="watched">Watched</Tabs.Tab>
-                    <Tabs.Tab value="queue">Queue</Tabs.Tab>
-                  </Tabs.List>
-
-                  <Tabs.Panel value="watched">
-                    <Grid
-                      grow={false}
-                      columns={4}
-                      gutter="sm"
-                      className={classes.grid}
+                  <Stack spacing="sm">
+                    <Card
+                      withBorder
+                      radius="md"
+                      sx={(theme) => ({
+                        backgroundColor:
+                          theme.colorScheme === "dark"
+                            ? theme.colors.dark[7]
+                            : theme.white,
+                      })}
                     >
-                      {watchedMedia.map((m) => {
-                        return (
-                          <Grid.Col sm={2} lg={1} key={m.id}>
-                            <MediaImageCard
-                              component="button"
-                              key={m.id}
-                              image={buildTMDBImageURL(m.posterPath)}
-                              className={classes.mediaCard}
-                              onClick={() => openTransferListModal(m)}
-                            >
-                              <MediaImageCardHeader
-                                className={classes.cardHeader}
-                              >
-                                <>
-                                  <Text
-                                    align="left"
-                                    className={classes.date}
-                                    size="xs"
-                                  >
-                                    {format(
-                                      "yyyy/MM/dd",
-                                      new Date(m.createdAt)
-                                    )}
-                                  </Text>
-                                  <Title order={3} align="left">
-                                    {m.title}
-                                  </Title>
-                                </>
-                              </MediaImageCardHeader>
-                              <MediaImageCardFooter>hi</MediaImageCardFooter>
-                            </MediaImageCard>
-                          </Grid.Col>
-                        );
-                      })}
-                    </Grid>
-                  </Tabs.Panel>
-
-                  <Tabs.Panel value="queue">
-                    <Grid grow={false} columns={4} gutter="sm">
-                      {queuedMedia.map((m) => {
-                        return (
-                          <Grid.Col
-                            sm={2}
-                            lg={1}
-                            key={m.id}
-                            className={classes.grid}
+                      <Flex justify="space-between" align="center" gap="md">
+                        <Stack spacing={0}>
+                          <Text
+                            fz="xs"
+                            tt="uppercase"
+                            fw={700}
+                            c="dimmed"
+                            component="span"
                           >
-                            <MediaImageCard
-                              component="button"
-                              key={m.id}
-                              image={buildTMDBImageURL(m.posterPath)}
-                              className={classes.mediaCard}
-                              onClick={() => openTransferListModal(m)}
+                            Invite Code
+                          </Text>
+                          <Text fz="xl" fw={500} component="span">
+                            {currentCommunity.inviteCode}
+                          </Text>
+                        </Stack>
+                        <CopyButton
+                          value={`${origin}/currentCommunity/join?code=${currentCommunity.inviteCode}`}
+                          timeout={2000}
+                        >
+                          {({ copied, copy }) => (
+                            <Tooltip
+                              label={copied ? "Copied" : "Copy"}
+                              withArrow
+                              withinPortal
                             >
-                              <MediaImageCardHeader
-                                className={classes.cardHeader}
+                              <ActionIcon
+                                color={copied ? "green" : "blue"}
+                                onClick={copy}
+                                size="lg"
+                                variant="subtle"
                               >
-                                <>
-                                  <Text
-                                    align="left"
-                                    className={classes.date}
-                                    size="xs"
-                                  >
-                                    {format(
-                                      "yyyy/MM/dd",
-                                      new Date(m.createdAt)
-                                    )}
-                                  </Text>
-                                  <Title order={3} align="left">
-                                    {m.title}
-                                  </Title>
-                                </>
-                              </MediaImageCardHeader>
-                              <MediaImageCardFooter>hi</MediaImageCardFooter>
-                            </MediaImageCard>
-                          </Grid.Col>
-                        );
-                      })}
-                    </Grid>
-                  </Tabs.Panel>
-                </Tabs>
-              </>
-            )}
-          </>
-        )}
+                                {copied ? (
+                                  <IconCheck size="1.5rem" />
+                                ) : (
+                                  <IconCopy size="1.5rem" />
+                                )}
+                              </ActionIcon>
+                            </Tooltip>
+                          )}
+                        </CopyButton>
+                      </Flex>
+                    </Card>
+                    <Button
+                      leftIcon={<IconEdit size="1rem" />}
+                      variant="light"
+                      onClick={() => {
+                        modals.openContextModal({
+                          modal: "communityForm",
+                          title: `Update ${currentCommunity.name}`,
+                          size: "md",
+                          innerProps: {
+                            name: currentCommunity.name ?? "",
+                            description: currentCommunity.description ?? "",
+                            currentCommunityId: currentCommunity.id ?? "",
+                          },
+                        });
+                      }}
+                    >
+                      Update
+                    </Button>
+                  </Stack>
+                </Flex>
+              </Paper>
+
+              <Divider my="md" />
+
+              <Tabs defaultValue="watched" keepMounted={false}>
+                <Tabs.List>
+                  <Tabs.Tab value="watched">Watched</Tabs.Tab>
+                  <Tabs.Tab value="queue">Queue</Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel value="watched">
+                  <Grid
+                    grow={false}
+                    columns={4}
+                    gutter="sm"
+                    className={classes.grid}
+                  >
+                    {watchedMedia.map((m) => {
+                      return (
+                        <Grid.Col sm={2} lg={1} key={m.id}>
+                          <MediaImageCard
+                            component="button"
+                            key={m.id}
+                            image={buildTMDBImageURL(m.posterPath)}
+                            className={classes.mediaCard}
+                            onClick={() => openTransferListModal(m)}
+                          >
+                            <MediaImageCardHeader
+                              className={classes.cardHeader}
+                            >
+                              <>
+                                <Text
+                                  align="left"
+                                  className={classes.date}
+                                  size="xs"
+                                >
+                                  {format("yyyy/MM/dd", new Date(m.createdAt))}
+                                </Text>
+                                <Title order={3} align="left">
+                                  {m.title}
+                                </Title>
+                              </>
+                            </MediaImageCardHeader>
+                            <MediaImageCardFooter>hi</MediaImageCardFooter>
+                          </MediaImageCard>
+                        </Grid.Col>
+                      );
+                    })}
+                  </Grid>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="queue">
+                  <Grid grow={false} columns={4} gutter="sm">
+                    {queuedMedia.map((m) => {
+                      return (
+                        <Grid.Col
+                          sm={2}
+                          lg={1}
+                          key={m.id}
+                          className={classes.grid}
+                        >
+                          <MediaImageCard
+                            component="button"
+                            key={m.id}
+                            image={buildTMDBImageURL(m.posterPath)}
+                            className={classes.mediaCard}
+                            onClick={() => openTransferListModal(m)}
+                          >
+                            <MediaImageCardHeader
+                              className={classes.cardHeader}
+                            >
+                              <>
+                                <Text
+                                  align="left"
+                                  className={classes.date}
+                                  size="xs"
+                                >
+                                  {format("yyyy/MM/dd", new Date(m.createdAt))}
+                                </Text>
+                                <Title order={3} align="left">
+                                  {m.title}
+                                </Title>
+                              </>
+                            </MediaImageCardHeader>
+                            <MediaImageCardFooter>hi</MediaImageCardFooter>
+                          </MediaImageCard>
+                        </Grid.Col>
+                      );
+                    })}
+                  </Grid>
+                </Tabs.Panel>
+              </Tabs>
+            </>
+          )}
+        </>
       </Container>
     </>
   );
