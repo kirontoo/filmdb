@@ -15,6 +15,7 @@ import { useLocalStorage } from "@mantine/hooks";
 import { ModalsProvider } from "@mantine/modals";
 import { CommunityFormModal } from "@/components";
 import { CommunityProvider } from "@/context/CommunityProvider";
+import { LoadingProvider } from "@/context/LoadingProvider";
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
@@ -55,13 +56,15 @@ export default function App(props: AppProps) {
             withNormalizeCSS
           >
             <ModalsProvider modals={modals}>
-              <CommunityProvider>
-                <MediaProvider>
-                  <Layout>
-                    <Component {...pageProps} />
-                  </Layout>
-                </MediaProvider>
-              </CommunityProvider>
+              <LoadingProvider>
+                <CommunityProvider>
+                  <MediaProvider>
+                    <Layout>
+                      <Component {...pageProps} />
+                    </Layout>
+                  </MediaProvider>
+                </CommunityProvider>
+              </LoadingProvider>
             </ModalsProvider>
           </MantineProvider>
         </ColorSchemeProvider>
