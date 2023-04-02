@@ -1,5 +1,4 @@
 import { Community } from "@prisma/client";
-import { Session } from "next-auth/core/types";
 import { useSession } from "next-auth/react";
 import {
   useEffect,
@@ -11,6 +10,7 @@ import {
   SetStateAction,
   useMemo,
 } from "react";
+import { useLoadingContext } from "./LoadingProvider";
 
 type CommunityWithMembers = {
   members: { name: string; image: string }[];
@@ -51,10 +51,12 @@ export const useCommunityProvider = (): CommunityState => {
   const [communities, setCommunities] = useState<CommunityWithMembers[]>([]);
   const [currentCommunityIndex, setCurrentCommunityIndex] =
     useState<number>(-1);
-  const { data: session, status } = useSession();
+  const { status } = useSession();
+  const { setLoading } = useLoadingContext();
 
   useEffect(() => {
-    if (status == "authenticated")
+    setLoading(true);
+    if (status == "authenticated") {
       (async () => {
         try {
           let res = await fetch("/api/community");
@@ -66,9 +68,16 @@ export const useCommunityProvider = (): CommunityState => {
         } catch (e) {
           setCommunities([]);
           setCurrentCommunityIndex(-1);
+        } finally {
+          setLoading(false);
         }
       })();
-  }, [session]);
+    } else {
+      resetCommunityContext();
+    }
+
+    setLoading(false);
+  }, [status]);
 
   const setCurrentCommunity = (slug: string) => {
     const index = communities.findIndex((c) => c.slug == slug);
