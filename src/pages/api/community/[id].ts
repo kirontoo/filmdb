@@ -29,8 +29,6 @@ export default async function handler(
     });
   }
 
-
-
   if (session) {
     // Signed in
 
@@ -129,6 +127,12 @@ export default async function handler(
           communityId,
           session!.user!.email as string
         );
+      case "GET":
+        return await getCommunityById(
+          req,
+          res,
+          session!.user!.email as string
+        );
       default:
         res.setHeader("Allow", ["POST", "PATCH"]);
         return res.status(405).end(`Method ${method} Not Allowed`);
@@ -143,6 +147,64 @@ export default async function handler(
 
   res.end();
 }
+
+const getCommunityById = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  email: string
+) => {
+  const { query } = req;
+  const { id } = query;
+  try {
+    const communityId: string = Array.isArray(id) ? id[0] : id!;
+    const community = await prisma.community.findFirst({
+      where: {
+        id: communityId,
+        members: {
+          some: {
+            email,
+          },
+        },
+      },
+      include: {
+        medias: true,
+        members: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+    if (community) {
+      res.status(200).json({
+        status: "success",
+        data: {
+          community,
+        },
+      });
+    }
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
+      return res.status(400).send({
+        status: "fail",
+        message: e.message,
+      });
+    }
+
+    if (e instanceof PrismaClientValidationError) {
+      return res.status(400).send({
+        status: "fail",
+        message: "community does not exist",
+      });
+    }
+
+    return res.status(500).send({
+      status: "error",
+      message: "could not find community",
+    });
+  }
+};
 
 const updateCommunity = async (
   req: NextApiRequest,
