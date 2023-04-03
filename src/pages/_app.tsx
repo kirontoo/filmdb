@@ -61,7 +61,7 @@ export default function App(props: AppProps) {
                 <MediaProvider>
                   <ModalsProvider modals={modals}>
                     <Layout>
-                      <Notifications />
+                      <Notifications limit={5}/>
                       <Component {...pageProps} />
                     </Layout>
                   </ModalsProvider>
