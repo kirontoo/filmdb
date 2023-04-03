@@ -26,6 +26,10 @@ interface CommunityState {
   setCurrentCommunityIndex: Dispatch<SetStateAction<number>>;
   setCurrentCommunity: (slug: string) => void;
   resetCommunityContext: () => void;
+  updateCommunityInfo: (
+    id: string,
+    data: { name: string; description: string }
+  ) => void;
 }
 
 export const CommunityContext = createContext<CommunityState>({
@@ -37,6 +41,7 @@ export const CommunityContext = createContext<CommunityState>({
   setCurrentCommunityIndex: () => null,
   setCurrentCommunity: () => null,
   resetCommunityContext: () => null,
+  updateCommunityInfo: () => null,
 });
 
 export const useCommunityContext = () => {
@@ -96,7 +101,27 @@ export const useCommunityProvider = (): CommunityState => {
     }
 
     return communities[currentCommunityIndex];
-  }, [currentCommunityIndex]);
+  }, [currentCommunityIndex, communities]);
+
+  const updateCommunityInfo = (
+    id: string,
+    data: { name: string; description: string }
+  ) => {
+    const index = communities.findIndex((c) => c.id === id);
+    if (index === -1) {
+      // don't update anything if it doesn't exist
+      return;
+    }
+    let foundCommunity = communities[index];
+    const newCommunityItems = communities.filter((c) => c.id !== id);
+
+    // merge community data
+    setCommunities([
+      ...newCommunityItems.slice(0, index),
+      { ...foundCommunity, name: data.name, description: data.description },
+      ...newCommunityItems.slice(index),
+    ]);
+  };
 
   const resetCommunityContext = () => {
     setCommunities([]);
@@ -112,6 +137,7 @@ export const useCommunityProvider = (): CommunityState => {
     setCurrentCommunity,
     resetCommunityContext,
     isFetching,
+    updateCommunityInfo,
   };
 };
 

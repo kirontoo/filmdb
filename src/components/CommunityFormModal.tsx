@@ -9,6 +9,7 @@ import {
 import { ContextModalProps } from "@mantine/modals";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
+import { useCommunityContext } from "@/context/CommunityProvider";
 
 interface CommunityFormModalProps {
   name: string;
@@ -31,6 +32,8 @@ export default function CommunityFormModal({
 }: ContextModalProps<CommunityFormModalProps>) {
   const { classes } = useStyles();
   const [error, setError] = useState<string>("");
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const { updateCommunityInfo } = useCommunityContext();
 
   const form = useForm({
     initialValues: {
@@ -51,23 +54,36 @@ export default function CommunityFormModal({
   });
 
   const submitChanges = async (values: typeof form.values) => {
-    const res = await fetch(`/api/community/${innerProps.communityId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: values.name,
-        description: values.description,
-      }),
-    });
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/community/${innerProps.communityId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: values.name,
+          description: values.description,
+        }),
+      });
 
-    if (res.ok) {
-      context.closeContextModal(id);
-    } else if (res.status === 400) {
-      setError("unauthorized");
-    } else {
+      if (res.ok) {
+        const { values } = form;
+        updateCommunityInfo(innerProps.communityId, {
+          name: values.name,
+          description: values.description,
+        });
+
+        context.closeContextModal(id);
+      } else if (res.status === 400) {
+        setError("unauthorized");
+      } else {
+        setError("could not update info");
+      }
+    } catch (e) {
       setError("could not update info");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -82,7 +98,9 @@ export default function CommunityFormModal({
           maxRows={4}
           {...form.getInputProps("description")}
         />
-        <Text>{error}</Text>
+        <Text component="span" fz="sm" c="red">
+          {error}
+        </Text>
         <Group position="right">
           <Button
             variant="subtle"
@@ -90,7 +108,9 @@ export default function CommunityFormModal({
           >
             Cancel
           </Button>
-          <Button type="submit">Update</Button>
+          <Button type="submit" loading={submitting}>
+            Update
+          </Button>
         </Group>
       </form>
     </>
