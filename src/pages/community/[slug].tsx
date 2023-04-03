@@ -278,7 +278,7 @@ function CommunityDashboard() {
                           innerProps: {
                             name: currentCommunity.name ?? "",
                             description: currentCommunity.description ?? "",
-                            currentCommunityId: currentCommunity.id ?? "",
+                            communityId: currentCommunity.id ?? "",
                           },
                         });
                       }}
