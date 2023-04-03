@@ -16,7 +16,6 @@ import { ModalsProvider } from "@mantine/modals";
 import { CommunityFormModal } from "@/components";
 import { CommunityProvider } from "@/context/CommunityProvider";
 import { LoadingProvider } from "@/context/LoadingProvider";
-import { Notifications } from "@mantine/notifications";
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
@@ -61,7 +60,6 @@ export default function App(props: AppProps) {
                 <MediaProvider>
                   <ModalsProvider modals={modals}>
                     <Layout>
-                      <Notifications limit={5}/>
                       <Component {...pageProps} />
                     </Layout>
                   </ModalsProvider>
