@@ -20,6 +20,8 @@ body > div#__next {
 
 .main {
   flex-grow: 1;
+  margin-top: 4rem;
+  margin-bottom: 4rem;
 }
 
 a {

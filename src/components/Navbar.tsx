@@ -137,7 +137,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   ));
 
   return (
-    <Header height={60} mb={120}>
+    <Header height={60}>
       <Container className={classes.header} size="xl">
         <Group>
           <Link href="/">FilmDB</Link>
