@@ -58,11 +58,11 @@ export default function App(props: AppProps) {
             <LoadingProvider>
               <CommunityProvider>
                 <MediaProvider>
-                  <ModalsProvider modals={modals}>
-                    <Layout>
+                  <Layout>
+                    <ModalsProvider modals={modals}>
                       <Component {...pageProps} />
-                    </Layout>
-                  </ModalsProvider>
+                    </ModalsProvider>
+                  </Layout>
                 </MediaProvider>
               </CommunityProvider>
             </LoadingProvider>
