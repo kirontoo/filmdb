@@ -10,6 +10,9 @@ import { ContextModalProps } from "@mantine/modals";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { useCommunityContext } from "@/context/CommunityProvider";
+import { notifications } from "@mantine/notifications";
+import { IconCheck } from "@tabler/icons-react";
+import Notify from "@/lib/notify";
 
 interface CommunityFormModalProps {
   name: string;
@@ -73,6 +76,11 @@ export default function CommunityFormModal({
           name: values.name,
           description: values.description,
         });
+
+        Notify.success(
+          `Update ${values.name}`,
+          `${values.name} information was updated!`
+        );
 
         context.closeContextModal(id);
       } else if (res.status === 400) {

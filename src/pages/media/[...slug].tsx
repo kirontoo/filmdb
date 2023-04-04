@@ -12,14 +12,14 @@ import {
 import Link from "next/link";
 import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
 import { Media as MediaType } from "@/lib/types";
-import { useMediaContext } from "@/context/MediaProvider";
 import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
 import { CommunityMenu, NothingFoundBackground } from "@/components";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]";
-import prisma from "@/lib/prismadb";
 import { useSession } from "next-auth/react";
+import { IconCheck } from "@tabler/icons-react";
+import { CommunityMenuActionProps } from "@/components/CommunityMenu";
+import { notifications } from "@mantine/notifications";
+import Notify from "@/lib/notify";
 
 const useStyles = createStyles((theme) => ({
   addBtn: {
@@ -43,15 +43,14 @@ const useStyles = createStyles((theme) => ({
 
 interface MediaProps {
   media?: MediaType;
-  communities?: { name: string; slug: string; id: string }[];
 }
 
-const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
+const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
   const { classes } = useStyles();
 
   const addToList = async (
     media: MediaType,
-    communityId: string,
+    community: CommunityMenuActionProps,
     watched: boolean
   ) => {
     const body = {
@@ -63,16 +62,19 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
       posterPath: media.poster_path,
     };
 
-    const res = await fetch(`/api/community/${communityId}`, {
+    const res = await fetch(`/api/community/${community.id}`, {
       method: "POST",
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    const data = await res.json();
+
     if (res.ok) {
-      // addToWatchedMedia(data.media);
+      Notify.success(
+        `${community.name}`,
+        `${body.title} was added to ${watched ? "watched list" : "queued list"}`
+      );
     }
   };
   const { status } = useSession();
@@ -117,15 +119,19 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
                       to list
                     </Anchor>
                   )}
-                  {status == "authenticated" && communities && (
+                  {status == "authenticated" && (
                     <>
                       <CommunityMenu
-                        menuAction={(id: string) => addToList(media, id, false)}
+                        menuAction={(c: CommunityMenuActionProps) =>
+                          addToList(media, c, false)
+                        }
                       >
                         <Button className={classes.addBtn}>Add to queue</Button>
                       </CommunityMenu>
                       <CommunityMenu
-                        menuAction={(id: string) => addToList(media, id, true)}
+                        menuAction={(c: CommunityMenuActionProps) =>
+                          addToList(media, c, true)
+                        }
                       >
                         <Button className={classes.addBtn}>
                           Add to watchedlist
@@ -145,11 +151,7 @@ const Media: NextPage<MediaProps> = ({ media, communities }: MediaProps) => {
   );
 };
 
-export async function getServerSideProps({
-  req,
-  res,
-  query,
-}: GetServerSidePropsContext) {
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
   const slug = query.slug;
   const url = buildTMDBQuery(`${slug![0]}/${slug![1]}`);
   const dataRes = await fetch(url);
@@ -164,32 +166,6 @@ export async function getServerSideProps({
     };
   }
 
-  const session = await getServerSession(req, res, authOptions);
-  if (session) {
-    const communities = await prisma.community.findMany({
-      where: {
-        members: {
-          some: {
-            email: session!.user!.email,
-          },
-        },
-      },
-      select: {
-        name: true,
-        slug: true,
-        id: true,
-      },
-    });
-
-    return {
-      props: {
-        media: data,
-        communities: communities
-          ? JSON.parse(JSON.stringify(communities))
-          : null,
-      },
-    };
-  }
   return {
     props: {
       media: data,
