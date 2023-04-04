@@ -65,12 +65,10 @@ const updateMedia = async (
     const user = await prisma.user.findFirstOrThrow({
       where: {
         email,
-      },
-      include: {
         communities: {
-          include: {
+          some: {
             medias: {
-              where: {
+              some: {
                 id: mediaId,
               },
             },
@@ -79,8 +77,7 @@ const updateMedia = async (
       },
     });
 
-
-    if (user.communities[0].medias.length > 0) {
+    if (user) {
       const watchedPropExists = body.hasOwnProperty("watched");
       const media = await prisma.media.update({
         where: {
@@ -88,7 +85,7 @@ const updateMedia = async (
         },
         data: {
           watched: body.watched,
-          dateWatched: watchedPropExists ? new Date() : undefined
+          dateWatched: watchedPropExists ? new Date() : undefined,
         },
       });
 
