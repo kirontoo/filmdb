@@ -15,6 +15,7 @@ interface MediaState {
   queuedMedia: Media[];
   setMedias: Dispatch<SetStateAction<Media[]>>;
   addToWatchedMedia: (data: Media) => void;
+  updateMedias: (id: string, media: Media) => void;
 }
 
 export const MediaContext = createContext<MediaState>({
@@ -22,7 +23,8 @@ export const MediaContext = createContext<MediaState>({
   watchedMedia: [],
   queuedMedia: [],
   setMedias: () => null,
-  addToWatchedMedia: (data: Media) => null,
+  addToWatchedMedia: () => null,
+  updateMedias: () => null,
 });
 
 export const useMediaContext = () => {
@@ -48,12 +50,30 @@ export const useMediaProvider = () => {
     return medias.filter((m) => !m.watched);
   }, [medias]);
 
+  const updateMedias = (id: string, media: Media) => {
+    const index = medias.findIndex((m) => m.id === id);
+    if (index === -1) {
+      // don't update anything if it doesn't exist
+      return;
+    }
+    let foundMedia = medias[index];
+    const newMediaItems = medias.filter((m) => m.id !== id);
+
+    // merge media data
+    setMedias([
+      ...newMediaItems.slice(0, index),
+      { ...foundMedia, ...media },
+      ...newMediaItems.slice(index),
+    ]);
+  };
+
   return {
     medias,
     setMedias,
     queuedMedia,
     watchedMedia,
     addToWatchedMedia,
+    updateMedias
   };
 };
 

@@ -33,6 +33,7 @@ import { useRouter } from "next/router";
 import { useMediaContext } from "@/context/MediaProvider";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { useSession } from "next-auth/react";
+import Notify from "@/lib/notify";
 
 const useStyles = createStyles((theme) => ({
   cardHeader: {
@@ -65,7 +66,8 @@ function CommunityDashboard() {
   const { classes } = useStyles();
   const { currentCommunity, setCurrentCommunity, isFetching } =
     useCommunityContext();
-  const { setMedias, watchedMedia, queuedMedia } = useMediaContext();
+  const { setMedias, watchedMedia, queuedMedia, updateMedias } =
+    useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession({
     required: true,
@@ -136,8 +138,16 @@ function CommunityDashboard() {
             watched: !media.watched,
           }),
         });
+        const data = await res.json();
         if (res.ok) {
+          updateMedias(media.id, { ...media, watched: !media.watched });
+          const title = media.watched
+            ? `Moved ${media.title} to queue`
+            : `Moved ${media.title} to watched`;
+          Notify.success(title);
           modals.close(`${media.title}-${media.id}`);
+        } else {
+          console.log(data.message);
         }
       },
     });
