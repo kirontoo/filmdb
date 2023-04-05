@@ -7,7 +7,6 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import { Media } from "@prisma/client";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -34,47 +33,34 @@ export default async function handler(
 
     switch (method) {
       case "POST":
+        // add media to community lists
         // query: api/community/[id]
 
+        const { title, mediaType, posterPath, watched, tmdbId } = body;
         try {
           const communityId: string = Array.isArray(id) ? id[0] : id;
 
-          const user = await prisma.user.findFirstOrThrow({
+          const user = await prisma.user.findFirst({
             where: {
               email: session!.user!.email as string,
               communities: {
                 some: { id: communityId },
               },
             },
-            include: {
-              communities: {
-                where: {
-                  id: communityId,
-                },
-                select: { id: true, medias: true },
-              },
-            },
           });
 
           if (user) {
-            const { title, mediaType, posterPath, watched, tmdbId } = body;
-            const medias: Media[] | null =
-              user.communities[0]["medias"] ?? null;
-            if (medias) {
-              // this media has already been added,
-              const foundMedia = medias.find((m) => m.tmdbId == String(tmdbId));
-              if (foundMedia) {
-                return res.status(200).json({
-                  status: "success",
-                  data: {
-                    media: foundMedia,
-                  },
-                });
-              }
-            }
-
-            const update = await prisma.media.create({
-              data: {
+            const media = await prisma.media.upsert({
+              where: {
+                tmdbId_communityId: {
+                  tmdbId: String(tmdbId),
+                  communityId,
+                },
+              },
+              update: {
+                watched: (watched as boolean) ?? undefined,
+              },
+              create: {
                 title: title as string,
                 mediaType: mediaType as string,
                 tmdbId: String(tmdbId),
@@ -86,24 +72,44 @@ export default async function handler(
               },
             });
 
+            // const media = await prisma.media.create({
+            //   data: {
+            //     title: title as string,
+            //     mediaType: mediaType as string,
+            //     tmdbId: String(tmdbId),
+            //     posterPath: posterPath as string,
+            //     watched: (watched as boolean) ?? false,
+            //     community: {
+            //       connect: { id: communityId },
+            //     },
+            //   },
+            // });
+
             return res.status(200).json({
               status: "success",
               data: {
-                media: update,
+                media: media,
               },
             });
           } else {
-            return res.status(401).send({
+            return res.status(403).send({
               status: "error",
-              message: "not a member of this community",
+              message: "must be a member of this community",
             });
           }
         } catch (e) {
           console.log(e);
           if (e instanceof PrismaClientKnownRequestError) {
+            const target = e.meta!["target"];
+            if (target == "medias_tmdbId_communityId_key") {
+              return res.status(400).send({
+                status: "fail",
+                message: `${title} has already been added`,
+              });
+            }
             return res.status(400).send({
               status: "fail",
-              message: e.message,
+                message: `${title} could not be added`,
             });
           }
 
@@ -128,11 +134,7 @@ export default async function handler(
           session!.user!.email as string
         );
       case "GET":
-        return await getCommunityById(
-          req,
-          res,
-          session!.user!.email as string
-        );
+        return await getCommunityById(req, res, session!.user!.email as string);
       default:
         res.setHeader("Allow", ["POST", "PATCH"]);
         return res.status(405).end(`Method ${method} Not Allowed`);
