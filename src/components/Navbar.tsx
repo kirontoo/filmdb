@@ -172,7 +172,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         <Group>
           <Autocomplete
             className={classes.search}
-            placeholder="Search"
+            placeholder="Search Media"
             data={[]}
             onChange={setSearchQuery}
             value={searchQuery}
