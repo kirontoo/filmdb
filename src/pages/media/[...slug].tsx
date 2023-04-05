@@ -1,6 +1,5 @@
 import {
   Anchor,
-  Menu,
   Stack,
   Text,
   Button,
@@ -18,6 +17,7 @@ import { CommunityMenu, NothingFoundBackground } from "@/components";
 import { useSession } from "next-auth/react";
 import { CommunityMenuActionProps } from "@/components/CommunityMenu";
 import Notify from "@/lib/notify";
+import { useState } from "react";
 
 const useStyles = createStyles((theme) => ({
   addBtn: {
@@ -45,40 +45,65 @@ interface MediaProps {
 
 const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
   const { classes } = useStyles();
+  const { status } = useSession();
+  const [loadingQueueBtn, setLoadingQueueBtn] = useState<boolean>(false);
+  const [loadingWatchedBtn, setLoadingWatchedBtn] = useState<boolean>(false);
 
   const addToList = async (
     media: MediaType,
     community: CommunityMenuActionProps,
     watched: boolean
   ) => {
-    const body = {
-      ...media,
-      tmdbId: media.id,
-      mediaType: media.media_type,
-      title: media.title ?? media.name ?? media.original_title,
-      watched,
-      posterPath: media.poster_path,
-    };
-
-    const res = await fetch(`/api/community/${community.id}`, {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const { message } = await res.json();
-
-    if (res.ok) {
-      Notify.success(
-        `${community.name}`,
-        `${body.title} was added to ${watched ? "watched list" : "queued list"}`
-      );
+    if (watched) {
+      setLoadingWatchedBtn(true);
     } else {
-      Notify.error(`${community.name}`, `${message}`);
+      setLoadingQueueBtn(true);
+    }
+
+    try {
+      const body = {
+        ...media,
+        tmdbId: media.id,
+        mediaType: media.media_type,
+        title: media.title ?? media.name ?? media.original_title,
+        watched,
+        posterPath: media.poster_path,
+      };
+
+      const res = await fetch(`/api/community/${community.id}`, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const { message } = await res.json();
+
+      if (res.ok) {
+        Notify.success(
+          `${community.name}`,
+          `${body.title} was added to ${
+            watched ? "watched list" : "queued list"
+          }`
+        );
+      } else {
+        Notify.error(`${community.name}`, `${message}`);
+      }
+    } catch (e) {
+      Notify.error(
+        `${
+          media.title ?? media.name ?? media.original_title
+        } could not be added to ${community.name}`,
+        "Please try again"
+      );
+    } finally {
+      if (watched) {
+        setLoadingWatchedBtn(false);
+      } else {
+        setLoadingQueueBtn(false);
+      }
     }
   };
-  const { status } = useSession();
 
   return (
     <>
@@ -127,14 +152,22 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                           addToList(media, c, false)
                         }
                       >
-                        <Button className={classes.addBtn}>Add to queue</Button>
+                        <Button
+                          className={classes.addBtn}
+                          loading={loadingQueueBtn}
+                        >
+                          Add to queue
+                        </Button>
                       </CommunityMenu>
                       <CommunityMenu
                         menuAction={(c: CommunityMenuActionProps) =>
                           addToList(media, c, true)
                         }
                       >
-                        <Button className={classes.addBtn}>
+                        <Button
+                          className={classes.addBtn}
+                          loading={loadingWatchedBtn}
+                        >
                           Add to watchedlist
                         </Button>
                       </CommunityMenu>
