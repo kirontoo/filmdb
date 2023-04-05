@@ -16,9 +16,7 @@ import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
 import { CommunityMenu, NothingFoundBackground } from "@/components";
 import { useSession } from "next-auth/react";
-import { IconCheck } from "@tabler/icons-react";
 import { CommunityMenuActionProps } from "@/components/CommunityMenu";
-import { notifications } from "@mantine/notifications";
 import Notify from "@/lib/notify";
 
 const useStyles = createStyles((theme) => ({
@@ -69,12 +67,15 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
         "Content-Type": "application/json",
       },
     });
+    const { message } = await res.json();
 
     if (res.ok) {
       Notify.success(
         `${community.name}`,
         `${body.title} was added to ${watched ? "watched list" : "queued list"}`
       );
+    } else {
+      Notify.error(`${community.name}`, `${message}`);
     }
   };
   const { status } = useSession();
