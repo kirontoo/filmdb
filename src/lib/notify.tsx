@@ -1,5 +1,5 @@
 import { notifications } from "@mantine/notifications";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconX, IconExclamationMark } from "@tabler/icons-react";
 
 const Notify = {
   success: (title: string, message: string = "") => {
@@ -16,6 +16,14 @@ const Notify = {
       message,
       icon: <IconX size="1.1rem" />,
       color: "red",
+    });
+  },
+  warning: (title: string, message: string = "") => {
+    return notifications.show({
+      title,
+      message,
+      icon: <IconExclamationMark size="1.1rem" />,
+      color: "yellow",
     });
   },
 };
