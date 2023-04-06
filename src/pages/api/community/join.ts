@@ -62,6 +62,7 @@ export default async function handler(
                   connect: [{ id: user.id }],
                 },
               },
+              include: { members: true },
             });
 
             if (community) {
@@ -69,7 +70,7 @@ export default async function handler(
                 status: "success",
                 data: { community },
               });
-            } 
+            }
           }
         } catch (e) {
           console.log(e);
@@ -93,7 +94,7 @@ export default async function handler(
     // Not Signed in
     res.status(401).send({
       status: "error",
-      message: "user must be logged in"
+      message: "user must be logged in",
     });
   }
 
