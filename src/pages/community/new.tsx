@@ -1,3 +1,4 @@
+import { useCommunityContext } from "@/context/CommunityProvider";
 import {
   createStyles,
   Paper,
@@ -54,6 +55,7 @@ function NewCommunity() {
   const { classes } = useStyles();
   const router = useRouter();
   const [isLoading, setLoading] = useState<boolean>(false);
+  const { addCommunity } = useCommunityContext();
 
   const form = useForm({
     initialValues: {
@@ -67,29 +69,33 @@ function NewCommunity() {
 
   const createCommunity = async (values: { name: string }) => {
     setLoading(true);
-    const res = await fetch("/api/community", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name: values.name }),
-    });
-    const {message, data} = await res.json();
+    try {
+      const res = await fetch("/api/community", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: values.name }),
+      });
+      const { message, data } = await res.json();
 
-    if (res.ok) {
-      router.push(`/community/${data.community.slug}`);
-    } else {
-      if (res.status === 401) {
-        // unauthorized: user must log in
-        form.setErrors({ name: "You must be logged in!" });
-      }
+      if (res.ok) {
+        addCommunity(data.community);
+        router.push(`/community/${data.community.slug}`);
+      } else {
+        if (res.status === 401) {
+          // unauthorized: user must log in
+          form.setErrors({ name: "You must be logged in!" });
+        }
 
-      if (message) {
-        form.setErrors({ name: message});
+        if (message) {
+          form.setErrors({ name: message });
+        }
       }
+    } catch (e) {
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

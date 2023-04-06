@@ -26,6 +26,7 @@ interface CommunityState {
   setCurrentCommunityIndex: Dispatch<SetStateAction<number>>;
   setCurrentCommunity: (slug: string) => void;
   resetCommunityContext: () => void;
+  addCommunity: (community: CommunityWithMembers) => void;
   updateCommunityInfo: (
     id: string,
     data: { name: string; description: string }
@@ -38,6 +39,7 @@ export const CommunityContext = createContext<CommunityState>({
   currentCommunityIndex: -1,
   isFetching: false,
   setCommunities: () => null,
+  addCommunity: () => null,
   setCurrentCommunityIndex: () => null,
   setCurrentCommunity: () => null,
   resetCommunityContext: () => null,
@@ -128,6 +130,10 @@ export const useCommunityProvider = (): CommunityState => {
     setCurrentCommunityIndex(-1);
   };
 
+  const addCommunity = (c: CommunityWithMembers) => {
+    setCommunities((prev) => [...prev, c]);
+  };
+
   return {
     communities,
     currentCommunity,
@@ -138,6 +144,7 @@ export const useCommunityProvider = (): CommunityState => {
     resetCommunityContext,
     isFetching,
     updateCommunityInfo,
+    addCommunity,
   };
 };
 
