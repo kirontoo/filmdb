@@ -8,7 +8,8 @@ import {
   rem,
 } from "@mantine/core";
 import NotFoundIllustration from "./NothingFoundIllustration";
-import Link from 'next/link';
+import Link from "next/link";
+import { ReactNode } from "react";
 
 const useStyles = createStyles((theme) => ({
   root: {
@@ -57,22 +58,29 @@ const useStyles = createStyles((theme) => ({
 interface NothingFoundBackgroundProps {
   description?: string;
   title?: string;
+  backgroundImage?: boolean;
+  btnLink?: string;
+  btnText?: string;
 }
 
 export default function NothingFoundBackground({
   title,
   description,
+  backgroundImage,
+  btnLink,
+  btnText,
 }: NothingFoundBackgroundProps) {
   const { classes } = useStyles();
   title = title ?? "Nothing to see here";
   description =
     description ??
     "Page you are trying to open does not exist. You may have mistyped the address, or the page has been moved to another URL. If you think this is an error contact support.";
+  backgroundImage = backgroundImage ?? true;
 
   return (
     <Container className={classes.root}>
       <div className={classes.inner}>
-        <NotFoundIllustration className={classes.image} />
+        {backgroundImage && <NotFoundIllustration className={classes.image} />}
         <div className={classes.content}>
           <Title className={classes.title}>{title}</Title>
           <Text
@@ -84,7 +92,9 @@ export default function NothingFoundBackground({
             {description}
           </Text>
           <Group position="center">
-          <Button size="md" component={Link} href="/">Take me back to home page</Button>
+            <Button size="md" component={Link} href={btnLink ?? "/"} variant="subtle">
+              {btnText ?? "Take me back to home page"}
+            </Button>
           </Group>
         </div>
       </div>

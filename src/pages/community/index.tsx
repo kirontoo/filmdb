@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import Head from "next/head";
 import {
   rem,
@@ -16,6 +15,7 @@ import Link from "next/link";
 import prisma from "@/lib/prismadb";
 import { GetServerSidePropsContext } from "next";
 import { Community } from "@prisma/client";
+import { NothingFoundBackground } from "@/components";
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -51,7 +51,7 @@ function pickRandColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function Community({ communities }: Data) {
+function CommunityPage({communities}: Data) {
   const { classes } = useStyles();
 
   return (
@@ -63,32 +63,44 @@ function Community({ communities }: Data) {
         <Title className={classes.title} align="center">
           Your Communities
         </Title>
-        <Grid grow={false} columns={3}>
-          {communities.map((c) => {
-            return (
-              <Grid.Col sm={2} lg={1} key={c.slug}>
-                <Paper
-                  className={classes.card}
-                  withBorder
-                  shadow="sm"
-                  p="md"
-                  component={Link}
-                  href={`/community/${c.slug}`}
-                  bg={`${pickRandColor()}.2`}
-                >
-                  <Title order={2} size="h3">
-                    {c.name}
-                  </Title>
-                  <Text>{c.description}</Text>
-                </Paper>
-              </Grid.Col>
-            );
-          })}
-        </Grid>
+
+        {communities.length == 0 ? (
+          <NothingFoundBackground
+            title="There's nothing here!"
+            description="Looks like you haven't joined any communities yet! Click the link below to create a new community or join an existing one. You've got an invite code right? :)"
+            backgroundImage={false}
+            btnLink="/community/new"
+            btnText="Create or join a community"
+          />
+        ) : (
+          <Grid grow={false} columns={3}>
+            {communities.map((c) => {
+              return (
+                <Grid.Col sm={2} lg={1} key={c.slug}>
+                  <Paper
+                    className={classes.card}
+                    withBorder
+                    shadow="sm"
+                    p="md"
+                    component={Link}
+                    href={`/community/${c.slug}`}
+                    bg={`${pickRandColor()}.2`}
+                  >
+                    <Title order={2} size="h3">
+                      {c.name}
+                    </Title>
+                    <Text>{c.description}</Text>
+                  </Paper>
+                </Grid.Col>
+              );
+            })}
+          </Grid>
+        )}
       </Container>
     </>
   );
 }
+
 
 type Data = {
   communities: Community[];
@@ -131,4 +143,4 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   }
 }
 
-export default Community;
+export default CommunityPage;
