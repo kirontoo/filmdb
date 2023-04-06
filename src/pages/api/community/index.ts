@@ -43,6 +43,9 @@ export default async function handler(
                   connect: [{ id: user.id }],
                 },
               },
+              include: {
+                members: true,
+              },
             });
 
             if (community) {
