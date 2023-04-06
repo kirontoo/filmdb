@@ -18,6 +18,7 @@ import { useForm, hasLength } from "@mantine/form";
 import { IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useCommunityContext } from "@/context/CommunityProvider";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -55,6 +56,7 @@ function JoinCommunity() {
   const router = useRouter();
   const { code } = router.query;
   const [isLoading, setLoading] = useState<boolean>(false);
+  const { addCommunity } = useCommunityContext();
 
   useEffect(() => {
     if (code !== undefined) {
@@ -82,6 +84,7 @@ function JoinCommunity() {
       const { message, data } = await res.json();
 
       if (res.ok) {
+        addCommunity(data.community);
         router.push(`/community/${data.community.slug}`);
       } else {
         if (res.status === 401) {
