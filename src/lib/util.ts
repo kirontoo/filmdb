@@ -1,3 +1,5 @@
+import { TMDBMedia } from "./types";
+
 export function generateInviteCode(length: number): string {
   let result = "";
   const characters =
@@ -9,4 +11,31 @@ export function generateInviteCode(length: number): string {
     counter += 1;
   }
   return result;
+}
+
+export async function addMediaToList(
+  media: TMDBMedia,
+  communityId: string,
+  watched: boolean
+) {
+  const body = {
+    ...media,
+    tmdbId: media.id,
+    mediaType: media.media_type,
+    title: media.title ?? media.name ?? media.original_title,
+    watched,
+    posterPath: media.poster_path,
+  };
+
+  const res = await fetch(`/api/community/${communityId}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await res.json();
+
+  return { res, data };
 }
