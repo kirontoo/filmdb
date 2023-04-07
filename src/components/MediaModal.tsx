@@ -119,7 +119,7 @@ export default function MediaModal({
                 radius="md"
               />
             </div>
-            <Stack>
+            <Stack spacing="sm">
               <Text fz="xl" component="h1">
                 {data?.title ?? data?.name}
               </Text>

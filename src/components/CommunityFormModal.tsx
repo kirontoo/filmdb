@@ -10,8 +10,6 @@ import { ContextModalProps } from "@mantine/modals";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { useCommunityContext } from "@/context/CommunityProvider";
-import { notifications } from "@mantine/notifications";
-import { IconCheck } from "@tabler/icons-react";
 import Notify from "@/lib/notify";
 
 interface CommunityFormModalProps {
