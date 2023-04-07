@@ -14,7 +14,7 @@ interface MediaState {
   watchedMedia: Media[];
   queuedMedia: Media[];
   setMedias: Dispatch<SetStateAction<Media[]>>;
-  addToWatchedMedia: (data: Media) => void;
+  addMedia: (data: Media) => void;
   updateMedias: (id: string, media: Media) => void;
 }
 
@@ -23,7 +23,7 @@ export const MediaContext = createContext<MediaState>({
   watchedMedia: [],
   queuedMedia: [],
   setMedias: () => null,
-  addToWatchedMedia: () => null,
+  addMedia: () => null,
   updateMedias: () => null,
 });
 
@@ -38,7 +38,7 @@ export const useMediaContext = () => {
 export const useMediaProvider = () => {
   const [medias, setMedias] = useState<Media[]>([]);
 
-  const addToWatchedMedia = (data: Media) => {
+  const addMedia = (data: Media) => {
     setMedias((prev) => [...prev, data]);
   };
 
@@ -72,8 +72,8 @@ export const useMediaProvider = () => {
     setMedias,
     queuedMedia,
     watchedMedia,
-    addToWatchedMedia,
-    updateMedias
+    addMedia,
+    updateMedias,
   };
 };
 
