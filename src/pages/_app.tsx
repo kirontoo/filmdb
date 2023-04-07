@@ -10,7 +10,7 @@ import {
 import { MediaProvider } from "@/context/MediaProvider";
 
 import { SessionProvider } from "next-auth/react";
-import { Layout } from "@/components";
+import { Layout, MediaModal } from "@/components";
 import { useLocalStorage } from "@mantine/hooks";
 import { ModalsProvider } from "@mantine/modals";
 import { CommunityFormModal } from "@/components";
@@ -31,6 +31,7 @@ export default function App(props: AppProps) {
 
   const modals = {
     communityForm: CommunityFormModal,
+    media: MediaModal
   };
 
   return (

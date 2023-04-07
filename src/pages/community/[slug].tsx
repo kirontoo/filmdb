@@ -25,7 +25,7 @@ import {
 } from "@/components";
 import { buildTMDBImageURL } from "@/lib/tmdb";
 import { useEffect } from "react";
-import { Media } from "@prisma/client";
+import { Community, Media } from "@prisma/client";
 import { IconCopy, IconCheck, IconEdit } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useCommunityContext } from "@/context/CommunityProvider";
@@ -66,7 +66,7 @@ function CommunityDashboard() {
   const { classes } = useStyles();
   const { currentCommunity, setCurrentCommunity, isFetching } =
     useCommunityContext();
-  const { setMedias, watchedMedia, queuedMedia, updateMedias } =
+  const { setMedias, medias, watchedMedia, queuedMedia, updateMedias } =
     useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession({
@@ -147,10 +147,35 @@ function CommunityDashboard() {
           Notify.success(title);
           modals.close(`${media.title}-${media.id}`);
         } else {
-          console.log(data.message);
+          const title = media.watched
+            ? `Moving ${media.title} to queue`
+            : `Moving ${media.title} to watched`;
+          Notify.error(title, data.message);
         }
       },
     });
+
+  const openCommunityFormModal = () => {
+    modals.openContextModal({
+      modal: "communityForm",
+      title: `Update ${currentCommunity!.name}`,
+      size: "xl",
+      innerProps: {
+        name: currentCommunity!.name ?? "",
+        description: currentCommunity!.description ?? "",
+        communityId: currentCommunity!.id ?? "",
+      },
+    });
+  };
+
+  const openMediaModal = (media: Media) => {
+    modals.openContextModal({
+      modal: "media",
+      title: `${media.title}`,
+      size: "50%",
+      innerProps: { media, communityId: currentCommunity!.id ?? "" },
+    });
+  };
 
   return (
     <>
@@ -185,23 +210,6 @@ function CommunityDashboard() {
                           <>
                             {currentCommunity.members.length < 5
                               ? currentCommunity.members.map((m) => (
-                                <Tooltip
-                                  label={m.name}
-                                  withArrow
-                                  key={m.name}
-                                >
-                                  <Avatar
-                                    src={m.image ?? "image.png"}
-                                    radius="xl"
-                                  />
-                                </Tooltip>
-                              ))
-                              : currentCommunity.members
-                                .slice(
-                                  0,
-                                  Math.min(4, currentCommunity.members.length)
-                                )
-                                .map((m) => {
                                   <Tooltip
                                     label={m.name}
                                     withArrow
@@ -211,8 +219,25 @@ function CommunityDashboard() {
                                       src={m.image ?? "image.png"}
                                       radius="xl"
                                     />
-                                  </Tooltip>;
-                                })}
+                                  </Tooltip>
+                                ))
+                              : currentCommunity.members
+                                  .slice(
+                                    0,
+                                    Math.min(4, currentCommunity.members.length)
+                                  )
+                                  .map((m) => {
+                                    <Tooltip
+                                      label={m.name}
+                                      withArrow
+                                      key={m.name}
+                                    >
+                                      <Avatar
+                                        src={m.image ?? "image.png"}
+                                        radius="xl"
+                                      />
+                                    </Tooltip>;
+                                  })}
                             {currentCommunity.members.length > 4 && (
                               <Avatar radius="xl">
                                 +{currentCommunity.members.length - 4}
@@ -280,18 +305,7 @@ function CommunityDashboard() {
                     <Button
                       leftIcon={<IconEdit size="1rem" />}
                       variant="light"
-                      onClick={() => {
-                        modals.openContextModal({
-                          modal: "communityForm",
-                          title: `Update ${currentCommunity.name}`,
-                          size: "md",
-                          innerProps: {
-                            name: currentCommunity.name ?? "",
-                            description: currentCommunity.description ?? "",
-                            communityId: currentCommunity.id ?? "",
-                          },
-                        });
-                      }}
+                      onClick={openCommunityFormModal}
                     >
                       Update
                     </Button>
@@ -301,11 +315,53 @@ function CommunityDashboard() {
 
               <Divider my="md" />
 
-              <Tabs defaultValue="watched" keepMounted={false}>
+              <Tabs defaultValue="all" keepMounted={false}>
                 <Tabs.List>
+                  <Tabs.Tab value="all">All</Tabs.Tab>
                   <Tabs.Tab value="watched">Watched</Tabs.Tab>
                   <Tabs.Tab value="queue">Queue</Tabs.Tab>
                 </Tabs.List>
+
+                <Tabs.Panel value="all">
+                  <Grid
+                    grow={false}
+                    columns={4}
+                    gutter="sm"
+                    className={classes.grid}
+                  >
+                    {medias.map((m) => {
+                      return (
+                        <Grid.Col sm={2} lg={1} key={m.id}>
+                          <MediaImageCard
+                            component="button"
+                            key={m.id}
+                            image={buildTMDBImageURL(m.posterPath)}
+                            className={classes.mediaCard}
+                            onClick={() => openMediaModal(m)}
+                          >
+                            <MediaImageCardHeader
+                              className={classes.cardHeader}
+                            >
+                              <>
+                                <Text
+                                  align="left"
+                                  className={classes.date}
+                                  size="xs"
+                                >
+                                  {format("yyyy/MM/dd", new Date(m.createdAt))}
+                                </Text>
+                                <Title order={3} align="left">
+                                  {m.title}
+                                </Title>
+                              </>
+                            </MediaImageCardHeader>
+                            <MediaImageCardFooter>hi</MediaImageCardFooter>
+                          </MediaImageCard>
+                        </Grid.Col>
+                      );
+                    })}
+                  </Grid>
+                </Tabs.Panel>
 
                 <Tabs.Panel value="watched">
                   <Grid
@@ -322,7 +378,7 @@ function CommunityDashboard() {
                             key={m.id}
                             image={buildTMDBImageURL(m.posterPath)}
                             className={classes.mediaCard}
-                            onClick={() => openTransferListModal(m)}
+                            onClick={() => openMediaModal(m)}
                           >
                             <MediaImageCardHeader
                               className={classes.cardHeader}
@@ -363,7 +419,7 @@ function CommunityDashboard() {
                             key={m.id}
                             image={buildTMDBImageURL(m.posterPath)}
                             className={classes.mediaCard}
-                            onClick={() => openTransferListModal(m)}
+                            onClick={() => openMediaModal(m)}
                           >
                             <MediaImageCardHeader
                               className={classes.cardHeader}
