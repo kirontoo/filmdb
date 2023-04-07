@@ -16,7 +16,8 @@ import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
 import { Media } from "@prisma/client";
 import { IconList, IconBookmark } from "@tabler/icons-react";
 import { TMDBMedia } from "@/lib/types";
-import { addMediaToList } from "@/lib/util";
+import { updateMedia } from "@/lib/util";
+import { useMediaContext } from "@/context/MediaProvider";
 
 interface MediaModalProps {
   media: Media;
@@ -70,7 +71,8 @@ export default function MediaModal({
     reducer,
     { loadingAddToQueue: false, loadingAddToWatchedList: false }
   );
-  const { media, communityId } = innerProps;
+  const { media } = innerProps;
+  const { updateMedias } = useMediaContext();
 
   const fetcher = (url: string) => fetch(url).then((r) => r.json());
   const { data, isLoading } = useSwr<TMDBMedia>(
@@ -78,22 +80,22 @@ export default function MediaModal({
     fetcher
   );
 
-  const addToList = async (media: TMDBMedia, watched: boolean) => {
+  const addToList = async (watched: boolean) => {
     const watchedText = watched ? "watched list" : "queue";
     try {
       dispatch({ type: watched ? "isLoadingWatchedList" : "isLoadingQueue" });
-      const { res, data } = await addMediaToList(
-        { ...media, media_type: innerProps.media.title },
-        communityId,
-        watched
-      );
+
+      // API fetch
+      const { res, data } = await updateMedia(media);
+
       if (res.ok) {
-        Notify.success(`Added ${data.media.title} to ${watchedText}`);
+        // update media state
+        updateMedias(media.id, data.data.media);
+
+        Notify.success(`Moved ${media.title} to ${watchedText}`);
       } else {
         throw new Error(
-          `Could not add ${
-            media.title ?? media.name ?? media.original_title
-          } to ${watchedText}`
+          `Could not move ${innerProps.media.title} to ${watchedText}`
         );
       }
     } catch (error) {
@@ -107,7 +109,6 @@ export default function MediaModal({
 
   return (
     <>
-      <Text>Media Modal</Text>
       {!isLoading && (
         <>
           <Flex gap="md">
@@ -129,22 +130,24 @@ export default function MediaModal({
               </Text>
               <Text component="p">{data?.overview}</Text>
               <Group>
+                <Tooltip label="Move to queue">
+                  <ActionIcon
+                    variant="subtle"
+                    loading={loadingAddToQueue}
+                    onClick={() => addToList(false)}
+                    color="light"
+                  >
+                    <IconList />
+                  </ActionIcon>
+                </Tooltip>
                 <Tooltip label="Move to watched list">
                   <ActionIcon
                     variant="filled"
                     loading={loadingAddToWatchedList}
-                    onClick={() => addToList(data!, true)}
+                    onClick={() => addToList(true)}
+                    color="blue"
                   >
                     <IconBookmark />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Move to queue">
-                  <ActionIcon
-                    variant="filled"
-                    loading={loadingAddToQueue}
-                    onClick={() => addToList(data!, false)}
-                  >
-                    <IconList />
                   </ActionIcon>
                 </Tooltip>
               </Group>

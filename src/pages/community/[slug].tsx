@@ -25,7 +25,7 @@ import {
 } from "@/components";
 import { buildTMDBImageURL } from "@/lib/tmdb";
 import { useEffect } from "react";
-import { Community, Media } from "@prisma/client";
+import { Media } from "@prisma/client";
 import { IconCopy, IconCheck, IconEdit } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useCommunityContext } from "@/context/CommunityProvider";
@@ -33,7 +33,6 @@ import { useRouter } from "next/router";
 import { useMediaContext } from "@/context/MediaProvider";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { useSession } from "next-auth/react";
-import Notify from "@/lib/notify";
 
 const useStyles = createStyles((theme) => ({
   cardHeader: {
@@ -66,8 +65,7 @@ function CommunityDashboard() {
   const { classes } = useStyles();
   const { currentCommunity, setCurrentCommunity, isFetching } =
     useCommunityContext();
-  const { setMedias, medias, watchedMedia, queuedMedia, updateMedias } =
-    useMediaContext();
+  const { setMedias, medias, watchedMedia, queuedMedia } = useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession({
     required: true,
@@ -105,56 +103,6 @@ function CommunityDashboard() {
     }
   }
 
-  const openTransferListModal = (media: Media) =>
-    modals.openConfirmModal({
-      modalId: `${media.title}-${media.id}`,
-      title: media.watched
-        ? `Move ${media.title} to queue`
-        : `Move ${media.title} to watched`,
-      children: (
-        <Text size="sm">
-          Click &quot;confirm&quot; to move <strong>{media.title}</strong> to{" "}
-          {media.watched ? "queue" : "watched"} list
-        </Text>
-      ),
-      centered: true,
-      labels: { confirm: "Confirm", cancel: "Cancel" },
-      confirmProps: {
-        uppercase: true,
-      },
-      cancelProps: {
-        uppercase: true,
-        variant: "subtle",
-        color: "dark",
-      },
-      closeOnConfirm: false,
-      onConfirm: async () => {
-        const res = await fetch(`/api/media/${media.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            watched: !media.watched,
-          }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          updateMedias(media.id, { ...media, watched: !media.watched });
-          const title = media.watched
-            ? `Moved ${media.title} to queue`
-            : `Moved ${media.title} to watched`;
-          Notify.success(title);
-          modals.close(`${media.title}-${media.id}`);
-        } else {
-          const title = media.watched
-            ? `Moving ${media.title} to queue`
-            : `Moving ${media.title} to watched`;
-          Notify.error(title, data.message);
-        }
-      },
-    });
-
   const openCommunityFormModal = () => {
     modals.openContextModal({
       modal: "communityForm",
@@ -172,8 +120,8 @@ function CommunityDashboard() {
     modals.openContextModal({
       modal: "media",
       title: `${media.title}`,
-      size: "50%",
-      innerProps: { media, communityId: currentCommunity!.id ?? "" },
+      size: "xl",
+      innerProps: { media },
     });
   };
 
