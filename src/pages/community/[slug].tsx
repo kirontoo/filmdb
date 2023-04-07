@@ -224,7 +224,7 @@ function CommunityDashboard() {
                           </Text>
                         </Stack>
                         <CopyButton
-                          value={`${origin}/currentCommunity/join?code=${currentCommunity.inviteCode}`}
+                          value={`${origin}/community/join?code=${currentCommunity.inviteCode}`}
                           timeout={2000}
                         >
                           {({ copied, copy }) => (
