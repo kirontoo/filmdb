@@ -18,7 +18,7 @@ export interface Media {
   media_type: string;
 }
 
-export type TMDBMedia = TMDBTvShow & TMDBMovie;
+export type TMDBMedia = TMDBTvShow & TMDBMovie & { media_type: string };
 
 export interface TMDBTvShow {
   backdrop_path: string | null;
