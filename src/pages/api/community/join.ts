@@ -19,7 +19,7 @@ export default async function handler(
       case "POST":
         // query: api/community/join?code=some_code
         try {
-          const { inviteCode: code } = query;
+          const { code } = query;
           if (!code) {
             return res.status(400).send({
               status: "fail",
