@@ -9,7 +9,6 @@ import {
 } from "@mantine/core";
 import NotFoundIllustration from "./NothingFoundIllustration";
 import Link from "next/link";
-import { ReactNode } from "react";
 
 const useStyles = createStyles((theme) => ({
   root: {
