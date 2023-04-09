@@ -10,7 +10,7 @@ import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
 const useStyles = createStyles((theme) => ({
   card: {
-    height: rem(440),
+    height: rem(380),
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
@@ -24,7 +24,7 @@ const useStyles = createStyles((theme) => ({
     [`&:hover .${getStylesRef("image")}`]: {
       transform: "scale(1.05)",
     },
-    width: rem(300),
+    width: rem(250),
     border: "none",
   },
 
