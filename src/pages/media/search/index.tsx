@@ -1,17 +1,11 @@
-import {
-  rem,
-  Text,
-  Container,
-  createStyles,
-  Grid,
-  Title,
-} from "@mantine/core";
+import { rem, Text, Container, createStyles, Grid, Title } from "@mantine/core";
 
 import { IconStarFilled } from "@tabler/icons-react";
 import {
   MediaImageCard,
   MediaImageCardHeader,
   MediaImageCardFooter,
+  NothingFoundBackground,
 } from "@/components";
 import { buildTMDBQuery, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { Media } from "@/lib/types";
@@ -20,7 +14,6 @@ import Link from "next/link";
 
 interface SearchMediaProps {
   medias: Media[] | null;
-  message?: string;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -52,7 +45,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-function SearchMedia({ medias, message }: SearchMediaProps) {
+function SearchMedia({ medias }: SearchMediaProps) {
   const { classes } = useStyles();
   return (
     <>
@@ -89,9 +82,11 @@ function SearchMedia({ medias, message }: SearchMediaProps) {
             })}
           </Grid>
         ) : (
-          <Title align="center" transform="capitalize">
-            {message}
-          </Title>
+          <NothingFoundBackground
+            title="No Media Found"
+            description="Whoops! We couldn't find anything. Maybe try a different keyword?"
+            backgroundImage={false}
+          />
         )}
       </Container>
     </>
@@ -118,8 +113,7 @@ export const getServerSideProps: GetServerSideProps<SearchMediaProps> = async (
   if (res.ok) {
     const data = await res.json();
     if (data.results.length == 0) {
-      return {
-        props: { medias: null, message: "no media found" },
+      return { props: { medias: null },
       };
     }
     const medias = data.results.filter((m: Media) => m.media_type !== "person");
@@ -127,6 +121,6 @@ export const getServerSideProps: GetServerSideProps<SearchMediaProps> = async (
   }
 
   return {
-    props: { medias: null, message: "no media found" },
+    props: { medias: null },
   };
 };
