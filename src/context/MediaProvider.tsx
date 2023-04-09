@@ -16,6 +16,7 @@ interface MediaState {
   setMedias: Dispatch<SetStateAction<Media[]>>;
   addMedia: (data: Media) => void;
   updateMedias: (id: string, media: Media) => void;
+  removeMedia: (id: string) => void;
 }
 
 export const MediaContext = createContext<MediaState>({
@@ -25,6 +26,7 @@ export const MediaContext = createContext<MediaState>({
   setMedias: () => null,
   addMedia: () => null,
   updateMedias: () => null,
+  removeMedia: () => null,
 });
 
 export const useMediaContext = () => {
@@ -67,6 +69,11 @@ export const useMediaProvider = () => {
     ]);
   };
 
+  const removeMedia = (id: string) => {
+    const newMediaItems = medias.filter((m) => m.id !== id);
+    setMedias([...newMediaItems]);
+  };
+
   return {
     medias,
     setMedias,
@@ -74,6 +81,7 @@ export const useMediaProvider = () => {
     watchedMedia,
     addMedia,
     updateMedias,
+    removeMedia
   };
 };
 

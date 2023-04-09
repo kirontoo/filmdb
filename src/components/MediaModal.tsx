@@ -8,13 +8,13 @@ import {
   Image,
   Tooltip,
 } from "@mantine/core";
-import { ContextModalProps } from "@mantine/modals";
+import { ContextModalProps, modals } from "@mantine/modals";
 import { useReducer } from "react";
 import Notify from "@/lib/notify";
 import useSwr from "swr";
 import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
 import { Media } from "@prisma/client";
-import { IconList, IconBookmark } from "@tabler/icons-react";
+import { IconList, IconBookmark, IconTrash } from "@tabler/icons-react";
 import { TMDBMedia } from "@/lib/types";
 import { updateMedia } from "@/lib/util";
 import { useMediaContext } from "@/context/MediaProvider";
@@ -27,13 +27,16 @@ interface MediaModalProps {
 interface LoadingState {
   loadingAddToWatchedList: boolean;
   loadingAddToQueue: boolean;
+  loadingDeleteMedia: boolean;
 }
 
 type LoadingAction =
   | { type: "isLoadingQueue" }
   | { type: "stopLoadingQueue" }
   | { type: "isLoadingWatchedList" }
-  | { type: "stopLoadingWatchedList" };
+  | { type: "stopLoadingWatchedList" }
+  | { type: "isLoadingDeleteMedia" }
+  | { type: "stopLoadingDeleteMedia" };
 
 const useStyles = createStyles((theme) => ({
   imgContainer: {
@@ -51,10 +54,14 @@ function reducer(state: LoadingState, action: LoadingAction): LoadingState {
       return { ...state, loadingAddToQueue: true };
     case "isLoadingWatchedList":
       return { ...state, loadingAddToWatchedList: true };
+    case "isLoadingDeleteMedia":
+      return { ...state, loadingDeleteMedia: true };
     case "stopLoadingQueue":
       return { ...state, loadingAddToQueue: false };
     case "stopLoadingWatchedList":
       return { ...state, loadingAddToWatchedList: false };
+    case "stopLoadingDeleteMedia":
+      return { ...state, loadingDeleteMedia: true };
     default:
       throw Error("Unknown action");
   }
@@ -67,18 +74,74 @@ export default function MediaModal({
 }: ContextModalProps<MediaModalProps>) {
   const { classes } = useStyles();
 
-  const [{ loadingAddToQueue, loadingAddToWatchedList }, dispatch] = useReducer(
-    reducer,
-    { loadingAddToQueue: false, loadingAddToWatchedList: false }
-  );
-  const { media } = innerProps;
-  const { updateMedias } = useMediaContext();
+  const [
+    { loadingAddToQueue, loadingAddToWatchedList, loadingDeleteMedia },
+    dispatch,
+  ] = useReducer(reducer, {
+    loadingAddToQueue: false,
+    loadingAddToWatchedList: false,
+    loadingDeleteMedia: false,
+  });
+  const { media, communityId } = innerProps;
+  const { updateMedias, removeMedia } = useMediaContext();
 
   const fetcher = (url: string) => fetch(url).then((r) => r.json());
   const { data, isLoading } = useSwr<TMDBMedia>(
     buildTMDBQuery(`${innerProps.media.mediaType}/${innerProps.media.tmdbId}`),
     fetcher
   );
+
+  const openDeleteModal = () => {
+    modals.openConfirmModal({
+      title: `Delete ${media.title} from lists`,
+      centered: true,
+      children: (
+        <Text component="p">
+          Are you sure you want to delete <strong>{media.title}</strong>? This
+          action is destructive and will delete it from{" "}
+          <strong>all lists</strong>.
+        </Text>
+      ),
+      labels: {
+        confirm: "Delete",
+        cancel: "Cancel",
+      },
+      closeOnConfirm: false,
+      size: "md",
+      cancelProps: { variant: "subtle", color: "dark" },
+      confirmProps: {
+        color: "red",
+        loading: loadingDeleteMedia,
+        leftIcon: <IconTrash />,
+      },
+      onConfirm: async () => {
+        await deleteFromList();
+        modals.closeAll();
+      },
+    });
+  };
+
+  const deleteFromList = async () => {
+    dispatch({ type: "isLoadingDeleteMedia" });
+    try {
+      const res = await fetch(
+        `/api/community/${communityId}/media/${media.id}`,
+        { method: "DELETE" }
+      );
+
+      // const data = res.json();
+      if (res.ok) {
+        removeMedia(media.id);
+        Notify.success(`Deleted ${media.title}`);
+      } else {
+        throw new Error(`Could not delete ${media.title}`);
+      }
+    } catch (error) {
+      Notify.error(error as string);
+    } finally {
+      dispatch({ type: "stopLoadingDeleteMedia" });
+    }
+  };
 
   const addToList = async (watched: boolean) => {
     const watchedText = watched ? "watched list" : "queue";
@@ -130,6 +193,16 @@ export default function MediaModal({
               </Text>
               <Text component="p">{data?.overview}</Text>
               <Group>
+                <Tooltip label="Delete from all lists">
+                  <ActionIcon
+                    variant="subtle"
+                    loading={loadingAddToWatchedList}
+                    onClick={openDeleteModal}
+                    color="red"
+                  >
+                    <IconTrash />
+                  </ActionIcon>
+                </Tooltip>
                 <Tooltip label="Move to queue">
                   <ActionIcon
                     variant="subtle"
