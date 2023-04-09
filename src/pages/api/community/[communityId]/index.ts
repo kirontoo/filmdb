@@ -1,20 +1,21 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 import prisma from "@/lib/prismadb";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const session = await getServerSession(req, res, authOptions);
   const { query, method, body } = req;
-  const { id } = query;
-  if (!id) {
+  const { communityId } = query;
+  if (!communityId) {
     return res.status(400).send({
       status: "fail",
       message: "missing id",
@@ -38,13 +39,15 @@ export default async function handler(
 
         const { title, mediaType, posterPath, watched, tmdbId } = body;
         try {
-          const communityId: string = Array.isArray(id) ? id[0] : id;
+          const id: string = Array.isArray(communityId)
+            ? communityId[0]
+            : communityId;
 
           const user = await prisma.user.findFirst({
             where: {
               email: session!.user!.email as string,
               communities: {
-                some: { id: communityId },
+                some: { id: id },
               },
             },
           });
@@ -54,7 +57,7 @@ export default async function handler(
               where: {
                 tmdbId_communityId: {
                   tmdbId: String(tmdbId),
-                  communityId,
+                  communityId: id,
                 },
               },
               update: {
@@ -67,7 +70,7 @@ export default async function handler(
                 posterPath: posterPath as string,
                 watched: (watched as boolean) ?? false,
                 community: {
-                  connect: { id: communityId },
+                  connect: { id: id },
                 },
               },
             });
@@ -109,7 +112,7 @@ export default async function handler(
             }
             return res.status(400).send({
               status: "fail",
-                message: `${title} could not be added`,
+              message: `${title} could not be added`,
             });
           }
 
@@ -126,17 +129,19 @@ export default async function handler(
           });
         }
       case "PATCH":
-        const communityId: string = Array.isArray(id) ? id[0] : id;
+        const id: string = Array.isArray(communityId)
+          ? communityId[0]
+          : communityId;
         return await updateCommunity(
           req,
           res,
-          communityId,
+          id,
           session!.user!.email as string
         );
       case "GET":
         return await getCommunityById(req, res, session!.user!.email as string);
       default:
-        res.setHeader("Allow", ["POST", "PATCH"]);
+        res.setHeader("Allow", ["GET", "POST", "PATCH"]);
         return res.status(405).end(`Method ${method} Not Allowed`);
     }
   } else {
