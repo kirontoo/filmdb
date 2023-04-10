@@ -6,13 +6,10 @@ import {
   ReactNode,
   Dispatch,
   SetStateAction,
-  useMemo,
 } from "react";
 
 interface MediaState {
   medias: Media[];
-  watchedMedia: Media[];
-  queuedMedia: Media[];
   setMedias: Dispatch<SetStateAction<Media[]>>;
   addMedia: (data: Media) => void;
   updateMedias: (id: string, media: Media) => void;
@@ -21,8 +18,6 @@ interface MediaState {
 
 export const MediaContext = createContext<MediaState>({
   medias: [],
-  watchedMedia: [],
-  queuedMedia: [],
   setMedias: () => null,
   addMedia: () => null,
   updateMedias: () => null,
@@ -43,14 +38,6 @@ export const useMediaProvider = () => {
   const addMedia = (data: Media) => {
     setMedias((prev) => [...prev, data]);
   };
-
-  const watchedMedia = useMemo<Media[]>(() => {
-    return medias.filter((m: Media) => m.watched);
-  }, [medias]);
-
-  const queuedMedia = useMemo<Media[]>(() => {
-    return medias.filter((m) => !m.watched);
-  }, [medias]);
 
   const updateMedias = (id: string, media: Media) => {
     const index = medias.findIndex((m) => m.id === id);
@@ -77,8 +64,6 @@ export const useMediaProvider = () => {
   return {
     medias,
     setMedias,
-    queuedMedia,
-    watchedMedia,
     addMedia,
     updateMedias,
     removeMedia
