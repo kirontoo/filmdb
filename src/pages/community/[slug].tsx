@@ -1,4 +1,9 @@
 import {
+  Box,
+  Group,
+  Collapse,
+  Autocomplete,
+  useMantineTheme,
   ActionIcon,
   Avatar,
   Card,
@@ -24,20 +29,31 @@ import {
   MediaImageCardFooter,
 } from "@/components";
 import { buildTMDBImageURL } from "@/lib/tmdb";
-import { useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Media } from "@prisma/client";
-import { IconCopy, IconCheck, IconEdit } from "@tabler/icons-react";
+import {
+  IconSearch,
+  IconCopy,
+  IconCheck,
+  IconEdit,
+  IconX,
+  IconAdjustmentsFilled,
+} from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useCommunityContext } from "@/context/CommunityProvider";
 import { useRouter } from "next/router";
 import { useMediaContext } from "@/context/MediaProvider";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { useSession } from "next-auth/react";
+import { useDisclosure } from "@mantine/hooks";
 
 const useStyles = createStyles((theme) => ({
+  filterContainer: {},
+
   cardHeader: {
     color: theme.white,
   },
+
   date: {
     color: theme.white,
     opacity: 0.7,
@@ -56,23 +72,38 @@ const useStyles = createStyles((theme) => ({
   grid: {
     paddingTop: theme.spacing.lg,
   },
+
+  searchbar: {
+    width: "100%",
+  },
 }));
 
-// function CommunityDashboard({ community }: CommunityDashboardProps) {
 function CommunityDashboard() {
+  const theme = useMantineTheme();
   const router = useRouter();
   const { setLoading } = useLoadingContext();
   const { classes } = useStyles();
   const { currentCommunity, setCurrentCommunity, isFetching } =
     useCommunityContext();
-  const { setMedias, medias, watchedMedia, queuedMedia } = useMediaContext();
+  const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [openFilterOptions, { toggle: toggleFilterOptions }] =
+    useDisclosure(false);
+
   const { data: session } = useSession({
     required: true,
     onUnauthenticated() {
       router.push("/404");
     },
   });
+
+  const searchedMedias = useMemo<Media[]>(() => {
+    return medias.filter((m: Media) => {
+      return m.title.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [searchQuery, medias]);
+
   const fetchCommunities = async (community: string) => {
     const query = encodeURI(`community=${community}`);
     const res = await fetch(`/api/media?${query}`);
@@ -263,136 +294,75 @@ function CommunityDashboard() {
 
               <Divider my="md" />
 
-              <Tabs defaultValue="all" keepMounted={false}>
-                <Tabs.List>
-                  <Tabs.Tab value="all">All</Tabs.Tab>
-                  <Tabs.Tab value="watched">Watched</Tabs.Tab>
-                  <Tabs.Tab value="queue">Queue</Tabs.Tab>
-                </Tabs.List>
-
-                <Tabs.Panel value="all">
-                  <Grid
-                    grow={false}
-                    columns={4}
-                    gutter="sm"
-                    className={classes.grid}
-                  >
-                    {medias.map((m) => {
-                      return (
-                        <Grid.Col sm={2} lg={1} key={m.id}>
-                          <MediaImageCard
-                            component="button"
-                            key={m.id}
-                            image={buildTMDBImageURL(m.posterPath)}
-                            className={classes.mediaCard}
-                            onClick={() => openMediaModal(m)}
-                          >
-                            <MediaImageCardHeader
-                              className={classes.cardHeader}
-                            >
-                              <>
-                                <Text
-                                  align="left"
-                                  className={classes.date}
-                                  size="xs"
-                                >
-                                  {format("yyyy/MM/dd", new Date(m.createdAt))}
-                                </Text>
-                                <Title order={3} align="left">
-                                  {m.title}
-                                </Title>
-                              </>
-                            </MediaImageCardHeader>
-                            <MediaImageCardFooter>hi</MediaImageCardFooter>
-                          </MediaImageCard>
-                        </Grid.Col>
-                      );
-                    })}
-                  </Grid>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="watched">
-                  <Grid
-                    grow={false}
-                    columns={4}
-                    gutter="sm"
-                    className={classes.grid}
-                  >
-                    {watchedMedia.map((m) => {
-                      return (
-                        <Grid.Col sm={2} lg={1} key={m.id}>
-                          <MediaImageCard
-                            component="button"
-                            key={m.id}
-                            image={buildTMDBImageURL(m.posterPath)}
-                            className={classes.mediaCard}
-                            onClick={() => openMediaModal(m)}
-                          >
-                            <MediaImageCardHeader
-                              className={classes.cardHeader}
-                            >
-                              <>
-                                <Text
-                                  align="left"
-                                  className={classes.date}
-                                  size="xs"
-                                >
-                                  {format("yyyy/MM/dd", new Date(m.createdAt))}
-                                </Text>
-                                <Title order={3} align="left">
-                                  {m.title}
-                                </Title>
-                              </>
-                            </MediaImageCardHeader>
-                            <MediaImageCardFooter>hi</MediaImageCardFooter>
-                          </MediaImageCard>
-                        </Grid.Col>
-                      );
-                    })}
-                  </Grid>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="queue">
-                  <Grid grow={false} columns={4} gutter="sm">
-                    {queuedMedia.map((m) => {
-                      return (
-                        <Grid.Col
-                          sm={2}
-                          lg={1}
-                          key={m.id}
-                          className={classes.grid}
+              <Box mx="auto">
+                <Flex gap="sm">
+                  <Autocomplete
+                    className={classes.searchbar}
+                    placeholder="Search Media"
+                    data={medias.map((m) => m.title)}
+                    onChange={setSearchQuery}
+                    value={searchQuery}
+                    icon={<IconSearch size="1.1rem" stroke={1.5} />}
+                    rightSection={
+                      <Tooltip label="clear search">
+                        <ActionIcon
+                          size={32}
+                          color={theme.primaryColor}
+                          onClick={() => setSearchQuery("")}
                         >
-                          <MediaImageCard
-                            component="button"
-                            key={m.id}
-                            image={buildTMDBImageURL(m.posterPath)}
-                            className={classes.mediaCard}
-                            onClick={() => openMediaModal(m)}
-                          >
-                            <MediaImageCardHeader
-                              className={classes.cardHeader}
+                          <IconX size="1.1rem" stroke={1.5} />
+                        </ActionIcon>
+                      </Tooltip>
+                    }
+                    rightSectionWidth={42}
+                  />
+                  <Button
+                    onClick={toggleFilterOptions}
+                    rightIcon={<IconAdjustmentsFilled size="1.1rem" />}
+                  >
+                    Filters
+                  </Button>
+                </Flex>
+
+                <Collapse
+                  in={openFilterOptions}
+                  className={classes.filterContainer}
+                >
+                  <Text>aorisentaoirenstoiaresnt</Text>
+                </Collapse>
+              </Box>
+
+              <Grid grow={false} columns={5} className={classes.grid}>
+                {searchedMedias.map((m) => {
+                  return (
+                    <Grid.Col sm={2} lg={1} key={m.id}>
+                      <MediaImageCard
+                        component="button"
+                        key={m.id}
+                        image={buildTMDBImageURL(m.posterPath)}
+                        className={classes.mediaCard}
+                        onClick={() => openMediaModal(m)}
+                      >
+                        <MediaImageCardHeader className={classes.cardHeader}>
+                          <>
+                            <Text
+                              align="left"
+                              className={classes.date}
+                              size="xs"
                             >
-                              <>
-                                <Text
-                                  align="left"
-                                  className={classes.date}
-                                  size="xs"
-                                >
-                                  {format("yyyy/MM/dd", new Date(m.createdAt))}
-                                </Text>
-                                <Title order={3} align="left">
-                                  {m.title}
-                                </Title>
-                              </>
-                            </MediaImageCardHeader>
-                            <MediaImageCardFooter>hi</MediaImageCardFooter>
-                          </MediaImageCard>
-                        </Grid.Col>
-                      );
-                    })}
-                  </Grid>
-                </Tabs.Panel>
-              </Tabs>
+                              {format("yyyy/MM/dd", new Date(m.createdAt))}
+                            </Text>
+                            <Title order={3} align="left">
+                              {m.title}
+                            </Title>
+                          </>
+                        </MediaImageCardHeader>
+                        <MediaImageCardFooter>hi</MediaImageCardFooter>
+                      </MediaImageCard>
+                    </Grid.Col>
+                  );
+                })}
+              </Grid>
             </>
           )}
         </>
