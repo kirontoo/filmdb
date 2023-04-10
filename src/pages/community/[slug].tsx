@@ -1,6 +1,9 @@
 import {
+  rem,
   Box,
   Group,
+  Radio,
+  Select,
   Collapse,
   Autocomplete,
   useMantineTheme,
@@ -14,7 +17,6 @@ import {
   Grid,
   Paper,
   Stack,
-  Tabs,
   Text,
   Title,
   Tooltip,
@@ -45,10 +47,23 @@ import { useRouter } from "next/router";
 import { useMediaContext } from "@/context/MediaProvider";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { useSession } from "next-auth/react";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useToggle } from "@mantine/hooks";
 
 const useStyles = createStyles((theme) => ({
-  filterContainer: {},
+  filterContainer: {
+    borderBottom: `1px solid ${theme.colors.gray[3]}`,
+    padding: theme.spacing.md,
+  },
+
+  checkboxFilterContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing.xs,
+  },
+
+  sortSelector: {
+    width: rem("350px"),
+  },
 
   cardHeader: {
     color: theme.white,
@@ -78,19 +93,30 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+const SortItems = [
+  {
+    value: "alphabetical",
+    label: "Alphabetical",
+  },
+  {
+    value: "dateAdded",
+    label: "Date Added",
+  },
+  {
+    value: "dateWatched",
+    label: "Date Watched",
+  },
+];
+
 function CommunityDashboard() {
   const theme = useMantineTheme();
   const router = useRouter();
-  const { setLoading } = useLoadingContext();
   const { classes } = useStyles();
+  const { setLoading } = useLoadingContext();
   const { currentCommunity, setCurrentCommunity, isFetching } =
     useCommunityContext();
   const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [openFilterOptions, { toggle: toggleFilterOptions }] =
-    useDisclosure(false);
-
   const { data: session } = useSession({
     required: true,
     onUnauthenticated() {
@@ -98,20 +124,35 @@ function CommunityDashboard() {
     },
   });
 
-  const searchedMedias = useMemo<Media[]>(() => {
-    return medias.filter((m: Media) => {
-      return m.title.toLowerCase().includes(searchQuery.toLowerCase());
-    });
-  }, [searchQuery, medias]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [openFilterOptions, { toggle: toggleFilterOptions }] =
+    useDisclosure(false);
+  const [listFilter, setListFilter] = useState<string>("all");
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<string>("all");
+  const [sortSelect, setSortSelect] = useState<string | null>(
+    SortItems[0].value
+  );
 
-  const fetchCommunities = async (community: string) => {
-    const query = encodeURI(`community=${community}`);
-    const res = await fetch(`/api/media?${query}`);
-    if (res.ok) {
-      const { data } = await res.json();
-      setMedias(data.medias);
+  const searchedMedias = useMemo<Media[]>(() => {
+    let results = medias;
+
+    if (listFilter !== "all") {
+      const watched = listFilter === "watched" ? true : false;
+      results = results.filter((m) => m.watched == watched);
     }
-  };
+
+    if (mediaTypeFilter !== "all") {
+      results = results.filter((m) => m.mediaType == mediaTypeFilter);
+    }
+
+    if (searchQuery !== "") {
+      results = results.filter((m: Media) => {
+        return m.title.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+    }
+
+    return results;
+  }, [searchQuery, medias, mediaTypeFilter, listFilter]);
 
   useEffect(() => {
     if (session && !isFetching) {
@@ -125,7 +166,12 @@ function CommunityDashboard() {
       const community = Array.isArray(slug) ? slug[0] : slug;
       if (community) {
         setCurrentCommunity(community);
-        await fetchCommunities(community);
+        const query = encodeURI(`community=${community}`);
+        const res = await fetch(`/api/media?${query}`);
+        if (res.ok) {
+          const { data } = await res.json();
+          setMedias(data.medias);
+        }
       }
     } catch (e) {
       router.push("/404");
@@ -316,6 +362,13 @@ function CommunityDashboard() {
                     }
                     rightSectionWidth={42}
                   />
+                  <Select
+                    data={SortItems}
+                    placeholder="Sort by..."
+                    className={classes.sortSelector}
+                    value={sortSelect}
+                    onChange={setSortSelect}
+                  />
                   <Button
                     onClick={toggleFilterOptions}
                     rightIcon={<IconAdjustmentsFilled size="1.1rem" />}
@@ -328,7 +381,44 @@ function CommunityDashboard() {
                   in={openFilterOptions}
                   className={classes.filterContainer}
                 >
-                  <Text>aorisentaoirenstoiaresnt</Text>
+                  <Grid columns={4}>
+                    <Grid.Col sm={2} lg={1}>
+                      <Radio.Group
+                        label={
+                          <Box>
+                            <Text>List</Text>
+                            <Divider />
+                          </Box>
+                        }
+                        labelProps={{ size: "md", fw: 600 }}
+                        className={classes.checkboxFilterContainer}
+                        value={listFilter}
+                        onChange={setListFilter}
+                      >
+                        <Radio label="All" value="all" />
+                        <Radio label="Watched" value="watched" />
+                        <Radio label="Queued" value="queued" />
+                      </Radio.Group>
+                    </Grid.Col>
+                    <Grid.Col sm={2} lg={1}>
+                      <Radio.Group
+                        label={
+                          <Box>
+                            <Text>Media Type</Text>
+                            <Divider />
+                          </Box>
+                        }
+                        labelProps={{ size: "md", fw: 600 }}
+                        className={classes.checkboxFilterContainer}
+                        value={mediaTypeFilter}
+                        onChange={setMediaTypeFilter}
+                      >
+                        <Radio label="All" value="all" />
+                        <Radio label="Movie" value="movie" />
+                        <Radio label="TV show" value="tv" />
+                      </Radio.Group>
+                    </Grid.Col>
+                  </Grid>
                 </Collapse>
               </Box>
 
