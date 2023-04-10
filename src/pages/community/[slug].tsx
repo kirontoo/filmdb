@@ -69,6 +69,13 @@ const useStyles = createStyles((theme) => ({
     color: theme.white,
   },
 
+  resetBtn: {
+    width: "100%",
+    [`@media (min-width:${theme.breakpoints.lg})`]: {
+      width: "max-content",
+    },
+  },
+
   date: {
     color: theme.white,
     opacity: 0.7,
@@ -159,6 +166,11 @@ function CommunityDashboard() {
       loadData();
     }
   }, [slug, session, isFetching]);
+
+  const resetFilters = () => {
+    setListFilter("all");
+    setMediaTypeFilter("all");
+  };
 
   async function loadData() {
     setLoading(true);
@@ -381,44 +393,55 @@ function CommunityDashboard() {
                   in={openFilterOptions}
                   className={classes.filterContainer}
                 >
-                  <Grid columns={4}>
-                    <Grid.Col sm={2} lg={1}>
-                      <Radio.Group
-                        label={
-                          <Box>
-                            <Text>List</Text>
-                            <Divider />
-                          </Box>
-                        }
-                        labelProps={{ size: "md", fw: 600 }}
-                        className={classes.checkboxFilterContainer}
-                        value={listFilter}
-                        onChange={setListFilter}
+                  <Stack>
+                    <Grid columns={4}>
+                      <Grid.Col sm={2} lg={1}>
+                        <Radio.Group
+                          label={
+                            <Box>
+                              <Text>List</Text>
+                              <Divider />
+                            </Box>
+                          }
+                          labelProps={{ size: "md", fw: 600 }}
+                          className={classes.checkboxFilterContainer}
+                          value={listFilter}
+                          onChange={setListFilter}
+                        >
+                          <Radio label="All" value="all" />
+                          <Radio label="Watched" value="watched" />
+                          <Radio label="Queued" value="queued" />
+                        </Radio.Group>
+                      </Grid.Col>
+                      <Grid.Col sm={2} lg={1}>
+                        <Radio.Group
+                          label={
+                            <Box>
+                              <Text>Media Type</Text>
+                              <Divider />
+                            </Box>
+                          }
+                          labelProps={{ size: "md", fw: 600 }}
+                          className={classes.checkboxFilterContainer}
+                          value={mediaTypeFilter}
+                          onChange={setMediaTypeFilter}
+                        >
+                          <Radio label="All" value="all" />
+                          <Radio label="Movie" value="movie" />
+                          <Radio label="TV show" value="tv" />
+                        </Radio.Group>
+                      </Grid.Col>
+                    </Grid>
+                    <Flex justify="right">
+                      <Button
+                        variant="light"
+                        onClick={resetFilters}
+                        className={classes.resetBtn}
                       >
-                        <Radio label="All" value="all" />
-                        <Radio label="Watched" value="watched" />
-                        <Radio label="Queued" value="queued" />
-                      </Radio.Group>
-                    </Grid.Col>
-                    <Grid.Col sm={2} lg={1}>
-                      <Radio.Group
-                        label={
-                          <Box>
-                            <Text>Media Type</Text>
-                            <Divider />
-                          </Box>
-                        }
-                        labelProps={{ size: "md", fw: 600 }}
-                        className={classes.checkboxFilterContainer}
-                        value={mediaTypeFilter}
-                        onChange={setMediaTypeFilter}
-                      >
-                        <Radio label="All" value="all" />
-                        <Radio label="Movie" value="movie" />
-                        <Radio label="TV show" value="tv" />
-                      </Radio.Group>
-                    </Grid.Col>
-                  </Grid>
+                        Reset Filters
+                      </Button>
+                    </Flex>
+                  </Stack>
                 </Collapse>
               </Box>
 
