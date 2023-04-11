@@ -2,11 +2,13 @@ import Head from "next/head";
 import {
   rem,
   createStyles,
+  Stack,
   Title,
   Container,
   Grid,
   Paper,
   Text,
+  Divider,
 } from "@mantine/core";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getServerSession } from "next-auth/next";
@@ -51,7 +53,7 @@ function pickRandColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function CommunityPage({communities}: Data) {
+function CommunityPage({ communities }: Data) {
   const { classes } = useStyles();
 
   return (
@@ -60,9 +62,16 @@ function CommunityPage({communities}: Data) {
         <title>FilmDB | search media</title>
       </Head>
       <Container size="xl">
-        <Title className={classes.title} align="center">
-          Your Communities
-        </Title>
+        <Stack
+          sx={(theme) => ({
+            marginBottom: theme.spacing.md,
+          })}
+        >
+          <Title className={classes.title} align="center">
+            Your Communities
+          </Title>
+          <Divider />
+        </Stack>
 
         {communities.length == 0 ? (
           <NothingFoundBackground
@@ -100,7 +109,6 @@ function CommunityPage({communities}: Data) {
     </>
   );
 }
-
 
 type Data = {
   communities: Community[];
