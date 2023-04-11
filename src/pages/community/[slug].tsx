@@ -34,6 +34,8 @@ import { buildTMDBImageURL } from "@/lib/tmdb";
 import { useMemo, useEffect, useState } from "react";
 import { Media } from "@prisma/client";
 import {
+  IconSortAscending,
+  IconSortDescending,
   IconSearch,
   IconCopy,
   IconCheck,
@@ -51,8 +53,9 @@ import { useDisclosure, useToggle } from "@mantine/hooks";
 
 const useStyles = createStyles((theme) => ({
   filterContainer: {
-    borderBottom: `1px solid ${theme.colors.gray[3]}`,
-    padding: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    paddingLeft: theme.spacing.md,
+    paddingRight: theme.spacing.md,
   },
 
   checkboxFilterContainer: {
@@ -62,7 +65,9 @@ const useStyles = createStyles((theme) => ({
   },
 
   sortSelector: {
-    width: rem("350px"),
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing.md,
   },
 
   cardHeader: {
@@ -91,12 +96,8 @@ const useStyles = createStyles((theme) => ({
     cursor: "pointer",
   },
 
-  grid: {
-    paddingTop: theme.spacing.lg,
-  },
-
   searchbar: {
-    width: "100%",
+    flexGrow: 1,
   },
 }));
 
@@ -139,6 +140,7 @@ function CommunityDashboard() {
   const [sortSelect, setSortSelect] = useState<string | null>(
     SortItems[0].value
   );
+  const [sortDirection, toggleDirection] = useToggle(["asc", "dec"]);
 
   const searchedMedias = useMemo<Media[]>(() => {
     let results = medias;
@@ -158,11 +160,41 @@ function CommunityDashboard() {
       });
     }
 
+    // sort data
+    const asc = sortDirection == "asc";
+    if (sortSelect === SortItems[0].value) {
+      // alphabetically
+      results = results.sort((a, b) => {
+        return asc
+          ? ("" + a.title).localeCompare(b.title)
+          : ("" + b.title).localeCompare(a.title);
+      });
+    } else if (sortSelect === SortItems[1].value) {
+      // date added
+      results = results.sort((a, b) => {
+        return asc
+          ? a.createdAt.getTime() - b.createdAt.getTime()
+          : b.createdAt.getTime() - a.createdAt.getTime();
+      });
+    } else if (sortSelect === SortItems[2].value) {
+      // date watched
+      results = results.sort((a, b) => {
+        if (a.dateWatched && b.dateWatched) {
+          return asc
+            ? a.dateWatched.getTime() - b.dateWatched.getTime()
+            : b.dateWatched.getTime() - a.dateWatched.getTime();
+        }
+        return a.dateWatched && !b.dateWatched ? -1 : 1;
+      });
+    }
+
     return results;
-  }, [searchQuery, medias, mediaTypeFilter, listFilter]);
+  }, [searchQuery, medias, mediaTypeFilter, listFilter, sortSelect, sortDirection]);
 
   useEffect(() => {
     if (session && !isFetching) {
+      resetFilters();
+      setSortSelect(SortItems[0].value);
       loadData();
     }
   }, [slug, session, isFetching]);
@@ -353,7 +385,11 @@ function CommunityDashboard() {
               <Divider my="md" />
 
               <Box mx="auto">
-                <Flex gap="sm">
+                <Flex
+                  gap="md"
+                  direction={{ base: "column", lg: "row" }}
+                  justify="space-between"
+                >
                   <Autocomplete
                     className={classes.searchbar}
                     placeholder="Search Media"
@@ -374,15 +410,32 @@ function CommunityDashboard() {
                     }
                     rightSectionWidth={42}
                   />
-                  <Select
-                    data={SortItems}
-                    placeholder="Sort by..."
-                    className={classes.sortSelector}
-                    value={sortSelect}
-                    onChange={setSortSelect}
-                  />
+
+                  <Flex gap="md">
+                    <Select
+                      label={<Text>Sort by:</Text>}
+                      data={SortItems}
+                      placeholder="Sort by..."
+                      className={classes.sortSelector}
+                      value={sortSelect}
+                      onChange={setSortSelect}
+                    />
+                    <ActionIcon
+                      size="lg"
+                      variant="light"
+                      onClick={() => toggleDirection()}
+                    >
+                      {sortDirection == "asc" ? (
+                        <IconSortAscending />
+                      ) : (
+                        <IconSortDescending />
+                      )}
+                    </ActionIcon>
+                  </Flex>
+
                   <Button
                     onClick={toggleFilterOptions}
+                    variant="light"
                     rightIcon={<IconAdjustmentsFilled size="1.1rem" />}
                   >
                     Filters
@@ -445,7 +498,8 @@ function CommunityDashboard() {
                 </Collapse>
               </Box>
 
-              <Grid grow={false} columns={5} className={classes.grid}>
+              <Divider my="md" labelPosition="center" />
+              <Grid grow={false} columns={5}>
                 {searchedMedias.map((m) => {
                   return (
                     <Grid.Col sm={2} lg={1} key={m.id}>
