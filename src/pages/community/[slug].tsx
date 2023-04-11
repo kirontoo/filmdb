@@ -31,7 +31,7 @@ import {
   MediaImageCardFooter,
 } from "@/components";
 import { buildTMDBImageURL } from "@/lib/tmdb";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, ChangeEvent } from "react";
 import { Media } from "@prisma/client";
 import {
   IconSortAscending,
@@ -50,6 +50,8 @@ import { useMediaContext } from "@/context/MediaProvider";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { useSession } from "next-auth/react";
 import { useDisclosure, useToggle } from "@mantine/hooks";
+
+import { Filter, genericFilter, genericSearch, genericSort } from "@/lib/util";
 
 const useStyles = createStyles((theme) => ({
   filterContainer: {
@@ -101,13 +103,16 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-const SortItems = [
+const SortItems: Array<{
+  value: keyof Media;
+  label: string;
+}> = [
   {
-    value: "alphabetical",
+    value: "title",
     label: "Alphabetical",
   },
   {
-    value: "dateAdded",
+    value: "createdAt",
     label: "Date Added",
   },
   {
@@ -137,59 +142,46 @@ function CommunityDashboard() {
     useDisclosure(false);
   const [listFilter, setListFilter] = useState<string>("all");
   const [mediaTypeFilter, setMediaTypeFilter] = useState<string>("all");
-  const [sortSelect, setSortSelect] = useState<string | null>(
-    SortItems[0].value
-  );
+  const [sortSelect, setSortSelect] = useState<keyof Media>(SortItems[0].value);
   const [sortDirection, toggleDirection] = useToggle(["asc", "dec"]);
 
   const searchedMedias = useMemo<Media[]>(() => {
-    let results = medias;
+    let filters: Array<Filter<Media>> = [];
 
     if (listFilter !== "all") {
-      const watched = listFilter === "watched" ? true : false;
-      results = results.filter((m) => m.watched == watched);
+      filters.push({
+        property: "watched",
+        isTruthyPicked: true,
+        value: listFilter === "watched",
+      });
     }
 
     if (mediaTypeFilter !== "all") {
-      results = results.filter((m) => m.mediaType == mediaTypeFilter);
-    }
-
-    if (searchQuery !== "") {
-      results = results.filter((m: Media) => {
-        return m.title.toLowerCase().includes(searchQuery.toLowerCase());
+      filters.push({
+        property: "mediaType",
+        isTruthyPicked: false,
+        value: mediaTypeFilter,
       });
     }
 
-    // sort data
-    const asc = sortDirection == "asc";
-    if (sortSelect === SortItems[0].value) {
-      // alphabetically
-      results = results.sort((a, b) => {
-        return asc
-          ? ("" + a.title).localeCompare(b.title)
-          : ("" + b.title).localeCompare(a.title);
-      });
-    } else if (sortSelect === SortItems[1].value) {
-      // date added
-      results = results.sort((a, b) => {
-        return asc
-          ? a.createdAt.getTime() - b.createdAt.getTime()
-          : b.createdAt.getTime() - a.createdAt.getTime();
-      });
-    } else if (sortSelect === SortItems[2].value) {
-      // date watched
-      results = results.sort((a, b) => {
-        if (a.dateWatched && b.dateWatched) {
-          return asc
-            ? a.dateWatched.getTime() - b.dateWatched.getTime()
-            : b.dateWatched.getTime() - a.dateWatched.getTime();
-        }
-        return a.dateWatched && !b.dateWatched ? -1 : 1;
-      });
-    }
+    return medias
+      .filter((m) => genericSearch<Media>(m, ["title"], searchQuery))
+      .filter((m) => genericFilter<Media>(m, filters))
+      .sort((a, b) =>
+        genericSort<Media>(a, b, {
+          property: sortSelect,
+          isDescending: sortDirection === "asc",
+        })
+      );
 
-    return results;
-  }, [searchQuery, medias, mediaTypeFilter, listFilter, sortSelect, sortDirection]);
+  }, [
+    searchQuery,
+    medias,
+    mediaTypeFilter,
+    listFilter,
+    sortSelect,
+    sortDirection,
+  ]);
 
   useEffect(() => {
     if (session && !isFetching) {
@@ -393,7 +385,7 @@ function CommunityDashboard() {
                   <Autocomplete
                     className={classes.searchbar}
                     placeholder="Search Media"
-                    data={medias.map((m) => m.title)}
+                    data={searchedMedias.map((m) => m.title)}
                     onChange={setSearchQuery}
                     value={searchQuery}
                     icon={<IconSearch size="1.1rem" stroke={1.5} />}
@@ -418,7 +410,9 @@ function CommunityDashboard() {
                       placeholder="Sort by..."
                       className={classes.sortSelector}
                       value={sortSelect}
-                      onChange={setSortSelect}
+                      onChange={(value) => {
+                        setSortSelect(value as keyof Media);
+                      }}
                     />
                     <ActionIcon
                       size="lg"
