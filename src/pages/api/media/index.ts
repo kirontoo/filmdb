@@ -67,7 +67,11 @@ const getMedias = async (
             ],
           },
           include: {
-            medias: true,
+            medias: {
+              orderBy: {
+                title: "asc"
+              }
+            },
           },
         },
       },
