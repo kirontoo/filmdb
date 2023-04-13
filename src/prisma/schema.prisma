@@ -67,11 +67,16 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
+enum MediaType {
+  tv
+  movie
+}
+
 model Media {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   tmdbId        String
   dateWatched   DateTime? @map("date_watched")
-  mediaType     String    @map("media_type")
+  mediaType     MediaType @map("media_type")
   title         String
   posterPath    String?   @map("poster_path")
   rating        Float     @default(0)
@@ -80,9 +85,9 @@ model Media {
   communityId   String    @db.ObjectId
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-  genres        String[]
-  requestedBy   User      @relation(fields: [requestedById], references: [id])
-  requestedById String    @map("requested_by_id") @db.ObjectId
+  genres        String[]  @default([])
+  requestedBy   User?     @relation(fields: [requestedById], references: [id])
+  requestedById String?   @map("requested_by_id") @db.ObjectId
   queue         Int?
 
   @@unique([tmdbId, communityId])
