@@ -52,6 +52,7 @@ model User {
   communityIds  String[]    @db.ObjectId
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
+  Media         Media[]
 
   @@map("users")
 }
@@ -67,36 +68,40 @@ model VerificationToken {
 }
 
 model Media {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  tmdbId      String
-  dateWatched DateTime? @map("date_watched")
-  mediaType   String    @map("media_type")
-  title       String
-  posterPath  String?   @map("poster_path")
-  rating      Float     @default(0)
-  watched     Boolean   @default(false)
-  community   Community @relation(fields: [communityId], references: [id])
-  communityId String    @db.ObjectId
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  tmdbId        String
+  dateWatched   DateTime? @map("date_watched")
+  mediaType     String    @map("media_type")
+  title         String
+  posterPath    String?   @map("poster_path")
+  rating        Float     @default(0)
+  watched       Boolean   @default(false)
+  community     Community @relation(fields: [communityId], references: [id])
+  communityId   String    @db.ObjectId
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  genres        String[]
+  requestedBy   User      @relation(fields: [requestedById], references: [id])
+  requestedById String    @map("requested_by_id") @db.ObjectId
+  queue         Int?
 
   @@unique([tmdbId, communityId])
-
   @@map("medias")
 }
 
 model Community {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String   @unique
-  inviteCode  String   @unique @map("invite_code")
-  description String?
-  medias      Media[]
-  members     User[]   @relation(fields: [memberIds], references: [id])
-  memberIds   String[] @db.ObjectId
-  createdBy   String   @map("created_by") @db.ObjectId
-  slug        String   @unique
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  name              String   @unique
+  inviteCode        String   @unique @map("invite_code")
+  description       String?
+  medias            Media[]
+  members           User[]   @relation(fields: [memberIds], references: [id])
+  memberIds         String[] @db.ObjectId
+  createdBy         String   @map("created_by") @db.ObjectId
+  slug              String   @unique
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  currentlyWatching String?  @db.ObjectId
 
   @@map("communities")
 }
