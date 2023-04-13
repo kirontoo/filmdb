@@ -181,7 +181,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@rwxamy](https://twitter.com/rwxamy) - ndangamy@gmail.com
+Amy Nguyen-Dang - [@rwxamy](https://twitter.com/rwxamy) - ndangamy@gmail.com
 
 Project Link: [https://github.com/kirontoo/filmdb](https://github.com/kirontoo/filmdb)
 
