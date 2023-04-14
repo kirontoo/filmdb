@@ -7,6 +7,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
+import { MediaType } from "@prisma/client";
 
 export default async function handler(
   req: NextApiRequest,
@@ -65,7 +66,7 @@ export default async function handler(
               },
               create: {
                 title: title as string,
-                mediaType: mediaType as string,
+                mediaType: mediaType as MediaType,
                 tmdbId: String(tmdbId),
                 posterPath: posterPath as string,
                 watched: (watched as boolean) ?? false,

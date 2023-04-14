@@ -17,7 +17,7 @@ import {
 } from "@mantine/core";
 import { IconStarFilled } from "@tabler/icons-react";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
-import { Media } from "@/lib/types";
+import { TMDBMedia } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 import Link from "next/link";
 
@@ -53,7 +53,7 @@ const useStyles = createStyles((theme) => ({
 export default function Home() {
   const [visible, handlers] = useDisclosure(false);
   const { classes } = useStyles();
-  const [data, setData] = useState<Media[]>([]);
+  const [data, setData] = useState<TMDBMedia[]>([]);
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {

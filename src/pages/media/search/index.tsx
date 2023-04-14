@@ -8,12 +8,12 @@ import {
   NothingFoundBackground,
 } from "@/components";
 import { buildTMDBQuery, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
-import { Media } from "@/lib/types";
+import { TMDBMedia } from "@/lib/types";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
 
 interface SearchMediaProps {
-  medias: Media[] | null;
+  medias: TMDBMedia[] | null;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -116,7 +116,7 @@ export const getServerSideProps: GetServerSideProps<SearchMediaProps> = async (
       return { props: { medias: null },
       };
     }
-    const medias = data.results.filter((m: Media) => m.media_type !== "person");
+    const medias = data.results.filter((m: TMDBMedia) => m.media_type !== "person");
     return { props: { medias } };
   }
 

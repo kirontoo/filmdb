@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import Link from "next/link";
 import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
-import { Media as MediaType } from "@/lib/types";
+import { TMDBMedia } from "@/lib/types";
 import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
 import { CommunityMenu, NothingFoundBackground } from "@/components";
@@ -40,7 +40,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface MediaProps {
-  media?: MediaType;
+  media?: TMDBMedia;
 }
 
 const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
@@ -50,7 +50,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
   const [loadingWatchedBtn, setLoadingWatchedBtn] = useState<boolean>(false);
 
   const addToList = async (
-    media: MediaType,
+    media: TMDBMedia,
     community: CommunityMenuActionProps,
     watched: boolean
   ) => {
