@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { Session, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import DiscordProvider from "next-auth/providers/discord";
 import Auth0Provider from "next-auth/providers/auth0";
@@ -23,6 +23,15 @@ export const authOptions = {
     }),
   ],
   adapter: PrismaAdapter(prisma),
+  callbacks: {
+    async session({ session, user }: { session: Session; user: User }) {
+      if (session.user) {
+        session.user!.id = user.id;
+      }
+
+      return session;
+    },
+  },
 };
 
 export default NextAuth(authOptions);
