@@ -61,7 +61,7 @@ function reducer(state: LoadingState, action: LoadingAction): LoadingState {
     case "stopLoadingWatchedList":
       return { ...state, loadingAddToWatchedList: false };
     case "stopLoadingDeleteMedia":
-      return { ...state, loadingDeleteMedia: true };
+      return { ...state, loadingDeleteMedia: false };
     default:
       throw Error("Unknown action");
   }
@@ -114,10 +114,7 @@ export default function MediaModal({
         loading: loadingDeleteMedia,
         leftIcon: <IconTrash />,
       },
-      onConfirm: async () => {
-        await deleteFromList();
-        modals.closeAll();
-      },
+      onConfirm: deleteFromList(),
     });
   };
 
@@ -133,6 +130,7 @@ export default function MediaModal({
       if (res.ok) {
         removeMedia(media.id);
         Notify.success(`Deleted ${media.title}`);
+        modals.closeAll();
       } else {
         throw new Error(`Could not delete ${media.title}`);
       }
