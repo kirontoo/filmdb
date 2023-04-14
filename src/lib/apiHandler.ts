@@ -54,7 +54,7 @@ export function apiHandler(handler: APIHandler) {
             status: "fail",
             message: "missing data",
           });
-        } else if (type === QueryError) {
+        } else {
           return res.status(400).send({
             status: "fail",
             message: error.message,
