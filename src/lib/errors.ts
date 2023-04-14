@@ -1,10 +1,12 @@
 type APIRequestErrorType =
+  | "GenericError"
   | "UnauthorizedError"
   | "QueryError"
   | "ValidationError";
 export const ValidationError: APIRequestErrorType = "ValidationError";
 export const UnauthorizedError: APIRequestErrorType = "UnauthorizedError";
 export const QueryError: APIRequestErrorType = "QueryError";
+export const GenericError: APIRequestErrorType = "GenericError";
 
 export class APIError extends Error {
   __proto__ = Error;
@@ -14,7 +16,7 @@ export class APIError extends Error {
 
   constructor(
     message: string,
-    type: APIRequestErrorType = QueryError,
+    type: APIRequestErrorType = GenericError,
     context?: Record<string, any>
   ) {
     super(message);
