@@ -7,70 +7,28 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
+import { apiHandler } from "@/lib/apiHandler";
+import { APIError, QueryError, UnauthorizedError, ValidationError } from "@/lib/errors";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await getServerSession(req, res, authOptions);
-  const { query, method, body } = req;
-  const { id } = query;
-  if (!id) {
-    return res.status(400).send({
-      status: "fail",
-      message: "missing id",
-    });
-  }
+export default apiHandler({
+  patch: updateMedia,
+});
 
-  if (!body) {
-    return res.status(400).send({
-      status: "fail",
-      message: "missing data",
-    });
-  }
-
-  if (session) {
-    // Signed in
-
-    switch (method) {
-      case "PATCH":
-        const mediaId: string = Array.isArray(id) ? id[0] : id;
-        await updateMedia(req, res, mediaId, session!.user!.email as string);
-        break;
-      default:
-        res.setHeader("Allow", ["PATCH"]);
-        return res.status(405).end(`Method ${method} Not Allowed`);
-    }
-  } else {
-    // Not Signed in
-    res.status(401).send({
-      status: "error",
-      message: "not authenticated",
-    });
-  }
-
-  res.end();
-}
-
-const updateMedia = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-  mediaId: string,
-  email: string
-) => {
+async function updateMedia (req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { body } = req;
+    const { query, body } = req;
+    const { id } = query;
+    const mediaId: string = Array.isArray(id) ? id[0] : id!;
+    const session = await getServerSession(req, res, authOptions);
     // make sure user has permission
     // user is a member of the community
     const user = await prisma.user.findFirstOrThrow({
       where: {
-        email,
+        email: session!.user!.email,
         communities: {
           some: {
-            medias: {
-              some: {
-                id: mediaId,
-              },
+            members: {
+              some: {id: session!.user!.id}
             },
           },
         },
@@ -96,32 +54,21 @@ const updateMedia = async (
             media,
           },
         });
+      } else {
+        throw new Error("could not update media");
       }
     } else {
-      res.status(401).send({
-        status: "error",
-        message: "not authenticated",
-      });
+      throw new APIError("not authenticated", UnauthorizedError);
     }
   } catch (e) {
-    console.log(e);
     if (e instanceof PrismaClientKnownRequestError) {
-      return res.status(400).send({
-        status: "fail",
-        message: e.message,
-      });
+      throw new APIError(e.message, QueryError);
     }
 
     if (e instanceof PrismaClientValidationError) {
-      return res.status(400).send({
-        status: "fail",
-        message: "missing data",
-      });
+      throw new APIError(e.message, ValidationError);
     }
 
-    return res.status(500).send({
-      status: "error",
-      message: "could not update media",
-    });
+    throw e;
   }
 };
