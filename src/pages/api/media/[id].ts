@@ -8,13 +8,18 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { apiHandler } from "@/lib/apiHandler";
-import { APIError, QueryError, UnauthorizedError, ValidationError } from "@/lib/errors";
+import {
+  APIError,
+  QueryError,
+  UnauthorizedError,
+  ValidationError,
+} from "@/lib/errors";
 
 export default apiHandler({
   patch: updateMedia,
 });
 
-async function updateMedia (req: NextApiRequest, res: NextApiResponse) {
+async function updateMedia(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { query, body } = req;
     const { id } = query;
@@ -22,18 +27,22 @@ async function updateMedia (req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions);
     // make sure user has permission
     // user is a member of the community
-    const user = await prisma.user.findFirstOrThrow({
-      where: {
-        email: session!.user!.email,
-        communities: {
-          some: {
-            members: {
-              some: {id: session!.user!.id}
+    const user = await prisma.user
+      .findFirstOrThrow({
+        where: {
+          email: session!.user!.email,
+          communities: {
+            some: {
+              members: {
+                some: { id: session!.user!.id },
+              },
             },
           },
         },
-      },
-    });
+      })
+      .catch(() => {
+        throw new APIError("not authorized", UnauthorizedError);
+      });
 
     if (user) {
       const watchedPropExists = body.hasOwnProperty("watched");
@@ -57,8 +66,6 @@ async function updateMedia (req: NextApiRequest, res: NextApiResponse) {
       } else {
         throw new Error("could not update media");
       }
-    } else {
-      throw new APIError("not authenticated", UnauthorizedError);
     }
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {
@@ -71,4 +78,4 @@ async function updateMedia (req: NextApiRequest, res: NextApiResponse) {
 
     throw e;
   }
-};
+}
