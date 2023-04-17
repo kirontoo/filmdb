@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   APIError,
-  QueryError,
   UnauthorizedError,
   ValidationError,
 } from "@/lib/errors";
@@ -45,9 +44,9 @@ export function apiHandler(handler: APIHandler) {
       if (error instanceof APIError) {
         const { type } = error;
         if (type === UnauthorizedError) {
-          return res.status(401).send({
+          return res.status(403).send({
             status: "error",
-            message: "not authenticated",
+            message: error.message,
           });
         } else if (type === ValidationError) {
           return res.status(400).send({

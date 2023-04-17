@@ -3,100 +3,74 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 
 import prisma from "@/lib/prismadb";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from "@prisma/client/runtime/library";
+import { apiHandler } from "@/lib/apiHandler";
+import { APIError, QueryError, ValidationError } from "@/lib/errors";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await getServerSession(req, res, authOptions);
+export default apiHandler({
+  post: joinCommunity,
+});
 
-  if (session) {
-    // Signed in
-    const { query, method } = req;
+async function joinCommunity(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const session = await getServerSession(req, res, authOptions);
 
-    switch (method) {
-      case "POST":
-        // query: api/community/join?code=some_code
-        try {
-          const { code } = query;
-          if (!code) {
-            return res.status(400).send({
-              status: "fail",
-              message: "invalid code",
-            });
-          }
-
-          const user = await prisma.user.findUnique({
-            where: {
-              email: session!.user!.email as string,
-            },
-            include: {
-              communities: {
-                select: { inviteCode: true },
-              },
-            },
-          });
-
-          if (user) {
-            const inviteCode = Array.isArray(code) ? code[0] : code;
-
-            // check if user is already in the community
-            const foundCommunity = user.communities.find(
-              (c) => c.inviteCode === inviteCode
-            );
-            if (foundCommunity) {
-              return res.status(403).send({
-                status: "fail",
-                message: "user is already a member of this community",
-              });
-            }
-
-            // add user to community
-            const community = await prisma.community.update({
-              where: {
-                inviteCode: inviteCode,
-              },
-              data: {
-                members: {
-                  connect: [{ id: user.id }],
-                },
-              },
-              include: { members: true },
-            });
-
-            if (community) {
-              return res.status(200).json({
-                status: "success",
-                data: { community },
-              });
-            }
-          }
-        } catch (e) {
-          console.log(e);
-          if (e instanceof PrismaClientKnownRequestError) {
-            return res.status(400).send({
-              status: "fail",
-              message: e.message,
-            });
-          }
-
-          return res.status(500).send({
-            status: "error",
-            message: "could not add user to community",
-          });
-        }
-      default:
-        res.setHeader("Allow", ["POST"]);
-        return res.status(405).end(`Method ${method} Not Allowed`);
+    const { code } = req.query;
+    if (!code) {
+      throw new APIError("missing invite code");
     }
-  } else {
-    // Not Signed in
-    res.status(401).send({
-      status: "error",
-      message: "user must be logged in",
-    });
-  }
 
-  res.end();
+    const inviteCode = Array.isArray(code) ? code[0] : code;
+
+    // make sure user isn't already in the community
+    const community = await prisma.community.findFirst({
+      where: {
+        members: {
+          some: { id: session!.user!.id },
+        },
+      },
+    });
+
+    if (community) {
+      return res.status(403).send({
+        status: "fail",
+        message: "user is already a member of this community",
+      });
+    }
+
+    // add user to community
+    const updatedCommunity = await prisma.community
+      .update({
+        where: {
+          inviteCode: inviteCode,
+        },
+        data: {
+          members: {
+            connect: [{ id: session!.user!.id }],
+          },
+        },
+        include: { members: true },
+      })
+      .catch(() => {
+        // invalid invite code
+        throw new APIError("invalid invite code");
+      });
+
+    if (updatedCommunity) {
+      return res.status(200).json({
+        status: "success",
+        data: { community },
+      });
+    }
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
+      throw new APIError(e.message, QueryError);
+    }
+
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
+
+    throw new Error("could not add user to community");
+  }
 }

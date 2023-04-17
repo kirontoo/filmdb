@@ -5,107 +5,110 @@ import slugify from "slugify";
 
 import prisma from "@/lib/prismadb";
 import { generateInviteCode } from "@/lib/util";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<any>
-) {
-  const session = await getServerSession(req, res, authOptions);
+import { apiHandler } from "@/lib/apiHandler";
+import {
+  APIError,
+  QueryError,
+  UnauthorizedError,
+  ValidationError,
+} from "@/lib/errors";
 
-  if (session) {
-    // Signed in
-    const { body, method } = req;
+export default apiHandler({
+  get: getCommunities,
+  post: postCommunity,
+});
 
-    switch (method) {
-      case "POST":
-        // find user id
-        try {
-          const user = await prisma.user.findUnique({
-            where: {
-              email: session!.user!.email as string,
+// connect media to community
+// TODO: move this to POST /api/community/:communityId/media
+async function postCommunity(req: NextApiRequest, res: NextApiResponse) {
+  // find user id
+  try {
+    const session = await getServerSession(req, res, authOptions);
+    const user = await prisma.user
+      .findFirstOrThrow({
+        where: {
+          AND: [
+            {
+              id: session!.user!.id,
             },
-          });
-
-          if (user) {
-            const { name, description } = body;
-            const inviteCode = generateInviteCode(5);
-            const slug = slugify(name, { lower: true });
-
-            const community = await prisma.community.create({
-              data: {
-                name,
-                createdBy: user.id,
-                description: description ?? "",
-                inviteCode,
-                slug,
-                members: {
-                  connect: [{ id: user.id }],
+            {
+              communities: {
+                some: {
+                  members: { some: { id: session!.user!.id } },
                 },
               },
-              include: {
-                members: true,
-              },
-            });
+            },
+          ],
+        },
+      })
+      .catch(() => {
+        throw new APIError("not authorized", UnauthorizedError);
+      });
 
-            if (community) {
-              return res.status(201).json({
-                status: "success",
-                data: { community },
-              });
-            }
-          } else {
-            return res.status(500).send({
-              status: "error",
-              message: "could not create new community",
-            });
-          }
-        } catch (e) {
-          console.log(e);
-          if (e instanceof PrismaClientKnownRequestError) {
-            if (e.code === "P2002") {
-              if (e.meta!.target === "communities_name_key") {
-                return res.status(400).send({
-                  status: "fail",
-                  message: "community already exists",
-                });
-              }
-            }
-          }
+    if (user) {
+      const { name, description } = req.body;
+      const inviteCode = generateInviteCode(5);
+      const slug = slugify(name, { lower: true });
 
-          return res.status(500).send({
-            status: "error",
-            message: "could not create new community",
-          });
-        }
-      case "GET":
-        return getCommunities(req, res, session!.user!.email as string);
-      default:
-        res.setHeader("Allow", ["GET", "POST"]);
-        return res.status(405).end(`Method ${method} Not Allowed`);
+      const community = await prisma.community.create({
+        data: {
+          name,
+          createdBy: user.id,
+          description: description ?? "",
+          inviteCode,
+          slug,
+          members: {
+            connect: [{ id: user.id }],
+          },
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      if (community) {
+        return res.status(201).json({
+          status: "success",
+          data: { community },
+        });
+      }
+    } else {
+      return res.status(500).send({
+        status: "error",
+        message: "could not create new community",
+      });
     }
-  } else {
-    // Not Signed in
-    res.status(401).send({
-      status: "error",
-      message: "user must be logged in",
-    });
-  }
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
+      if (e.code === "P2002") {
+        if (e.meta!.target === "communities_name_key") {
+          throw new APIError("community already exists", QueryError);
+        }
+      }
+      throw new APIError(e.message, QueryError);
+    }
 
-  res.end();
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
+
+    throw e;
+  }
 }
 
-const getCommunities = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-  email: string
-) => {
+async function getCommunities(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const session = await getServerSession(req, res, authOptions);
     const communities = await prisma.community.findMany({
       where: {
         members: {
           some: {
-            email: email,
+            id: session!.user!.id,
           },
         },
       },
@@ -126,10 +129,14 @@ const getCommunities = async (
       },
     });
   } catch (e) {
-    console.log(e);
-    return res.status(500).send({
-      status: "error",
-      message: "could not find communities",
-    });
+    if (e instanceof PrismaClientKnownRequestError) {
+      throw new APIError("could not find communities");
+    }
+
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
+
+    throw e;
   }
-};
+}
