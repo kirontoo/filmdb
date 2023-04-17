@@ -114,7 +114,7 @@ export default function MediaModal({
         loading: loadingDeleteMedia,
         leftIcon: <IconTrash />,
       },
-      onConfirm: deleteFromList(),
+      onConfirm: deleteFromList,
     });
   };
 
