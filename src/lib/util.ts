@@ -17,15 +17,18 @@ export async function updateMedia(media: Media): Promise<{
   res: Response;
   data: { status: string; data: { media: Media } };
 }> {
-  const res = await fetch(`/api/media/${media.id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      watched: !media.watched,
-    }),
-  });
+  const res = await fetch(
+    `/api/community/${media.communityId}/media/${media.id}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        watched: !media.watched,
+      }),
+    }
+  );
 
   const data = await res.json();
   return { res, data };
