@@ -173,7 +173,6 @@ function CommunityDashboard() {
           isDescending: sortDirection === "asc",
         })
       );
-
   }, [
     searchQuery,
     medias,
@@ -202,11 +201,16 @@ function CommunityDashboard() {
       const community = Array.isArray(slug) ? slug[0] : slug;
       if (community) {
         setCurrentCommunity(community);
-        const query = encodeURI(`community=${community}`);
-        const res = await fetch(`/api/media?${query}`);
-        if (res.ok) {
-          const { data } = await res.json();
-          setMedias(data.medias);
+        if (currentCommunity) {
+          const res = await fetch(
+            `/api/community/${currentCommunity.id}/media`
+          );
+          if (res.ok) {
+            const { data } = await res.json();
+            setMedias(data.medias);
+          } else {
+            throw new Error("community does not exist");
+          }
         }
       }
     } catch (e) {
