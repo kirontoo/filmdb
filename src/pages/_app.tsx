@@ -16,8 +16,18 @@ import { ModalsProvider } from "@mantine/modals";
 import { CommunityFormModal } from "@/components";
 import { CommunityProvider } from "@/context/CommunityProvider";
 import { LoadingProvider } from "@/context/LoadingProvider";
+import { ReactElement, ReactNode } from "react";
+import { NextPage } from "next/types";
 
-export default function App(props: AppProps) {
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+export default function App(props: AppPropsWithLayout) {
   const { Component, pageProps } = props;
 
   const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
@@ -31,8 +41,16 @@ export default function App(props: AppProps) {
 
   const modals = {
     communityForm: CommunityFormModal,
-    media: MediaModal
+    media: MediaModal,
   };
+
+  const getLayout = Component.getLayout || ((page) => <Layout>{page}</Layout>);
+
+  const layout = getLayout(
+    <ModalsProvider modals={modals}>
+      <Component {...pageProps} />
+    </ModalsProvider>
+  );
 
   return (
     <>
@@ -58,13 +76,7 @@ export default function App(props: AppProps) {
           >
             <LoadingProvider>
               <CommunityProvider>
-                <MediaProvider>
-                  <Layout>
-                    <ModalsProvider modals={modals}>
-                      <Component {...pageProps} />
-                    </ModalsProvider>
-                  </Layout>
-                </MediaProvider>
+                <MediaProvider>{layout}</MediaProvider>
               </CommunityProvider>
             </LoadingProvider>
           </MantineProvider>
