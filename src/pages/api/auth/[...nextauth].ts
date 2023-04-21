@@ -23,6 +23,9 @@ export const authOptions = {
     }),
   ],
   adapter: PrismaAdapter(prisma),
+  pages: {
+    signIn: '/auth/signin'
+  },
   callbacks: {
     async session({ session, user }: { session: Session; user: User }) {
       if (session.user) {
