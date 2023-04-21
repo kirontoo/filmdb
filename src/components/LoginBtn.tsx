@@ -10,17 +10,7 @@ import {
   Menu,
   rem,
 } from "@mantine/core";
-import {
-  IconLogout,
-  IconHeart,
-  IconStar,
-  IconMessage,
-  IconSettings,
-  IconPlayerPause,
-  IconTrash,
-  IconSwitchHorizontal,
-  IconChevronDown,
-} from "@tabler/icons-react";
+import { IconLogout, IconChevronDown } from "@tabler/icons-react";
 import { useState } from "react";
 
 const useStyles = createStyles((theme) => ({
@@ -89,7 +79,9 @@ export default function LoginBtn() {
           <Menu.Dropdown>
             <Menu.Item
               icon={<IconLogout size="0.9rem" stroke={1.5} />}
-              onClick={() => signOut()}
+              onClick={() =>
+                signOut({ callbackUrl: `${origin}`})
+              }
             >
               Logout
             </Menu.Item>
