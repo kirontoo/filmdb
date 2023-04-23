@@ -6,6 +6,7 @@ import { getProviders, signIn } from "next-auth/react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import {
+  Overlay,
   Container,
   Space,
   BackgroundImage,
@@ -14,34 +15,9 @@ import {
   ButtonProps,
   Stack,
   Image,
-  createStyles,
-  getStylesRef,
 } from "@mantine/core";
 import { IconBrandDiscord } from "@tabler/icons-react";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
-
-const useStyles = createStyles((theme) => ({
-  image: {
-    ...theme.fn.cover(),
-    ref: getStylesRef("image"),
-    backgroundSize: "cover",
-    transition: "transform 500ms ease",
-  },
-
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundImage:
-      "linear-gradient(180deg, rgba(151, 117, 250, 0.35) 0%, rgba(0, 0, 0, 0.6) 40%)",
-  },
-
-  content: {
-    position: "relative",
-  },
-}));
 
 // source: https://github.com/mantinedev/ui.mantine.dev/blob/master/components/SocialButtons/GoogleIcon.tsx
 export function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -112,7 +88,6 @@ export function DiscordButton(props: AuthButtonProps) {
 export default function SignIn({
   providers,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { classes } = useStyles();
   const matches = useIsDesktopDevice();
 
   return (
@@ -125,8 +100,13 @@ export default function SignIn({
           height: "100vh",
         }}
       >
-        <div className={classes.overlay} />
-        <Container h="100%" size="xs">
+        <Overlay gradient="linear-gradient(180deg, rgba(151, 117, 250, 0.35) 0%, rgba(0, 0, 0, 0.6) 40%)" />
+        <Overlay gradient="linear-gradient(180deg, rgba(0, 0, 0, 0.01) 0%, #000000 80.21%);" />
+        <Container
+          h="100%"
+          size="xs"
+          sx={{ zIndex: 300, position: "relative" }}
+        >
           <Stack
             justify={`${matches ? "center" : "space-between"}`}
             p={16}
@@ -135,7 +115,10 @@ export default function SignIn({
             spacing="xl"
           >
             <Space />
-            <Stack align="center" sx={{ zIndex: 1 }}>
+            <Stack
+              align="center"
+              sx={{ zIndex: 1, marginBottom: `${matches ? "2rem" : 0}` }}
+            >
               <Image
                 src="https://ui-avatars.com/api/?background=9775FA&color=fff&name=fb"
                 radius="100%"
@@ -152,13 +135,21 @@ export default function SignIn({
                 switch (provider.name) {
                   case "Google":
                     return (
-                      <GoogleButton key={provider.name} providerId={provider.id}>
+                      <GoogleButton
+                        key={provider.name}
+                        providerId={provider.id}
+                        size="lg"
+                      >
                         Sign in with Google
                       </GoogleButton>
                     );
                   case "Discord":
                     return (
-                      <DiscordButton key={provider.name} providerId={provider.id}>
+                      <DiscordButton
+                        key={provider.name}
+                        providerId={provider.id}
+                        size="lg"
+                      >
                         Sign in with Discord
                       </DiscordButton>
                     );
@@ -167,6 +158,7 @@ export default function SignIn({
                       <Button
                         key={provider.name}
                         onClick={() => signIn(provider.id)}
+                        size="lg"
                       >
                         Sign in with {provider.name}
                       </Button>
@@ -181,7 +173,7 @@ export default function SignIn({
   );
 }
 
-SignIn.getLayout = function(page: React.ReactElement) {
+SignIn.getLayout = function (page: React.ReactElement) {
   return page;
 };
 
