@@ -33,7 +33,7 @@ const useStyles = createStyles((theme) => ({
     backgroundColor:
       theme.colorScheme == "dark" ? theme.black : theme.colors.gray["3"],
     width: "100%",
-    zIndex: 5,
+    zIndex: 1000,
     paddingTop: rem(8),
     paddingBottom: rem(8),
   },
