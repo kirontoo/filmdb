@@ -52,6 +52,31 @@ export default function App(props: AppPropsWithLayout) {
     </ModalsProvider>
   );
 
+  const theme = {
+    globalStyles: (theme) => ({
+      "*, *::before, *::after": {
+        boxSizing: "border-box",
+      },
+
+      body: {
+        ...theme.fn.fontStyles(),
+        backgroundColor:
+          theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+        color:
+          theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
+        lineHeight: theme.lineHeight,
+      },
+
+      ".your-class": {
+        backgroundColor: "red",
+      },
+
+      "#your-id > [data-active]": {
+        backgroundColor: "pink",
+      },
+    }),
+  };
+
   return (
     <>
       <Head>
@@ -70,7 +95,18 @@ export default function App(props: AppPropsWithLayout) {
           toggleColorScheme={toggleColorScheme}
         >
           <MantineProvider
-            theme={{ colorScheme }}
+            theme={{
+              colorScheme,
+              globalStyles: (theme) => ({
+                body: {
+                  ...theme.fn.fontStyles(),
+                  backgroundColor:
+                    theme.colorScheme === "dark"
+                      ? "rgba(0,0,0,1)"
+                      : theme.white,
+                },
+              }),
+            }}
             withGlobalStyles
             withNormalizeCSS
           >
