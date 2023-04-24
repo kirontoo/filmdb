@@ -7,7 +7,6 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import { MediaType } from "@prisma/client";
 import {
   APIError,
   QueryError,
@@ -129,7 +128,8 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
   // query: api/community/[id]
 
   const { communityId } = req.query;
-  const { title, mediaType, posterPath, watched, tmdbId } = req.body;
+  const { title, mediaType, posterPath, backdropPath, watched, tmdbId } =
+    req.body;
   try {
     const session = await getServerSession(req, res, authOptions);
     const id: string = Array.isArray(communityId)
@@ -165,9 +165,10 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
         },
         create: {
           title: title as string,
-          mediaType: mediaType as MediaType,
+          mediaType: mediaType,
           tmdbId: String(tmdbId),
           posterPath: posterPath as string,
+          backdropPath: backdropPath as string,
           watched: (watched as boolean) ?? false,
           community: {
             connect: { id: id },

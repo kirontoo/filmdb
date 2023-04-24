@@ -68,6 +68,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
         title: media.title ?? media.name ?? media.original_title,
         watched,
         posterPath: media.poster_path,
+        backdropPath: media.backdrop_path
       };
 
       const res = await fetch(`/api/community/${community.id}`, {
