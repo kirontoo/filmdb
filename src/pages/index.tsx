@@ -2,12 +2,7 @@ import Head from "next/head";
 
 import useSwr from "swr";
 import format from "date-format";
-import {
-  MediaImageCard,
-  MediaImageCardHeader,
-  MediaImageCardFooter,
-} from "@/components";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import {
   Image,
@@ -15,24 +10,16 @@ import {
   createStyles,
   Text,
   Container,
-  Grid,
   Title,
   LoadingOverlay,
   BackgroundImage,
   Stack,
-  Flex,
   Group,
-  Code,
   Button,
   Overlay,
 } from "@mantine/core";
-import { IconPlus, IconStarFilled } from "@tabler/icons-react";
-import {
-  buildTMDBImageURL,
-  getTMDBBackdropImageSrcSet,
-  getTMDBPosterImageSrcSet,
-  TMDB_IMAGE_API_BASE_URL,
-} from "@/lib/tmdb";
+import { IconPlus } from "@tabler/icons-react";
+import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 import Link from "next/link";
@@ -134,7 +121,7 @@ export default function Home() {
           {data
             .filter((m) => m.media_type == mediaType)
             .map((m) => (
-              <Carousel.Slide>
+              <Carousel.Slide key={m.id}>
                 <Link href={`/media/${mediaType}/${m.id}`}>
                   <Image
                     radius="sm"

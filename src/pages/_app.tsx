@@ -6,6 +6,7 @@ import {
   MantineProvider,
   ColorSchemeProvider,
   ColorScheme,
+  MantineTheme,
 } from "@mantine/core";
 import { MediaProvider } from "@/context/MediaProvider";
 
@@ -97,7 +98,7 @@ export default function App(props: AppPropsWithLayout) {
           <MantineProvider
             theme={{
               colorScheme,
-              globalStyles: (theme) => ({
+              globalStyles: (theme: MantineTheme) => ({
                 body: {
                   ...theme.fn.fontStyles(),
                   backgroundColor:
