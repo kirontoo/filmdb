@@ -127,6 +127,8 @@ export default function Home() {
                     radius="sm"
                     src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
                       }/${m.poster_path}`}
+                    alt={`${m.title ?? m.name ?? m.original_name ?? m.original_title
+                      }`}
                   />
                 </Link>
               </Carousel.Slide>
