@@ -54,7 +54,7 @@ export default function App(props: AppPropsWithLayout) {
   );
 
   const theme = {
-    globalStyles: (theme) => ({
+    globalStyles: (theme: MantineTheme) => ({
       "*, *::before, *::after": {
         boxSizing: "border-box",
       },
