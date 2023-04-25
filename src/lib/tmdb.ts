@@ -17,3 +17,7 @@ export function buildTMDBImageURL(
     ? `${TMDB_IMAGE_API_BASE_URL}/w${size}/${path}`
     : "https://placeholder.pics/svg/350x500";
 }
+
+export function getTMDBShowcaseImageUrl(path: string, isDesktop = false) {
+  return `${TMDB_IMAGE_API_BASE_URL}/${isDesktop ? "w1280" : "w500"}/${path}`;
+}

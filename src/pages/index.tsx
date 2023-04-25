@@ -18,7 +18,7 @@ import {
   Button,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
-import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import { getTMDBShowcaseImageUrl, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 import Link from "next/link";
@@ -166,13 +166,12 @@ export default function Home() {
           <>
             <BackgroundImage
               className={classes.showcaseImage}
-              src={`${TMDB_IMAGE_API_BASE_URL}/${
-                isDesktop ? "w1280" : "w342"
-              }/${
+              src={getTMDBShowcaseImageUrl(
                 isDesktop
-                  ? showcasedMedia!.backdrop_path
-                  : showcasedMedia!.poster_path
-              }`}
+                  ? (showcasedMedia!.backdrop_path as string)
+                  : (showcasedMedia!.poster_path as string),
+                isDesktop
+              )}
             >
               <div className={classes.overlay} />
               <Container
