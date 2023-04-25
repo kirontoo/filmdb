@@ -16,7 +16,6 @@ import {
   Stack,
   Group,
   Button,
-  Overlay,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
@@ -55,10 +54,24 @@ const useStyles = createStyles((theme) => ({
   },
 
   showcaseImage: {
-    height: "65vh",
+    height: "60vh",
     [`@media(min-width:${theme.breakpoints.md})`]: {
-      height: "45vh",
+      height: "50vh",
+      backgroundPositionY: "25%",
     },
+  },
+
+  overlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    backgroundImage:
+      "linear-gradient(180deg, rgba(0,0,0,0.8) 24%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.9) 100%)",
+    [`@media(min-width:${theme.breakpoints.md})`]: {
+      backgroundImage:
+        "radial-gradient(circle, rgba(0,0,0,0) 22%, rgba(0,0,0,1) 60%, rgba(0,0,0,1) 80%)",
+    },
+    height: "inherit",
   },
 
   showcaseContent: {
@@ -113,7 +126,7 @@ export default function Home() {
             },
             {
               maxWidth: "md",
-              slideSize: "33.33%",
+              slideSize: "30.333%",
               slideGap: "xs",
             },
           ]}
@@ -125,10 +138,12 @@ export default function Home() {
                 <Link href={`/media/${mediaType}/${m.id}`}>
                   <Image
                     radius="sm"
-                    src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                      }/${m.poster_path}`}
-                    alt={`${m.title ?? m.name ?? m.original_name ?? m.original_title
-                      }`}
+                    src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                      isDesktop ? "342" : "185"
+                    }/${m.poster_path}`}
+                    alt={`${
+                      m.title ?? m.name ?? m.original_name ?? m.original_title
+                    }`}
                   />
                 </Link>
               </Carousel.Slide>
@@ -151,13 +166,15 @@ export default function Home() {
           <>
             <BackgroundImage
               className={classes.showcaseImage}
-              src={`${TMDB_IMAGE_API_BASE_URL}/${isDesktop ? "w1280" : "w342"
-                }/${isDesktop
+              src={`${TMDB_IMAGE_API_BASE_URL}/${
+                isDesktop ? "w1280" : "w342"
+              }/${
+                isDesktop
                   ? showcasedMedia!.backdrop_path
                   : showcasedMedia!.poster_path
-                }`}
+              }`}
             >
-              <Overlay gradient="linear-gradient(180deg, rgba(0,0,0,0.79),  rgba(0,0,0,0) 20%,  rgba(0,0,0,0.2) 55%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 0)" />
+              <div className={classes.overlay} />
               <Container
                 h="100%"
                 sx={{ zIndex: 300, position: "relative" }}
@@ -165,8 +182,8 @@ export default function Home() {
               >
                 <Stack spacing="sm">
                   <div>
-                    <Text>Trending Now:</Text>
-                    <Title order={1} fz="xl">
+                    <Text>Trending Now</Text>
+                    <Title order={1}>
                       {showcasedMedia!.title ??
                         showcasedMedia!.name ??
                         showcasedMedia!.original_name ??
@@ -196,12 +213,12 @@ export default function Home() {
               className={cx(classes.visibleContent, classes.trendingList)}
             >
               <Stack my={rem(32)}>
-                <Text fw="bold" tt="capitalize">
+                <Text fw="bold" tt="capitalize" fz="lg" component="h2">
                   trending movies
                 </Text>
                 {trendingMediaCarousel("movie")}
 
-                <Text fw="bold" tt="capitalize">
+                <Text fw="bold" tt="capitalize" fz="lg" component="h2">
                   trending tv shows
                 </Text>
                 {trendingMediaCarousel("tv")}
