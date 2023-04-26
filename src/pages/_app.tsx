@@ -96,20 +96,24 @@ export default function App(props: AppPropsWithLayout) {
           toggleColorScheme={toggleColorScheme}
         >
           <MantineProvider
+            withGlobalStyles
+            withNormalizeCSS
             theme={{
               colorScheme,
               globalStyles: (theme: MantineTheme) => ({
+              colors: {...theme.colors},
                 body: {
                   ...theme.fn.fontStyles(),
+                  color: theme.colorScheme === "dark" ? theme.white : theme.black,
                   backgroundColor:
                     theme.colorScheme === "dark"
                       ? "rgba(0,0,0,1)"
                       : theme.white,
                 },
+                primaryColor: "violet",
+                primaryShade: { light: 5, dark: 7 },
               }),
             }}
-            withGlobalStyles
-            withNormalizeCSS
           >
             <LoadingProvider>
               <CommunityProvider>
