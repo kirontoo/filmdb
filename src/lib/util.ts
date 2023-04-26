@@ -126,3 +126,11 @@ export function genericSearch<T>(
     return false;
   });
 }
+
+// @param duration number of minutes
+// @return string of hours and minutes
+export function formatDuration(duration: number): string {
+  const hours = Math.floor(duration / 60);
+  const minutes = duration % 60;
+  return `${hours}h ${minutes}m`;
+}
