@@ -1,4 +1,4 @@
-import { Menu } from "@mantine/core";
+import { Menu, MenuProps } from "@mantine/core";
 import { useCommunityContext } from "@/context/CommunityProvider";
 import { ReactNode } from "react";
 
@@ -11,9 +11,10 @@ export interface CommunityMenuActionProps {
 interface CommunityMenuProps {
   menuAction: (data: CommunityMenuActionProps) => void;
   children: ReactNode;
+  menuProps?: MenuProps
 }
 
-const CommunityMenu = ({ children, menuAction }: CommunityMenuProps) => {
+const CommunityMenu = ({ children, menuAction, menuProps }: CommunityMenuProps) => {
   const { communities } = useCommunityContext();
 
   return (
@@ -22,6 +23,7 @@ const CommunityMenu = ({ children, menuAction }: CommunityMenuProps) => {
       trigger="hover"
       position="bottom-start"
       transitionProps={{ exitDuration: 0 }}
+      {...menuProps}
     >
       <Menu.Target>{children}</Menu.Target>
 
