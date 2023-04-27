@@ -21,7 +21,7 @@ import {
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
-import { useToggle } from "@mantine/hooks";
+import { useDisclosure, useToggle } from "@mantine/hooks";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
@@ -65,12 +65,14 @@ function MobileNav() {
   ] as const);
   const router = useRouter();
 
+  const [opened, { open, close }] = useDisclosure(false);
+
   useEffect(() => {
     switch (router.route) {
       case "/communities":
         toggle(Groups);
         break;
-      case "/search":
+      case "/media/search":
         toggle(Add);
         break;
       case "/":
@@ -104,6 +106,7 @@ function MobileNav() {
         <UnstyledButton
           onClick={() => {
             toggle(Groups);
+            router.push("/community");
           }}
         >
           <Stack spacing="0.2rem" align="center">
@@ -117,7 +120,12 @@ function MobileNav() {
             <Text tt="uppercase">groups</Text>
           </Stack>
         </UnstyledButton>
-        <UnstyledButton onClick={() => toggle(Add)}>
+        <UnstyledButton
+          onClick={() => {
+            toggle(Add);
+            router.push("/media/search");
+          }}
+        >
           <Stack spacing="0.2rem" align="center">
             <Center
               className={cx(classes.navIcon, {
