@@ -92,7 +92,7 @@ function SearchMedia() {
 
   const searchMedias = async (input: string) => {
     setIsLoading(true);
-    const apiQuery = encodeURI(`query=${input}&page=1`);
+    const apiQuery = encodeURI(`query=${input}&page=1&inclued_adult=false`);
     const url = buildTMDBQuery("search/multi", apiQuery);
     const res = await fetch(url);
 
