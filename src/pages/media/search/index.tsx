@@ -59,28 +59,22 @@ function SearchMedia() {
   const { classes } = useStyles();
   const [medias, setMedias] = useState<TMDBMedia[] | null>([]);
   const [searchInput, setSearchInput] = useInputState("");
-  const [debouncedSearchInput, cancel] = useDebouncedValue(searchInput, 300, {
-    leading: true,
-  });
+  const [debouncedSearchInput, cancel] = useDebouncedValue(searchInput, 300);
   const [isLoading, setIsLoading] = useState(false);
-
-  // update search input to match url query
-  useEffect(() => {
-    const { media } = query;
-    const input = Array.isArray(media) ? media[0] : media;
-    if (input && input !== searchInput) {
-      // cancel debounce when updating search input value
-      // should only apply when the user first drops into the page
-      setSearchInput(input);
-      cancel();
-    }
-  }, []);
 
   useEffect(() => {
     const { media } = query;
     const input = Array.isArray(media) ? media[0] : media;
     if (input) {
       searchMedias(input);
+
+      // update search input to match url query
+      if (input !== searchInput) {
+        // cancel debounce when updating search input value
+        // should only apply when the user first drops into the page
+        setSearchInput(input);
+        cancel();
+      }
     }
   }, [query]);
 
@@ -104,13 +98,14 @@ function SearchMedia() {
 
     if (res.ok) {
       const data = await res.json();
-      if (data.results.length == 0) {
-        setMedias(null);
-      }
-      const medias = data.results.filter(
+      const results = data.results.filter(
         (m: TMDBMedia) => m.media_type !== "person"
       );
-      setMedias(medias);
+      if (results.length == 0) {
+        setMedias(null);
+      } else {
+        setMedias(results);
+      }
     }
     setIsLoading(false);
   };
