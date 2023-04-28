@@ -24,7 +24,7 @@ import { useRouter } from "next/router";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
-  auth?: boolean;
+  auth?: AuthProps | boolean;
 };
 
 type AppPropsWithLayout = AppProps & {
@@ -53,7 +53,7 @@ export default function App(props: AppPropsWithLayout) {
   const layout = getLayout(
     <ModalsProvider modals={modals}>
       {Component.auth ? (
-        <Auth>
+        <Auth auth={Component.auth}>
           <Component {...pageProps} />
         </Auth>
       ) : (
@@ -112,17 +112,34 @@ export default function App(props: AppPropsWithLayout) {
   );
 }
 
-function Auth({ children }: { children: ReactElement }) {
+interface AuthProps {
+  loading?: ReactNode;
+  unauthorized?: string; // url
+}
+
+function Auth({
+  children,
+  auth,
+}: {
+  auth: AuthProps | boolean;
+  children: ReactElement;
+}) {
   // if `{ required: true }` is supplied, `status` can only be "loading" or "authenticated"
   const router = useRouter();
   const { status } = useSession({
     required: true,
     onUnauthenticated: () => {
-      router.push("/404");
+      if (typeof auth !== "boolean" && auth.unauthorized) {
+        return router.push(auth.unauthorized);
+      }
+      return router.push("/404");
     },
   });
 
   if (status === "loading") {
+    if (typeof auth !== "boolean" && auth.loading) {
+      return auth.loading;
+    }
     return <LoadingOverlay visible={true} />;
   }
 
