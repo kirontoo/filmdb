@@ -130,12 +130,7 @@ function CommunityDashboard() {
     useCommunityContext();
   const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
-  const { data: session } = useSession({
-    required: true,
-    onUnauthenticated() {
-      router.push("/404");
-    },
-  });
+  const { data: session } = useSession();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [openFilterOptions, { toggle: toggleFilterOptions }] =
@@ -536,4 +531,7 @@ function CommunityDashboard() {
   );
 }
 
+CommunityDashboard.auth = {
+  unauthorized: "/auth/signin",
+};
 export default CommunityDashboard;

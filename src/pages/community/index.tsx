@@ -10,14 +10,9 @@ import {
   Text,
   Divider,
 } from "@mantine/core";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { getServerSession } from "next-auth/next";
 import Link from "next/link";
-
-import prisma from "@/lib/prismadb";
-import { GetServerSidePropsContext } from "next";
-import { Community } from "@prisma/client";
 import { NothingFoundBackground } from "@/components";
+import { useCommunityContext } from "@/context/CommunityProvider";
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -53,13 +48,18 @@ function pickRandColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function CommunityPage({ communities }: Data) {
+function CommunityPage() {
   const { classes } = useStyles();
+  const { communities, isFetching } = useCommunityContext();
+
+  if (isFetching) {
+    return null;
+  }
 
   return (
     <>
       <Head>
-        <title>FilmDB | search media</title>
+        <title>Communities | FilmDB</title>
       </Head>
       <Container size="xl">
         <Stack
@@ -110,45 +110,6 @@ function CommunityPage({ communities }: Data) {
   );
 }
 
-type Data = {
-  communities: Community[];
-};
-
-export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  const { req, res } = ctx;
-  const session = await getServerSession(req, res, authOptions);
-  if (session) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: {
-          email: session!.user!.email as string,
-        },
-        include: {
-          communities: true,
-        },
-      });
-
-      const data = JSON.parse(JSON.stringify(user?.communities));
-
-      return {
-        props: {
-          communities: data ?? [],
-        },
-      };
-    } catch (error) {
-      return {
-        redirect: {
-          destination: "/404",
-        },
-      };
-    }
-  } else {
-    return {
-      redirect: {
-        destination: "/404",
-      },
-    };
-  }
-}
+CommunityPage.auth = true;
 
 export default CommunityPage;
