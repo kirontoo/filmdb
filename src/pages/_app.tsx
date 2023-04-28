@@ -7,10 +7,11 @@ import {
   ColorSchemeProvider,
   ColorScheme,
   MantineTheme,
+  LoadingOverlay,
 } from "@mantine/core";
 import { MediaProvider } from "@/context/MediaProvider";
 
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { Layout, MediaModal } from "@/components";
 import { useLocalStorage } from "@mantine/hooks";
 import { ModalsProvider } from "@mantine/modals";
@@ -19,9 +20,11 @@ import { CommunityProvider } from "@/context/CommunityProvider";
 import { LoadingProvider } from "@/context/LoadingProvider";
 import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next/types";
+import { useRouter } from "next/router";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
+  auth?: boolean;
 };
 
 type AppPropsWithLayout = AppProps & {
@@ -49,34 +52,15 @@ export default function App(props: AppPropsWithLayout) {
 
   const layout = getLayout(
     <ModalsProvider modals={modals}>
-      <Component {...pageProps} />
+      {Component.auth ? (
+        <Auth>
+          <Component {...pageProps} />
+        </Auth>
+      ) : (
+        <Component {...pageProps} />
+      )}
     </ModalsProvider>
   );
-
-  const theme = {
-    globalStyles: (theme: MantineTheme) => ({
-      "*, *::before, *::after": {
-        boxSizing: "border-box",
-      },
-
-      body: {
-        ...theme.fn.fontStyles(),
-        backgroundColor:
-          theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
-        color:
-          theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
-        lineHeight: theme.lineHeight,
-      },
-
-      ".your-class": {
-        backgroundColor: "red",
-      },
-
-      "#your-id > [data-active]": {
-        backgroundColor: "pink",
-      },
-    }),
-  };
 
   return (
     <>
@@ -101,10 +85,11 @@ export default function App(props: AppPropsWithLayout) {
             theme={{
               colorScheme,
               globalStyles: (theme: MantineTheme) => ({
-              colors: {...theme.colors},
+                colors: { ...theme.colors },
                 body: {
                   ...theme.fn.fontStyles(),
-                  color: theme.colorScheme === "dark" ? theme.white : theme.black,
+                  color:
+                    theme.colorScheme === "dark" ? theme.white : theme.black,
                   backgroundColor:
                     theme.colorScheme === "dark"
                       ? "rgba(0,0,0,1)"
@@ -125,4 +110,21 @@ export default function App(props: AppPropsWithLayout) {
       </SessionProvider>
     </>
   );
+}
+
+function Auth({ children }: { children: ReactElement }) {
+  // if `{ required: true }` is supplied, `status` can only be "loading" or "authenticated"
+  const router = useRouter();
+  const { status } = useSession({
+    required: true,
+    onUnauthenticated: () => {
+      router.push("/404");
+    },
+  });
+
+  if (status === "loading") {
+    return <LoadingOverlay visible={true} />;
+  }
+
+  return children;
 }
