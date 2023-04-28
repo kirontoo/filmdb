@@ -39,6 +39,7 @@
     "typescript": "4.9.5"
   },
   "devDependencies": {
+    "@types/react-infinite-scroller": "^1.2.3",
     "prisma": "^4.11.0"
   }
 }
