@@ -55,7 +55,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface MediaImageCardProps {
-  image: string;
+  image?: string;
   children?: ReactNode;
   className?: any;
 }
