@@ -113,7 +113,7 @@ export default function App(props: AppPropsWithLayout) {
 }
 
 interface AuthProps {
-  loading?: ReactNode;
+  loading?: ReactElement;
   unauthorized?: string; // url
 }
 
@@ -130,9 +130,10 @@ function Auth({
     required: true,
     onUnauthenticated: () => {
       if (typeof auth !== "boolean" && auth.unauthorized) {
-        return router.push(auth.unauthorized);
+        router.push(auth.unauthorized);
+      } else {
+        router.push("/404");
       }
-      return router.push("/404");
     },
   });
 
