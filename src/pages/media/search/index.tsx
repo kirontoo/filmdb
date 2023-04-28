@@ -9,8 +9,10 @@ import {
   TextInput,
   Loader,
   useMantineTheme,
+  Skeleton,
+  Divider,
 } from "@mantine/core";
-
+import InfiniteScroll from "react-infinite-scroller";
 import { IconSearch, IconStarFilled } from "@tabler/icons-react";
 import {
   MediaImageCard,
@@ -22,7 +24,7 @@ import { buildTMDBQuery, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDebouncedValue, useInputState } from "@mantine/hooks";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 
@@ -68,6 +70,10 @@ function SearchMedia() {
   const isDesktop = useIsDesktopDevice();
   const theme = useMantineTheme();
 
+  const [nextPage, setNextPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [totalResults, setTotalResults] = useState<number>(0);
+
   useEffect(() => {
     const { media } = query;
     const input = Array.isArray(media) ? media[0] : media;
@@ -97,64 +103,148 @@ function SearchMedia() {
   }, [debouncedSearchInput]);
 
   const searchMedias = async (input: string) => {
-    setIsLoading(true);
-    const apiQuery = encodeURI(`query=${input}&page=1&inclued_adult=false`);
-    const url = buildTMDBQuery("search/multi", apiQuery);
-    const res = await fetch(url);
-
-    if (res.ok) {
-      const data = await res.json();
-      const results = data.results.filter(
-        (m: TMDBMedia) => m.media_type !== "person"
-      );
-      if (results.length == 0) {
-        setMedias(null);
-      } else {
-        setMedias(results);
-      }
+    if (isLoading) {
+      return;
     }
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const apiQuery = encodeURI(`query=${input}&page=1&include_adult=false`);
+      const url = buildTMDBQuery("search/multi", apiQuery);
+      const res = await fetch(url);
+
+      if (res.ok) {
+        const data = await res.json();
+        const results = data.results.filter(
+          (m: TMDBMedia) => m.media_type !== "person"
+        );
+        if (results.length == 0) {
+          setMedias(null);
+          setTotalResults(0);
+        } else {
+          setTotalPages(data.total_pages);
+          setTotalResults(data.total_results);
+          setMedias(results);
+        }
+      }
+    } catch (e) {
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMoreMedia = useCallback(async () => {
+    if (isLoading) {
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const apiQuery = encodeURI(
+        `query=${searchInput}&page=${nextPage + 1}&include_adult=false`
+      );
+      const url = buildTMDBQuery("search/multi", apiQuery);
+      const res = await fetch(url);
+
+      if (res.ok) {
+        const data = await res.json();
+        const results = data.results.filter(
+          (m: TMDBMedia) => m.media_type !== "person"
+        );
+        if (results.length == 0) {
+          setMedias(null);
+        } else {
+          if (nextPage <= totalPages) {
+            setNextPage((prev: number) => prev + 1);
+          }
+          setMedias((prev: TMDBMedia[] | null) => {
+            if (prev) {
+              return [...prev, ...results];
+            } else {
+              return results;
+            }
+          });
+        }
+      }
+    } catch (e) {
+    } finally {
+      setIsLoading(false);
+    }
+  }, [medias, isLoading, nextPage]);
+
+  const SkeletonLoader = () => {
+    return (
+      <SimpleGrid
+        key="loader"
+        cols={2}
+        breakpoints={[
+          { minWidth: theme.breakpoints.md, cols: 5 },
+          { minWidth: theme.breakpoints.sm, cols: 4 },
+        ]}
+        mt="md"
+      >
+        <Skeleton>
+          <MediaImageCard />
+        </Skeleton>
+        <Skeleton>
+          <MediaImageCard />
+        </Skeleton>
+        <Skeleton>
+          <MediaImageCard />
+        </Skeleton>
+        <Skeleton>
+          <MediaImageCard />
+        </Skeleton>
+      </SimpleGrid>
+    );
   };
 
   const MediaCards = () => {
     return (
       medias && (
-        <SimpleGrid
-          cols={2}
-          breakpoints={[
-            { minWidth: theme.breakpoints.md, cols: 5 },
-            { minWidth: theme.breakpoints.sm, cols: 4 },
-          ]}
+        <InfiniteScroll
+          pageStart={1}
+          loadMore={loadMoreMedia}
+          hasMore={nextPage <= totalPages}
+          initialLoad={false}
+          loader={<SkeletonLoader />}
         >
-          {medias.map((m) => {
-            return (
-              <MediaImageCard
-                component={Link}
-                href={`/media/${m.media_type}/${m.id}`}
-                image={`${TMDB_IMAGE_API_BASE_URL}/w${
-                  isDesktop ? "342" : "185"
-                }/${m.poster_path}`}
-              >
-                <MediaImageCardHeader>
-                  <>
-                    <Text className={classes.date} size="xs">
-                      {m.release_date ?? m.first_air_date}
-                    </Text>
-                    <Title order={3} fz="xl" className={classes.title}>
-                      {m.title ?? m.name ?? m.original_title}
-                    </Title>
-                  </>
-                </MediaImageCardHeader>
-                <MediaImageCardFooter className={classes.rating}>
-                  <IconStarFilled
-                    style={{ position: "relative", color: "yellow" }}
-                  />
-                  <Text>{m.vote_average}</Text>
-                </MediaImageCardFooter>
-              </MediaImageCard>
-            );
-          })}
-        </SimpleGrid>
+          <SimpleGrid
+            cols={2}
+            breakpoints={[
+              { minWidth: theme.breakpoints.md, cols: 5 },
+              { minWidth: theme.breakpoints.sm, cols: 4 },
+            ]}
+          >
+            {medias.map((m) => {
+              return (
+                <MediaImageCard
+                  key={m.id}
+                  component={Link}
+                  href={`/media/${m.media_type}/${m.id}`}
+                  image={`${TMDB_IMAGE_API_BASE_URL}/w${
+                    isDesktop ? "342" : "185"
+                  }/${m.poster_path}`}
+                >
+                  <MediaImageCardHeader>
+                    <>
+                      <Text className={classes.date} size="xs">
+                        {m.release_date ?? m.first_air_date}
+                      </Text>
+                      <Title order={3} fz="xl" className={classes.title}>
+                        {m.title ?? m.name ?? m.original_title}
+                      </Title>
+                    </>
+                  </MediaImageCardHeader>
+                  <MediaImageCardFooter className={classes.rating}>
+                    <IconStarFilled
+                      style={{ position: "relative", color: "yellow" }}
+                    />
+                    <Text>{m.vote_average}</Text>
+                  </MediaImageCardFooter>
+                </MediaImageCard>
+              );
+            })}
+          </SimpleGrid>
+        </InfiniteScroll>
       )
     );
   };
@@ -172,7 +262,13 @@ function SearchMedia() {
             autoFocus
           />
           {medias ? (
-            <MediaCards />
+            <>
+              <Divider
+                label={`Found ${totalResults} results`}
+                labelPosition="center"
+              />
+              <MediaCards />
+            </>
           ) : (
             <NothingFoundBackground
               title="No Media Found"
