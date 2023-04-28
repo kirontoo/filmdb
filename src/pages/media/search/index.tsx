@@ -1,13 +1,14 @@
 import {
+  SimpleGrid,
   Stack,
   rem,
   Text,
   Container,
   createStyles,
-  Grid,
   Title,
   TextInput,
   Loader,
+  useMantineTheme,
 } from "@mantine/core";
 
 import { IconSearch, IconStarFilled } from "@tabler/icons-react";
@@ -23,14 +24,17 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useDebouncedValue, useInputState } from "@mantine/hooks";
+import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 
 const useStyles = createStyles((theme) => ({
+  mediaTitle: {
+    width: "50%",
+  },
   title: {
     fontFamily: `Greycliff CF ${theme.fontFamily}`,
     fontWeight: 900,
     color: theme.white,
     lineHeight: 1.2,
-    fontSize: rem(32),
     marginTop: theme.spacing.xs,
   },
 
@@ -61,6 +65,8 @@ function SearchMedia() {
   const [searchInput, setSearchInput] = useInputState("");
   const [debouncedSearchInput, cancel] = useDebouncedValue(searchInput, 300);
   const [isLoading, setIsLoading] = useState(false);
+  const isDesktop = useIsDesktopDevice();
+  const theme = useMantineTheme();
 
   useEffect(() => {
     const { media } = query;
@@ -110,6 +116,49 @@ function SearchMedia() {
     setIsLoading(false);
   };
 
+  const MediaCards = () => {
+    return (
+      medias && (
+        <SimpleGrid
+          cols={2}
+          breakpoints={[
+            { minWidth: theme.breakpoints.md, cols: 5 },
+            { minWidth: theme.breakpoints.sm, cols: 4 },
+          ]}
+        >
+          {medias.map((m) => {
+            return (
+              <MediaImageCard
+                component={Link}
+                href={`/media/${m.media_type}/${m.id}`}
+                image={`${TMDB_IMAGE_API_BASE_URL}/w${
+                  isDesktop ? "342" : "185"
+                }/${m.poster_path}`}
+              >
+                <MediaImageCardHeader>
+                  <>
+                    <Text className={classes.date} size="xs">
+                      {m.release_date ?? m.first_air_date}
+                    </Text>
+                    <Title order={3} fz="xl" className={classes.title}>
+                      {m.title ?? m.name ?? m.original_title}
+                    </Title>
+                  </>
+                </MediaImageCardHeader>
+                <MediaImageCardFooter className={classes.rating}>
+                  <IconStarFilled
+                    style={{ position: "relative", color: "yellow" }}
+                  />
+                  <Text>{m.vote_average}</Text>
+                </MediaImageCardFooter>
+              </MediaImageCard>
+            );
+          })}
+        </SimpleGrid>
+      )
+    );
+  };
+
   return (
     <>
       <Container size="xl" py="1rem" mb="6rem">
@@ -123,36 +172,7 @@ function SearchMedia() {
             autoFocus
           />
           {medias ? (
-            <Grid grow={false} columns={4}>
-              {medias.map((m) => {
-                return (
-                  <Grid.Col sm={2} lg={1} key={m.id}>
-                    <MediaImageCard
-                      component={Link}
-                      href={`/media/${m.media_type}/${m.id}`}
-                      image={`${TMDB_IMAGE_API_BASE_URL}/w500/${m.poster_path}`}
-                    >
-                      <MediaImageCardHeader>
-                        <>
-                          <Text className={classes.date} size="xs">
-                            {m.release_date ?? m.first_air_date}
-                          </Text>
-                          <Title order={3} className={classes.title}>
-                            {m.title ?? m.name ?? m.original_title}
-                          </Title>
-                        </>
-                      </MediaImageCardHeader>
-                      <MediaImageCardFooter className={classes.rating}>
-                        <IconStarFilled
-                          style={{ position: "relative", color: "yellow" }}
-                        />
-                        <Text>{m.vote_average}</Text>
-                      </MediaImageCardFooter>
-                    </MediaImageCard>
-                  </Grid.Col>
-                );
-              })}
-            </Grid>
+            <MediaCards />
           ) : (
             <NothingFoundBackground
               title="No Media Found"

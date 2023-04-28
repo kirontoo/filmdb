@@ -67,7 +67,7 @@ const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
     return (
       <Card
         ref={ref}
-        p="lg"
+        p="md"
         shadow="lg"
         className={cx(classes.card, className)}
         radius="md"

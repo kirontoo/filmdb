@@ -1,8 +1,7 @@
 import {
-  rem,
-  Box,
-  Group,
   Radio,
+  Box,
+  SimpleGrid,
   Select,
   Collapse,
   Autocomplete,
@@ -30,8 +29,8 @@ import {
   MediaImageCardHeader,
   MediaImageCardFooter,
 } from "@/components";
-import { buildTMDBImageURL } from "@/lib/tmdb";
-import { useMemo, useEffect, useState, ChangeEvent } from "react";
+import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import { useMemo, useEffect, useState } from "react";
 import { Media } from "@prisma/client";
 import {
   IconSortAscending,
@@ -52,6 +51,7 @@ import { useSession } from "next-auth/react";
 import { useDisclosure, useToggle } from "@mantine/hooks";
 
 import { Filter, genericFilter, genericSearch, genericSort } from "@/lib/util";
+import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 
 const useStyles = createStyles((theme) => ({
   filterContainer: {
@@ -131,6 +131,7 @@ function CommunityDashboard() {
   const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession();
+  const isDesktop = useIsDesktopDevice();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [openFilterOptions, { toggle: toggleFilterOptions }] =
@@ -492,37 +493,39 @@ function CommunityDashboard() {
               </Box>
 
               <Divider my="md" labelPosition="center" />
-              <Grid grow={false} columns={5}>
+              <SimpleGrid
+                cols={2}
+                breakpoints={[
+                  { minWidth: theme.breakpoints.md, cols: 5 },
+                  { minWidth: theme.breakpoints.sm, cols: 4 },
+                ]}
+              >
                 {searchedMedias.map((m) => {
                   return (
-                    <Grid.Col sm={2} lg={1} key={m.id}>
-                      <MediaImageCard
-                        component="button"
-                        key={m.id}
-                        image={buildTMDBImageURL(m.posterPath)}
-                        className={classes.mediaCard}
-                        onClick={() => openMediaModal(m)}
-                      >
-                        <MediaImageCardHeader className={classes.cardHeader}>
-                          <>
-                            <Text
-                              align="left"
-                              className={classes.date}
-                              size="xs"
-                            >
-                              {format("yyyy/MM/dd", new Date(m.createdAt))}
-                            </Text>
-                            <Title order={3} align="left">
-                              {m.title}
-                            </Title>
-                          </>
-                        </MediaImageCardHeader>
-                        <MediaImageCardFooter>hi</MediaImageCardFooter>
-                      </MediaImageCard>
-                    </Grid.Col>
+                    <MediaImageCard
+                      component="button"
+                      key={m.id}
+                      image={`${TMDB_IMAGE_API_BASE_URL}/w${
+                        isDesktop ? "342" : "185"
+                      }/${m.posterPath}`}
+                      className={classes.mediaCard}
+                      onClick={() => openMediaModal(m)}
+                    >
+                      <MediaImageCardHeader className={classes.cardHeader}>
+                        <>
+                          <Text align="left" className={classes.date} size="xs">
+                            {format("yyyy/MM/dd", new Date(m.createdAt))}
+                          </Text>
+                          <Title order={3} align="left">
+                            {m.title}
+                          </Title>
+                        </>
+                      </MediaImageCardHeader>
+                      <MediaImageCardFooter>hi</MediaImageCardFooter>
+                    </MediaImageCard>
                   );
                 })}
-              </Grid>
+              </SimpleGrid>
             </>
           )}
         </>
