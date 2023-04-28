@@ -10,13 +10,10 @@ import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
 const useStyles = createStyles((theme) => ({
   card: {
-    height: rem(380),
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
     backgroundColor:
       theme.colorScheme === "dark"
         ? theme.colors.dark[6]
@@ -24,15 +21,22 @@ const useStyles = createStyles((theme) => ({
     [`&:hover .${getStylesRef("image")}`]: {
       transform: "scale(1.05)",
     },
-    width: rem(250),
     border: "none",
+    width: "100%",
+    minHeight: rem("300px"),
+    [`@media(min-width: ${theme.breakpoints.md})`]: {
+      width: "100%",
+      height: rem("400px"),
+    },
   },
 
   image: {
     ...theme.fn.cover(),
     ref: getStylesRef("image"),
     backgroundSize: "cover",
+    backgroundPosition: "center",
     transition: "transform 500ms ease",
+    backgroundRepeat: "no-repeat",
   },
 
   overlay: {
@@ -52,7 +56,7 @@ const useStyles = createStyles((theme) => ({
 
 interface MediaImageCardProps {
   image: string;
-  children: ReactNode;
+  children?: ReactNode;
   className?: any;
 }
 
@@ -80,7 +84,6 @@ const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
     );
   }
 );
-
 _MediaImageCard.displayName = "_MediaImageCard";
 
 export function MediaImageCardHeader({
