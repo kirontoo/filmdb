@@ -2,7 +2,7 @@ import Head from "next/head";
 
 import useSwr from "swr";
 import format from "date-format";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import {
   Image,
@@ -24,6 +24,7 @@ import { buildTMDBQuery } from "@/lib/tmdb";
 import Link from "next/link";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { Carousel } from "@mantine/carousel";
+import { useSession } from "next-auth/react";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -97,6 +98,16 @@ export default function Home() {
   const { classes, cx } = useStyles();
   const [showcasedMedia, setShowcasedMedia] = useState<TMDBMedia | null>(null);
   const isDesktop = useIsDesktopDevice();
+  const { data: session, status } = useSession();
+  const [isLoading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (status === "loading") {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [status]);
 
   const fetcher = (url: string) =>
     fetch(url)
@@ -105,7 +116,8 @@ export default function Home() {
         setShowcasedMedia(d.results[0]);
         return d.results.slice(1);
       });
-  const { data, isLoading } = useSwr<TMDBMedia[]>(
+
+  const { data, isLoading: loadingData } = useSwr<TMDBMedia[]>(
     buildTMDBQuery("trending/all/week"),
     fetcher
   );
@@ -158,7 +170,7 @@ export default function Home() {
       <Head>
         <title>Home | FilmDB</title>
       </Head>
-      {isLoading ? (
+      {isLoading || loadingData ? (
         <LoadingOverlay visible={visible} overlayBlur={2} />
       ) : (
         data &&
@@ -193,17 +205,26 @@ export default function Home() {
                     <Text>
                       {format("yyyy", new Date(showcasedMedia!.release_date))}
                     </Text>
-                    <Button size="sm" color="dark" compact radius="xl">
+                    <Button
+                      size="sm"
+                      color="dark"
+                      compact
+                      radius="xl"
+                      component={Link}
+                      href={`/media/${showcasedMedia.media_type}/${showcasedMedia.id}`}
+                    >
                       Info
                     </Button>
-                    <Button
-                      leftIcon={<IconPlus size={rem(16)} />}
-                      radius="xl"
-                      size="sm"
-                      compact
-                    >
-                      Add
-                    </Button>
+                    {session && (
+                      <Button
+                        leftIcon={<IconPlus size={rem(16)} />}
+                        radius="xl"
+                        size="sm"
+                        compact
+                      >
+                        Add
+                      </Button>
+                    )}
                   </Group>
                 </Stack>
               </Container>
