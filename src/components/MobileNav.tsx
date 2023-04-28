@@ -41,8 +41,8 @@ const useStyles = createStyles((theme) => ({
     border: "1px solid",
     borderColor: theme.colorScheme === "dark" ? theme.white : theme.black,
     borderRadius: "100%",
-    height: rem("40px"),
-    width: rem("40px"),
+    height: rem("30px"),
+    width: rem("30px"),
   },
   active: {
     background: theme.white,
@@ -98,7 +98,7 @@ function MobileNav() {
                 [classes.active]: currentNav === Home,
               })}
             >
-              <IconHome size={rem(24)} />
+              <IconHome size={rem(16)} />
             </Center>
             <Text tt="uppercase">home</Text>
           </Stack>
@@ -115,9 +115,9 @@ function MobileNav() {
                 [classes.active]: currentNav === Groups,
               })}
             >
-              <IconUsers size={rem(24)} />
+              <IconUsers size={rem(16)} />
             </Center>
-            <Text tt="uppercase">groups</Text>
+            <Text fz="sm" tt="uppercase">groups</Text>
           </Stack>
         </UnstyledButton>
         <UnstyledButton
@@ -132,9 +132,9 @@ function MobileNav() {
                 [classes.active]: currentNav === Add,
               })}
             >
-              <IconPlus size={rem(24)} />
+              <IconPlus size={rem(16)} />
             </Center>
-            <Text tt="uppercase">Add</Text>
+            <Text fz="sm" tt="uppercase">Add</Text>
           </Stack>
         </UnstyledButton>
         <UnstyledButton onClick={() => toggle(Profile)}>
@@ -144,9 +144,9 @@ function MobileNav() {
                 [classes.active]: currentNav === Profile,
               })}
             >
-              <IconUser size={rem(24)} />
+              <IconUser size={rem(16)} />
             </Center>
-            <Text tt="uppercase">Profile</Text>
+            <Text fz="sm" tt="uppercase">Profile</Text>
           </Stack>
         </UnstyledButton>
       </Flex>
