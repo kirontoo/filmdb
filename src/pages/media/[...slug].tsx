@@ -116,16 +116,16 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
 
   function getCertifications(isMovie: boolean) {
     if (media) {
-      if (isMovie) {
-        return media.release_dates!.results.find((d) => d.iso_3166_1 == "US")
-          ?.release_dates[0].certification;
-      } else {
-        return media.content_ratings!.results.find((d) => d.iso_3166_1 == "US")
-          ?.rating;
+      let cert = isMovie
+        ? media.release_dates!.results.find((d) => d.iso_3166_1 == "US")
+            ?.release_dates[0].certification
+        : media.content_ratings!.results.find((d) => d.iso_3166_1 == "US")
+            ?.rating;
+      if (cert && cert !== "") {
+        return cert;
       }
-    } else {
-      return null;
     }
+    return "No Rating";
   }
 
   const addToList = async (
@@ -213,15 +213,13 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                 <div>
                   <Group position="apart">
                     <Group>
-                      {certification && (
-                        <Badge
-                          variant="outline"
-                          radius="xs"
-                          className={classes.certification}
-                        >
-                          {certification}
-                        </Badge>
-                      )}
+                      <Badge
+                        variant="outline"
+                        radius="xs"
+                        className={classes.certification}
+                      >
+                        {certification}
+                      </Badge>
                       <Text>
                         {media.release_date || media.first_air_date
                           ? format(
@@ -237,7 +235,6 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
 
                     <Button
                       leftIcon={<IconPlus size={rem(16)} />}
-                      radius="xl"
                       size="sm"
                       compact
                     >
