@@ -7,7 +7,6 @@ import {
   Autocomplete,
   useMantineTheme,
   ActionIcon,
-  Avatar,
   Card,
   Container,
   CopyButton,
@@ -28,6 +27,7 @@ import {
   MediaImageCard,
   MediaImageCardHeader,
   MediaImageCardFooter,
+  AvatarMemberList,
 } from "@/components";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { useMemo, useEffect, useState } from "react";
@@ -266,47 +266,7 @@ function CommunityDashboard() {
                       >
                         members
                       </Text>
-                      <Tooltip.Group openDelay={300} closeDelay={100}>
-                        <Avatar.Group spacing="sm">
-                          <>
-                            {currentCommunity.members.length < 5
-                              ? currentCommunity.members.map((m) => (
-                                  <Tooltip
-                                    label={m.name}
-                                    withArrow
-                                    key={m.name}
-                                  >
-                                    <Avatar
-                                      src={m.image ?? "image.png"}
-                                      radius="xl"
-                                    />
-                                  </Tooltip>
-                                ))
-                              : currentCommunity.members
-                                  .slice(
-                                    0,
-                                    Math.min(4, currentCommunity.members.length)
-                                  )
-                                  .map((m) => {
-                                    <Tooltip
-                                      label={m.name}
-                                      withArrow
-                                      key={m.name}
-                                    >
-                                      <Avatar
-                                        src={m.image ?? "image.png"}
-                                        radius="xl"
-                                      />
-                                    </Tooltip>;
-                                  })}
-                            {currentCommunity.members.length > 4 && (
-                              <Avatar radius="xl">
-                                +{currentCommunity.members.length - 4}
-                              </Avatar>
-                            )}
-                          </>
-                        </Avatar.Group>
-                      </Tooltip.Group>
+                      <AvatarMemberList members={currentCommunity.members} />
                     </Stack>
                   </Stack>
 

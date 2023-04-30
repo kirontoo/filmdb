@@ -13,3 +13,4 @@ export { default as CommunityFormModal } from "./CommunityFormModal";
 export { default as MediaModal } from "./MediaModal";
 export { default as CommunityMenu } from "./CommunityMenu";
 export { default as MobileNav } from "./MobileNav";
+export { default as AvatarMemberList } from "./AvatarMemberList";
