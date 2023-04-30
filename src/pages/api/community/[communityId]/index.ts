@@ -170,6 +170,9 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
           posterPath: posterPath as string,
           backdropPath: backdropPath as string,
           watched: (watched as boolean) ?? false,
+          requestedBy: {
+            connect: { id: session!.user!.id },
+          },
           community: {
             connect: { id: id },
           },
