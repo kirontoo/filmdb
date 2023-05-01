@@ -12,7 +12,7 @@ import {
 } from "react";
 import { useLoadingContext } from "./LoadingProvider";
 
-type CommunityWithMembers = {
+export type CommunityWithMembers = {
   members: { name: string; image: string }[];
 } & Community;
 
@@ -72,6 +72,10 @@ export const useCommunityProvider = (): CommunityState => {
           let res = await fetch("/api/community");
           let { data } = await res.json();
           setCommunities(data.communities);
+          if (data.communities.length > 0) {
+            // set the default community after fetching
+            setCurrentCommunityIndex(0);
+          }
         } catch (e) {
           setCommunities([]);
           setCurrentCommunityIndex(-1);
