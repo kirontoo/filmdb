@@ -4,26 +4,14 @@ import {
   Flex,
   Text,
   Center,
-  Avatar,
-  Header,
-  Container,
-  Button,
-  ActionIcon,
-  Group,
   Stack,
   UnstyledButton,
 } from "@mantine/core";
-import Link from "next/link";
-import {
-  IconHome,
-  IconPlus,
-  IconSquareRoundedPlus,
-  IconUser,
-  IconUsers,
-} from "@tabler/icons-react";
+import { IconHome, IconPlus, IconUser, IconUsers } from "@tabler/icons-react";
 import { useDisclosure, useToggle } from "@mantine/hooks";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import ProfileDrawer from "./ProfileDrawer";
 
 const useStyles = createStyles((theme) => ({
   nav: {
@@ -84,73 +72,99 @@ function MobileNav() {
   }, []);
 
   return (
-    <header className={classes.nav}>
-      <Flex justify="space-around">
-        <UnstyledButton
-          onClick={() => {
-            toggle(Home);
-            router.push("/");
-          }}
-        >
-          <Stack spacing="0.2rem" align="center">
-            <Center
-              className={cx(classes.navIcon, {
-                [classes.active]: currentNav === Home,
-              })}
-            >
-              <IconHome size={rem(16)} />
-            </Center>
-            <Text tt="uppercase">home</Text>
-          </Stack>
-        </UnstyledButton>
-        <UnstyledButton
-          onClick={() => {
-            toggle(Groups);
-            router.push("/community");
-          }}
-        >
-          <Stack spacing="0.2rem" align="center">
-            <Center
-              className={cx(classes.navIcon, {
-                [classes.active]: currentNav === Groups,
-              })}
-            >
-              <IconUsers size={rem(16)} />
-            </Center>
-            <Text fz="sm" tt="uppercase">groups</Text>
-          </Stack>
-        </UnstyledButton>
-        <UnstyledButton
-          onClick={() => {
-            toggle(Add);
-            router.push("/media/search");
-          }}
-        >
-          <Stack spacing="0.2rem" align="center">
-            <Center
-              className={cx(classes.navIcon, {
-                [classes.active]: currentNav === Add,
-              })}
-            >
-              <IconPlus size={rem(16)} />
-            </Center>
-            <Text fz="sm" tt="uppercase">Add</Text>
-          </Stack>
-        </UnstyledButton>
-        <UnstyledButton onClick={() => toggle(Profile)}>
-          <Stack spacing="0.2rem" align="center">
-            <Center
-              className={cx(classes.navIcon, {
-                [classes.active]: currentNav === Profile,
-              })}
-            >
-              <IconUser size={rem(16)} />
-            </Center>
-            <Text fz="sm" tt="uppercase">Profile</Text>
-          </Stack>
-        </UnstyledButton>
-      </Flex>
-    </header>
+    <>
+      <header className={classes.nav}>
+        <Flex justify="space-around">
+          <UnstyledButton
+            onClick={() => {
+              toggle(Home);
+              router.push("/");
+            }}
+          >
+            <Stack spacing="0.2rem" align="center">
+              <Center
+                className={cx(classes.navIcon, {
+                  [classes.active]: currentNav === Home,
+                })}
+              >
+                <IconHome size={rem(16)} />
+              </Center>
+              <Text tt="uppercase">home</Text>
+            </Stack>
+          </UnstyledButton>
+          <UnstyledButton
+            onClick={() => {
+              toggle(Groups);
+              router.push("/community");
+            }}
+          >
+            <Stack spacing="0.2rem" align="center">
+              <Center
+                className={cx(classes.navIcon, {
+                  [classes.active]: currentNav === Groups,
+                })}
+              >
+                <IconUsers size={rem(16)} />
+              </Center>
+              <Text fz="sm" tt="uppercase">
+                groups
+              </Text>
+            </Stack>
+          </UnstyledButton>
+          <UnstyledButton
+            onClick={() => {
+              toggle(Add);
+              router.push("/media/search");
+            }}
+          >
+            <Stack spacing="0.2rem" align="center">
+              <Center
+                className={cx(classes.navIcon, {
+                  [classes.active]: currentNav === Add,
+                })}
+              >
+                <IconPlus size={rem(16)} />
+              </Center>
+              <Text fz="sm" tt="uppercase">
+                Add
+              </Text>
+            </Stack>
+          </UnstyledButton>
+          <UnstyledButton
+            onClick={() => {
+              if (!opened) {
+                toggle(Profile);
+                open();
+              } else {
+                close();
+                toggle("none");
+              }
+            }}
+          >
+            <Stack spacing="0.2rem" align="center">
+              <Center
+                className={cx(classes.navIcon, {
+                  [classes.active]: currentNav === Profile,
+                })}
+              >
+                <IconUser size={rem(16)} />
+              </Center>
+              <Text fz="sm" tt="uppercase">
+                Profile
+              </Text>
+            </Stack>
+          </UnstyledButton>
+        </Flex>
+      </header>
+      <ProfileDrawer
+        opened={opened}
+        onClose={() => {
+          toggle("none");
+          close();
+        }}
+        zIndex={300}
+      />
+    </>
   );
 }
 
