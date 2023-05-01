@@ -18,7 +18,7 @@ import {
   Button,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
-import { getTMDBShowcaseImageUrl, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import { getTitle, getTMDBShowcaseImageUrl, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 import Link from "next/link";
@@ -153,9 +153,7 @@ export default function Home() {
                     src={`${TMDB_IMAGE_API_BASE_URL}/w${
                       isDesktop ? "342" : "185"
                     }/${m.poster_path}`}
-                    alt={`${
-                      m.title ?? m.name ?? m.original_name ?? m.original_title
-                    }`}
+                    alt={getTitle(m)}
                   />
                 </Link>
               </Carousel.Slide>

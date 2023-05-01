@@ -20,7 +20,7 @@ import {
   MediaImageCardFooter,
   NothingFoundBackground,
 } from "@/components";
-import { buildTMDBQuery, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import { buildTMDBQuery, getTitle, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -230,7 +230,7 @@ function SearchMedia() {
                         {m.release_date ?? m.first_air_date}
                       </Text>
                       <Title order={3} fz="xl" className={classes.title}>
-                        {m.title ?? m.name ?? m.original_title}
+                        {getTitle(m)}
                       </Title>
                     </>
                   </MediaImageCardHeader>

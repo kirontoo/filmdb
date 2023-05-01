@@ -1,3 +1,5 @@
+import { TMDBMedia } from "./types";
+
 export const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
 export const TMDB_IMAGE_API_BASE_URL = "https://image.tmdb.org/t/p";
 
@@ -20,4 +22,8 @@ export function buildTMDBImageURL(
 
 export function getTMDBShowcaseImageUrl(path: string, isDesktop = false) {
   return `${TMDB_IMAGE_API_BASE_URL}/${isDesktop ? "w1280" : "w500"}/${path}`;
+}
+
+export function getTitle(m: TMDBMedia): string | null {
+  return m.title ?? m.name ?? m.original_title ?? m.original_name;
 }
