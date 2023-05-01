@@ -152,7 +152,7 @@ function SearchMedia() {
         if (results.length == 0) {
           setMedias(null);
         } else {
-          if (nextPage <= totalPages) {
+          if (nextPage < totalPages) {
             setNextPage((prev: number) => prev + 1);
           }
           setMedias((prev: TMDBMedia[] | null) => {
