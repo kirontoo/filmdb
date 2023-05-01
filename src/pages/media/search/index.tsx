@@ -11,6 +11,7 @@ import {
   useMantineTheme,
   Skeleton,
   Divider,
+  Transition,
 } from "@mantine/core";
 import InfiniteScroll from "react-infinite-scroller";
 import { IconSearch, IconStarFilled } from "@tabler/icons-react";
@@ -69,10 +70,13 @@ function SearchMedia() {
   const [isLoading, setIsLoading] = useState(false);
   const isDesktop = useIsDesktopDevice();
   const theme = useMantineTheme();
+  const [mounted, setMounted] = useState(false);
 
   const [nextPage, setNextPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [totalResults, setTotalResults] = useState<number>(0);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const { media } = query;
@@ -252,15 +256,25 @@ function SearchMedia() {
   return (
     <>
       <Container size="xl" py="1rem" mb="6rem">
-        <Stack>
-          <TextInput
-            value={searchInput}
-            onChange={setSearchInput}
-            icon={<IconSearch size="1.1rem" stroke={1.5} />}
-            placeholder="Search for movies and shows"
-            rightSection={isLoading && <Loader size="xs" />}
-            autoFocus
-          />
+        <Stack sx={{ position: "relative" }}>
+          <Transition
+            mounted={mounted}
+            transition="slide-down"
+            duration={200}
+            timingFunction="ease-in"
+          >
+            {(styles) => (
+              <TextInput
+                style={styles}
+                value={searchInput}
+                onChange={setSearchInput}
+                icon={<IconSearch size="1.1rem" stroke={1.5} />}
+                placeholder="Search for movies and shows"
+                rightSection={isLoading && <Loader size="xs" />}
+                autoFocus
+              />
+            )}
+          </Transition>
           {medias ? (
             <>
               <Divider
