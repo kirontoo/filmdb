@@ -24,6 +24,6 @@ export function getTMDBShowcaseImageUrl(path: string, isDesktop = false) {
   return `${TMDB_IMAGE_API_BASE_URL}/${isDesktop ? "w1280" : "w500"}/${path}`;
 }
 
-export function getTitle(m: TMDBMedia): string | null {
+export function getTitle(m: TMDBMedia): string {
   return m.title ?? m.name ?? m.original_title ?? m.original_name;
 }
