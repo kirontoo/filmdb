@@ -52,7 +52,9 @@ model User {
   communityIds  String[]    @db.ObjectId
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
-  Media         Media[]
+  medias        Media[]
+  ratings       Rating[]
+  comments      Comment[]
 
   @@map("users")
 }
@@ -89,24 +91,54 @@ model Media {
   requestedBy   User?     @relation(fields: [requestedById], references: [id])
   requestedById String?   @map("requested_by_id") @db.ObjectId
   queue         Int?
+  ratings       Rating[]
+  comments      Comment[]
 
   @@unique([tmdbId, communityId])
   @@map("medias")
 }
 
 model Community {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  name              String   @unique
-  inviteCode        String   @unique @map("invite_code")
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String    @unique
+  inviteCode        String    @unique @map("invite_code")
   description       String?
   medias            Media[]
-  members           User[]   @relation(fields: [memberIds], references: [id])
-  memberIds         String[] @db.ObjectId
-  createdBy         String   @map("created_by") @db.ObjectId
-  slug              String   @unique
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-  currentlyWatching String?  @db.ObjectId
+  members           User[]    @relation(fields: [memberIds], references: [id])
+  memberIds         String[]  @db.ObjectId
+  createdBy         String    @map("created_by") @db.ObjectId
+  slug              String    @unique
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  currentlyWatching String?   @db.ObjectId
+  ratings           Rating[]
+  comments          Comment[]
 
   @@map("communities")
+}
+
+model Rating {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  community   Community? @relation(fields: [communityId], references: [id])
+  communityId String?    @db.ObjectId
+  media       Media      @relation(fields: [mediaId], references: [id])
+  mediaId     String     @db.ObjectId
+  value       Float
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @db.ObjectId
+
+  @@map("ratings")
+}
+
+model Comment {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  community   Community? @relation(fields: [communityId], references: [id])
+  communityId String?    @db.ObjectId
+  media       Media      @relation(fields: [mediaId], references: [id])
+  mediaId     String     @db.ObjectId
+  text        String
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @db.ObjectId
+
+  @@map("comments")
 }
