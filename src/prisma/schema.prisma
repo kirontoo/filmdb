@@ -55,6 +55,7 @@ model User {
   medias        Media[]
   ratings       Rating[]
   comments      Comment[]
+  Like          Like[]
 
   @@map("users")
 }
@@ -129,6 +130,7 @@ model Rating {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
+  @@unique([userId, mediaId])
   @@map("ratings")
 }
 
@@ -143,6 +145,21 @@ model Comment {
   userId      String     @db.ObjectId
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
+  parent      Comment?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    Comment[]  @relation("ParentChild")
+  parentId    String?    @db.ObjectId
+  Like        Like[]
 
   @@map("comments")
+}
+
+model Like {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String  @db.ObjectId
+  commentId String  @db.ObjectId
+
+  @@unique([userId, commentId])
+  @@map("likes")
 }
