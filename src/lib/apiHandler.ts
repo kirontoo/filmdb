@@ -51,7 +51,7 @@ export function apiHandler(handler: APIHandler) {
         } else if (type === ValidationError) {
           return res.status(400).send({
             status: "fail",
-            message: "missing data",
+            message: error.message,
           });
         } else {
           return res.status(400).send({
