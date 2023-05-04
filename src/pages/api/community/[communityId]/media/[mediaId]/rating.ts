@@ -15,19 +15,10 @@ import {
 
 import { apiHandler } from "@/lib/apiHandler";
 
-//
-// ONLY THE OWNER OF THE COMMENT CAN DO THIS
-// create a rating
-// update a rating
-// delete a rating
-//
-// - be able to see a avg rating of a media // THIS IS PUT SOMEWHERE ELSE
-// PROBABLY IN GET /api/community/id/media/id
-// PROBABLY IN GET /api/community/id
-
 export default apiHandler({
   post: createRating,
   get: getRatings,
+  delete: deleteRating,
 });
 
 async function getRatings(
@@ -152,6 +143,72 @@ async function createRating(
     }
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {
+      throw new APIError(e.message, QueryError);
+    }
+
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
+
+    throw e;
+  }
+}
+
+// DELETE /api/community/:communityId/media/:mediaId/rating
+async function deleteRating(
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<void> {
+  try {
+    const session = await getServerSession(req, res, authOptions);
+
+    const { mediaId } = req.query;
+    const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
+
+
+    const data = await prisma.$transaction(async () => {
+      const rating = await prisma.rating.delete({
+        where: {
+          userId_mediaId: {
+            userId: session!.user!.id,
+            mediaId: mId,
+          },
+        },
+      });
+
+      const avg = await prisma.rating.aggregate({
+        where: {
+          mediaId: mId,
+        },
+        _avg: {
+          value: true,
+        },
+      });
+
+      const media = await prisma.media.update({
+        where: { id: mId },
+        data: {
+          rating: avg._avg.value !== null ? avg._avg.value : undefined,
+        },
+      });
+
+      return { rating, media };
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        rating: { id: data.rating.id, value: data.rating.value },
+        media: data.media,
+      },
+    });
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
+      // Record Not Found
+      if (e.code == "P2015") {
+        throw new APIError("could not delete media");
+      }
+
       throw new APIError(e.message, QueryError);
     }
 
