@@ -19,6 +19,7 @@ export default apiHandler({
   post: createRating,
   get: getRatings,
   delete: deleteRating,
+  patch: updateRating
 });
 
 async function getRatings(
@@ -165,7 +166,6 @@ async function deleteRating(
     const { mediaId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
 
-
     const data = await prisma.$transaction(async () => {
       const rating = await prisma.rating.delete({
         where: {
@@ -209,6 +209,81 @@ async function deleteRating(
         throw new APIError("could not delete media");
       }
 
+      throw new APIError(e.message, QueryError);
+    }
+
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
+
+    throw e;
+  }
+}
+
+async function updateRating(
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<void> {
+  try {
+    const session = await getServerSession(req, res, authOptions);
+
+    const { mediaId } = req.query;
+    const { value } = req.body;
+    if (!value) {
+      throw new APIError("missing rate value", ValidationError);
+    }
+
+    const rateValue: number = Number(value);
+    if (rateValue < 1 || rateValue > 5) {
+      throw new APIError(
+        "rate value should be between 1 and 5",
+        ValidationError
+      );
+    }
+
+    const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
+
+    const data = await prisma.$transaction(async () => {
+      const rating = await prisma.rating.update({
+        where: {
+          userId_mediaId: {
+            userId: session!.user!.id,
+            mediaId: mId,
+          },
+        },
+        data: {
+          value: rateValue,
+        },
+      });
+
+      const avg = await prisma.rating.aggregate({
+        where: {
+          mediaId: mId,
+        },
+        _avg: {
+          value: true,
+        },
+      });
+
+      const media = await prisma.media.update({
+        where: { id: mId },
+        data: {
+          rating: avg._avg.value !== null ? avg._avg.value : undefined,
+        },
+      });
+
+      return { rating, media };
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        rating: { id: data.rating.id, value: data.rating.value },
+        media: data.media,
+      },
+    });
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
       throw new APIError(e.message, QueryError);
     }
 
