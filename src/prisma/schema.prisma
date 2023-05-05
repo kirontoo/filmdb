@@ -54,8 +54,8 @@ model User {
   updatedAt     DateTime    @updatedAt @map("updated_at")
   medias        Media[]
   ratings       Rating[]
-  comments      Comment[]
   Like          Like[]
+  Comment       Comment[]
 
   @@map("users")
 }
@@ -100,20 +100,19 @@ model Media {
 }
 
 model Community {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
-  name              String    @unique
-  inviteCode        String    @unique @map("invite_code")
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  name              String   @unique
+  inviteCode        String   @unique @map("invite_code")
   description       String?
   medias            Media[]
-  members           User[]    @relation(fields: [memberIds], references: [id])
-  memberIds         String[]  @db.ObjectId
-  createdBy         String    @map("created_by") @db.ObjectId
-  slug              String    @unique
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-  currentlyWatching String?   @db.ObjectId
+  members           User[]   @relation(fields: [memberIds], references: [id])
+  memberIds         String[] @db.ObjectId
+  createdBy         String   @map("created_by") @db.ObjectId
+  slug              String   @unique
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  currentlyWatching String?  @db.ObjectId
   ratings           Rating[]
-  comments          Comment[]
 
   @@map("communities")
 }
@@ -135,21 +134,20 @@ model Rating {
 }
 
 model Comment {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  community   Community? @relation(fields: [communityId], references: [id])
-  communityId String?    @db.ObjectId
-  media       Media      @relation(fields: [mediaId], references: [id])
-  mediaId     String     @db.ObjectId
-  text        String
-  user        User       @relation(fields: [userId], references: [id])
-  userId      String     @db.ObjectId
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  parent      Comment?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  children    Comment[]  @relation("ParentChild")
-  parentId    String?    @db.ObjectId
-  Like        Like[]
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  media     Media     @relation(fields: [mediaId], references: [id])
+  mediaId   String    @db.ObjectId
+  text      String
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String    @db.ObjectId
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  parent    Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Comment[] @relation("ParentChild")
+  parentId  String?   @db.ObjectId
+  likes     Like[]
 
+  @@unique([userId, id])
   @@map("comments")
 }
 
