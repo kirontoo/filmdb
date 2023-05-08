@@ -6,6 +6,7 @@ import {
   Button,
   createStyles,
   Header,
+  Text,
   Container,
   Group,
   Burger,
@@ -13,6 +14,11 @@ import {
   useMantineTheme,
   ActionIcon,
   rem,
+  Avatar,
+  UnstyledButton,
+  Collapse,
+  CloseButton,
+  Stack,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -22,7 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
-import { LoginBtn, ToggleDarkTheme } from ".";
+import { LoginBtn, ProfileDrawer, ToggleDarkTheme } from ".";
 import { useSession } from "next-auth/react";
 import { useCommunityContext } from "@/context/CommunityProvider";
 
@@ -102,7 +108,11 @@ interface HeaderSimpleProps {
 
 export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
-  const [opened, { toggle }] = useDisclosure(false);
+  const [opened, { close, toggle }] = useDisclosure(false);
+  const [
+    openedCommunityMenu,
+    { close: closeCommunityMenu, toggle: toggleCommunityMenu },
+  ] = useDisclosure(false);
   const [active, setActive] = useState(
     links !== undefined ? links[0].link : ""
   );
@@ -110,7 +120,8 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   const router = useRouter();
   const { data: session } = useSession();
   // const [communities, setCommunities] = useState<CommunityLink[]>([]);
-  const { communities } = useCommunityContext();
+  const { communities, currentCommunity, setCurrentCommunity } =
+    useCommunityContext();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -137,10 +148,20 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   ));
 
   return (
-    <Header height={60}>
+    <Header height={60} sx={{ background: "black" }}>
       <Container className={classes.header} size="xl">
         <Group>
-          <Link href="/">FilmDB</Link>
+          <Burger
+            opened={opened}
+            onClick={toggle}
+            className={classes.burger}
+            size="sm"
+          />
+          <Link href="/">
+            <Text color="violet.4" tt="uppercase" weight="bold" fz="xl">
+              FilmDB
+            </Text>
+          </Link>
           <Group spacing={5} className={classes.links}>
             {items}
             {session && (
@@ -205,15 +226,72 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           <LoginBtn />
 
           <ToggleDarkTheme />
-        </Group>
 
-        <Burger
-          opened={opened}
-          onClick={toggle}
-          className={classes.burger}
-          size="sm"
-        />
+          <ActionIcon>
+            <IconSearch size="1.1rem" stroke={1.5} />
+          </ActionIcon>
+          <UnstyledButton onClick={toggleCommunityMenu}>
+            <Avatar radius="xl" color="violet.3">
+              {currentCommunity ? currentCommunity!.name[0].toUpperCase() : ""}
+            </Avatar>
+          </UnstyledButton>
+        </Group>
       </Container>
+
+      <ProfileDrawer
+        opened={opened}
+        onClose={() => {
+          close();
+        }}
+        zIndex={1005}
+      />
+
+      <Collapse
+        in={openedCommunityMenu}
+        sx={{
+          background: "black",
+          zIndex: 200,
+          position: "relative",
+          padding: "1rem",
+        }}
+      >
+        <Stack spacing="sm">
+          <CloseButton
+            title="Close popover"
+            size="xl"
+            iconSize={30}
+            sx={{ alignSelf: "flex-end" }}
+            onClick={closeCommunityMenu}
+          />
+          {communities.map((c) => (
+            <UnstyledButton
+              onClick={() => {
+                setCurrentCommunity(c.slug);
+                closeCommunityMenu();
+              }}
+            >
+              <Group>
+                <Avatar
+                  color={
+                    c.name === currentCommunity!.name ? "violet.4" : "gray.5"
+                  }
+                  radius="xl"
+                >
+                  {c.name[0].toUpperCase()}
+                </Avatar>
+                <Text
+                  color={
+                    c.name === currentCommunity!.name ? "violet.4" : theme.white
+                  }
+                  tt="capitalize"
+                >
+                  {c.name}
+                </Text>
+              </Group>
+            </UnstyledButton>
+          ))}
+        </Stack>
+      </Collapse>
     </Header>
   );
 }

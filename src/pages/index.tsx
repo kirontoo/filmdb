@@ -81,7 +81,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   visibleContent: {
-    zIndex: 300,
+    zIndex: 100,
     color: theme.colorScheme === "dark" ? theme.white : theme.black,
     position: "relative",
   },
@@ -186,7 +186,7 @@ export default function Home() {
               <div className={classes.overlay} />
               <Container
                 h="100%"
-                sx={{ zIndex: 300, position: "relative" }}
+                sx={{position: "relative" }}
                 className={cx(classes.visibleContent, classes.showcaseContent)}
               >
                 <Stack spacing="sm">
