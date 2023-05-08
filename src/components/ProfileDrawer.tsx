@@ -1,4 +1,7 @@
-import { CommunityWithMembers, useCommunityContext } from "@/context/CommunityProvider";
+import {
+  CommunityWithMembers,
+  useCommunityContext,
+} from "@/context/CommunityProvider";
 import {
   NavLink,
   Box,
@@ -8,13 +11,11 @@ import {
   Avatar,
   Drawer,
   DrawerProps,
-  Group,
   Stack,
   Title,
   UnstyledButton,
   createStyles,
 } from "@mantine/core";
-import { Community } from "@prisma/client";
 import {
   Icon,
   IconChevronDown,
@@ -27,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import ToggleDarkTheme from "./ToggleDarkTheme";
 
 interface ProfileDrawerProps extends DrawerProps {}
 interface ProfileBtns {
@@ -42,7 +44,8 @@ const useStyles = createStyles((theme) => ({
     gap: rem(8),
   },
   drawer: {
-    backgroundColor: theme.black,
+    backgroundColor: "black",
+    color: "white",
   },
 }));
 
@@ -132,7 +135,13 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
   return (
     <>
       <Drawer
-        className={classes.drawer}
+        classNames={{
+          body: classes.drawer,
+          header: classes.drawer,
+          root: classes.drawer,
+          title: classes.drawer,
+        }}
+        lockScroll
         opened={opened}
         onClose={onClose}
         {...rest}
@@ -149,7 +158,13 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
       >
         <Stack>
           {btns.map((b) => (
-            <NavLink label={b.label} icon={<b.icon />} onClick={b.onClick} />
+            <NavLink
+              sx={{ color: "white" }}
+              key={b.label}
+              label={b.label}
+              icon={<b.icon />}
+              onClick={b.onClick}
+            />
           ))}
         </Stack>
       </Drawer>
