@@ -18,13 +18,19 @@ import {
   Button,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
-import { getTitle, getTMDBShowcaseImageUrl, TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
+import {
+  getTitle,
+  getTMDBShowcaseImageUrl,
+  TMDB_IMAGE_API_BASE_URL,
+} from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import { buildTMDBQuery } from "@/lib/tmdb";
 import Link from "next/link";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { Carousel } from "@mantine/carousel";
 import { useSession } from "next-auth/react";
+import { useTheme } from "@emotion/react";
+import { AddMediaButton } from "@/components";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -150,9 +156,8 @@ export default function Home() {
                 <Link href={`/media/${mediaType}/${m.id}`}>
                   <Image
                     radius="sm"
-                    src={`${TMDB_IMAGE_API_BASE_URL}/w${
-                      isDesktop ? "342" : "185"
-                    }/${m.poster_path}`}
+                    src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
+                      }/${m.poster_path}`}
                     alt={getTitle(m)}
                   />
                 </Link>
@@ -186,7 +191,7 @@ export default function Home() {
               <div className={classes.overlay} />
               <Container
                 h="100%"
-                sx={{position: "relative" }}
+                sx={{ position: "relative" }}
                 className={cx(classes.visibleContent, classes.showcaseContent)}
               >
                 <Stack spacing="sm">
@@ -205,24 +210,16 @@ export default function Home() {
                     </Text>
                     <Button
                       size="sm"
-                      color="dark"
+                      color="gray.1"
                       compact
                       radius="xl"
                       component={Link}
                       href={`/media/${showcasedMedia.media_type}/${showcasedMedia.id}`}
+                      variant="outline"
                     >
                       Info
                     </Button>
-                    {session && (
-                      <Button
-                        leftIcon={<IconPlus size={rem(16)} />}
-                        radius="xl"
-                        size="sm"
-                        compact
-                      >
-                        Add
-                      </Button>
-                    )}
+                    {session && <AddMediaButton media={showcasedMedia}/>}
                   </Group>
                 </Stack>
               </Container>
