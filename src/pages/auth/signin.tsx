@@ -20,14 +20,18 @@ import { IconBrandDiscord } from "@tabler/icons-react";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 
 // source: https://github.com/mantinedev/ui.mantine.dev/blob/master/components/SocialButtons/GoogleIcon.tsx
-export function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
+interface GoogleIconProps extends React.ComponentPropsWithoutRef<"svg"> {
+  size?: string;
+}
+
+export function GoogleIcon({ size, ...props }: GoogleIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMidYMid"
       viewBox="0 0 256 262"
-      width="0.9rem"
-      height="0.9rem"
+      width={size ? size : "1rem"}
+      height={size ? size : "1rem"}
       {...props}
     >
       <path
@@ -52,13 +56,14 @@ export function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 
 interface AuthButtonProps extends ButtonProps {
   providerId: string;
+  iconSize?: string;
 }
 
-export function GoogleButton(props: AuthButtonProps) {
+export function GoogleButton({ iconSize, ...props }: AuthButtonProps) {
   return (
     <Button
       onClick={() => signIn(props.providerId)}
-      leftIcon={<GoogleIcon />}
+      leftIcon={<GoogleIcon size={iconSize} />}
       variant="default"
       color="gray"
       {...props}
@@ -70,16 +75,8 @@ export function DiscordButton(props: AuthButtonProps) {
   return (
     <Button
       onClick={() => signIn(props.providerId)}
-      leftIcon={<IconBrandDiscord size="1rem" />}
-      sx={(theme) => ({
-        backgroundColor: theme.colorScheme === "dark" ? "#5865F2" : "#5865F2",
-        "&:not([data-disabled]):hover": {
-          backgroundColor:
-            theme.colorScheme === "dark"
-              ? theme.fn.lighten("#5865F2", 0.05)
-              : theme.fn.darken("#5865F2", 0.05),
-        },
-      })}
+      leftIcon={<IconBrandDiscord size="1.5rem" color="#5865F2" />}
+      color="gray"
       {...props}
     />
   );
@@ -139,6 +136,8 @@ export default function SignIn({
                         key={provider.name}
                         providerId={provider.id}
                         size="lg"
+                        variant="outline"
+                        iconSize="1.1rem"
                       >
                         Sign in with Google
                       </GoogleButton>
@@ -149,6 +148,7 @@ export default function SignIn({
                         key={provider.name}
                         providerId={provider.id}
                         size="lg"
+                        variant="outline"
                       >
                         Sign in with Discord
                       </DiscordButton>
@@ -159,6 +159,8 @@ export default function SignIn({
                         key={provider.name}
                         onClick={() => signIn(provider.id)}
                         size="lg"
+                        variant="outline"
+                        color="gray"
                       >
                         Sign in with {provider.name}
                       </Button>
