@@ -16,8 +16,7 @@ export default function Layout({ links, children }: LayoutProps) {
   const isDesktop = useIsDesktopDevice();
   return (
     <>
-      {isDesktop && <Navbar links={links} />}
-      {!isDesktop && <MobileNav />}
+      <Navbar links={links} />
       <Notifications limit={5} position="top-right" zIndex={1500} />
       <main className="main">
         <LoadingOverlay visible={isLoading} overlayBlur={2} />
