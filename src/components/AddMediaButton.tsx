@@ -4,6 +4,9 @@ import { useState } from "react";
 import CommunityMenu, { CommunityMenuActionProps } from "./CommunityMenu";
 import { TMDBMedia } from "@/lib/types";
 import Notify from "@/lib/notify";
+import { useCommunityContext } from "@/context/CommunityProvider";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 const useStyles = createStyles((theme) => ({
   dropdown: {
@@ -31,15 +34,23 @@ interface AddMediaButtonProps {
   menuProps?: MenuProps;
 }
 
-export default function AddMediaButton({ menuProps, media }: AddMediaButtonProps) {
+export default function AddMediaButton({
+  menuProps,
+  media,
+}: AddMediaButtonProps) {
   const [opened, setOpened] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { classes } = useStyles();
+  const { currentCommunity } = useCommunityContext();
+  const { data: session } = useSession();
+  const userId: string | null = session ? session!.user!.id : null;
 
   const addToList = async (
     media: TMDBMedia,
     community: CommunityMenuActionProps,
     watched: boolean
   ) => {
+    setLoading(true);
     try {
       const body = {
         ...media,
@@ -78,35 +89,45 @@ export default function AddMediaButton({ menuProps, media }: AddMediaButtonProps
         "Please try again"
       );
     } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <CommunityMenu
-      menuProps={{
-        opened: opened,
-        onChange: setOpened,
-        classNames: classes,
-        transitionProps: { transition: "scale", duration: 200 },
-        ...menuProps
-      }}
-      menuAction={(c: CommunityMenuActionProps) => addToList(media, c, false)}
-    >
-      <Button
-        leftIcon={
-          opened ? <IconX size={rem(16)} /> : <IconPlus size={rem(16)} />
-        }
-        radius="xl"
-        size="sm"
-        compact
-        color="violet.4"
-        classNames={{
-          leftIcon: opened ? classes.btnNoMargin : "",
-          label: opened ? classes.btnLabel : "",
+  if (session) {
+    return (
+      <CommunityMenu
+        menuProps={{
+          opened: opened,
+          onChange: setOpened,
+          classNames: classes,
+          transitionProps: { transition: "scale", duration: 200 },
+          ...menuProps,
         }}
+        menuAction={(c: CommunityMenuActionProps) => addToList(media, c, false)}
       >
-        Add
-      </Button>
-    </CommunityMenu>
+        <Button
+          leftIcon={
+            opened ? <IconX size={rem(16)} /> : <IconPlus size={rem(16)} />
+          }
+          radius="xl"
+          size="sm"
+          compact
+          color="violet.4"
+          classNames={{
+            leftIcon: opened ? classes.btnNoMargin : "",
+            label: opened ? classes.btnLabel : "",
+          }}
+          loading={loading}
+          uppercase
+        >
+          Add
+        </Button>
+      </CommunityMenu>
+    );
+  }
+  return (
+    <Button radius="xl" size="sm" compact color="violet.4" uppercase component={Link} href="/auth/signin">
+      Login to add
+    </Button>
   );
 }

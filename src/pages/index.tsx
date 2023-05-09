@@ -154,8 +154,9 @@ export default function Home() {
                 <Link href={`/media/${mediaType}/${m.id}`}>
                   <Image
                     radius="sm"
-                    src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                      }/${m.poster_path}`}
+                    src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                      isDesktop ? "342" : "185"
+                    }/${m.poster_path}`}
                     alt={getTitle(m)}
                   />
                 </Link>
@@ -217,7 +218,10 @@ export default function Home() {
                     >
                       Info
                     </Button>
-                    {session && <AddMediaButton media={showcasedMedia} menuProps={{position: "bottom-start"}}/>}
+                    <AddMediaButton
+                      media={showcasedMedia}
+                      menuProps={{ position: "bottom-start" }}
+                    />
                   </Group>
                 </Stack>
               </Container>
