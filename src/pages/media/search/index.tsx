@@ -260,7 +260,7 @@ function SearchMedia() {
           <Transition
             mounted={mounted}
             transition="slide-down"
-            duration={200}
+            duration={100}
             timingFunction="ease-in"
           >
             {(styles) => (
