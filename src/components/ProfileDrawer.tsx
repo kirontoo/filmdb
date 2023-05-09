@@ -23,6 +23,7 @@ import {
   IconChevronDown,
   IconGlobe,
   IconInfoCircle,
+  IconLogin,
   IconLogout,
   IconMoodPlus,
   IconPencilPlus,
@@ -31,13 +32,13 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
-import ToggleDarkTheme from "./ToggleDarkTheme";
 
 interface ProfileDrawerProps extends DrawerProps {}
 interface ProfileBtns {
   icon: Icon;
   label: string;
   onClick: () => void;
+  default: boolean;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -71,24 +72,13 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         router.push("/");
         onClose();
       },
+      default: true,
     },
     {
       icon: IconUser,
       label: "Profile",
       onClick: () => {},
-    },
-    {
-      icon: IconMoodPlus,
-      label: "Join a Community",
-      onClick: () => {
-        router.push("/community/join");
-        onClose();
-      },
-    },
-    {
-      icon: IconUsers,
-      label: "Manage Communities",
-      onClick: () => {},
+      default: false,
     },
     {
       icon: IconPencilPlus,
@@ -97,18 +87,37 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         router.push("/community/new");
         onClose();
       },
+      default: true,
+    },
+    {
+      icon: IconUsers,
+      label: "Manage Communities",
+      onClick: () => {},
+      default: false,
+    },
+    {
+      icon: IconMoodPlus,
+      label: "Join a Community",
+      onClick: () => {
+        router.push("/community/join");
+        onClose();
+      },
+      default: true,
     },
     {
       icon: IconSettings,
       label: "Settings",
       onClick: () => {},
+      default: false,
     },
     {
       icon: IconLogout,
       label: "Log Out",
       onClick: () => {
         signOut({ callbackUrl: "/auth/signin" });
+        onClose();
       },
+      default: false,
     },
   ];
 
@@ -161,26 +170,55 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         onClose={onClose}
         {...rest}
         title={
-          session && (
+          session ? (
             <DrawerTitle
               name={session!.user!.name}
               image={session!.user!.image}
               communityName={currentCommunity}
             />
+          ) : (
+            <Drawer.Title>Filmdb</Drawer.Title>
           )
         }
         closeButtonProps={{ "aria-label": "Close profile modal", iconSize: 32 }}
       >
         <Stack justify="space-between">
-          {btns.map((b) => (
+          {btns.map((b) => {
+            if (b.default == true) {
+              return (
+                <NavLink
+                  sx={{ color: "white" }}
+                  key={b.label}
+                  label={b.label}
+                  icon={<b.icon />}
+                  onClick={b.onClick}
+                />
+              );
+            } else {
+              if (session) {
+                return (
+                  <NavLink
+                    sx={{ color: "white" }}
+                    key={b.label}
+                    label={b.label}
+                    icon={<b.icon />}
+                    onClick={b.onClick}
+                  />
+                );
+              }
+            }
+          })}
+          {!session && (
             <NavLink
               sx={{ color: "white" }}
-              key={b.label}
-              label={b.label}
-              icon={<b.icon />}
-              onClick={b.onClick}
+              label="Login"
+              icon={<IconLogin />}
+              onClick={() => {
+                router.push("/auth/signin");
+                onClose();
+              }}
             />
-          ))}
+          )}
           <Divider />
           <NavLink
             sx={{ color: "white" }}

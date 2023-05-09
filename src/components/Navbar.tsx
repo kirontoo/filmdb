@@ -217,24 +217,22 @@ export default function Navbar({ links }: HeaderSimpleProps) {
             rightSectionWidth={42}
           />
 
-          {!session && (
-            <Button variant="subtle" component={Link} href="/community/join">
-              Join Community
-            </Button>
-          )}
-
           <LoginBtn />
 
           <ToggleDarkTheme />
 
-          <ActionIcon>
+          <ActionIcon component={Link} href="/media/search">
             <IconSearch size="1.1rem" stroke={1.5} />
           </ActionIcon>
-          <UnstyledButton onClick={toggleCommunityMenu}>
-            <Avatar radius="xl" color="violet.3">
-              {currentCommunity ? currentCommunity!.name[0].toUpperCase() : ""}
-            </Avatar>
-          </UnstyledButton>
+          {session && (
+            <UnstyledButton onClick={toggleCommunityMenu}>
+              <Avatar radius="xl" color="violet.3">
+                {currentCommunity
+                  ? currentCommunity!.name[0].toUpperCase()
+                  : ""}
+              </Avatar>
+            </UnstyledButton>
+          )}
         </Group>
       </Container>
 
@@ -246,53 +244,57 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         zIndex={1005}
       />
 
-      <Collapse
-        in={openedCommunityMenu}
-        sx={{
-          background: "black",
-          zIndex: 200,
-          position: "relative",
-          padding: "1rem",
-        }}
-      >
-        <Stack spacing="sm">
-          <CloseButton
-            title="Close popover"
-            size="xl"
-            iconSize={30}
-            sx={{ alignSelf: "flex-end" }}
-            onClick={closeCommunityMenu}
-          />
-          {communities.map((c) => (
-            <UnstyledButton
-              key={c.id}
-              onClick={() => {
-                setCurrentCommunity(c.slug);
-                closeCommunityMenu();
-              }}
-            >
-              <Group>
-                <Avatar
-                  color={
-                    c.name === currentCommunity!.name ? "violet.4" : "gray.5"
-                  }
-                  radius="xl"
-                >
-                  {c.name[0].toUpperCase()}
-                </Avatar>
-                <Text
-                  color={
-                    c.name === currentCommunity!.name ? "violet.4" : theme.white
-                  }
-                  tt="capitalize"
-                >
-                  {c.name}
-                </Text>
-              </Group>
-            </UnstyledButton>
-          ))}
-        </Stack>
-      </Collapse>
+      {session && (
+        <Collapse
+          in={openedCommunityMenu}
+          sx={{
+            background: "black",
+            zIndex: 200,
+            position: "relative",
+            padding: "1rem",
+          }}
+        >
+          <Stack spacing="sm">
+            <CloseButton
+              title="Close popover"
+              size="xl"
+              iconSize={30}
+              sx={{ alignSelf: "flex-end" }}
+              onClick={closeCommunityMenu}
+            />
+            {communities.map((c) => (
+              <UnstyledButton
+                key={c.id}
+                onClick={() => {
+                  setCurrentCommunity(c.slug);
+                  closeCommunityMenu();
+                }}
+              >
+                <Group>
+                  <Avatar
+                    color={
+                      c.name === currentCommunity!.name ? "violet.4" : "gray.5"
+                    }
+                    radius="xl"
+                  >
+                    {c.name[0].toUpperCase()}
+                  </Avatar>
+                  <Text
+                    color={
+                      c.name === currentCommunity!.name
+                        ? "violet.4"
+                        : theme.white
+                    }
+                    tt="capitalize"
+                  >
+                    {c.name}
+                  </Text>
+                </Group>
+              </UnstyledButton>
+            ))}
+          </Stack>
+        </Collapse>
+      )}
     </Header>
   );
 }
