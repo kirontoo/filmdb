@@ -265,6 +265,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           />
           {communities.map((c) => (
             <UnstyledButton
+              key={c.id}
               onClick={() => {
                 setCurrentCommunity(c.slug);
                 closeCommunityMenu();
