@@ -19,7 +19,7 @@ import { buildTMDBQuery, getTMDBShowcaseImageUrl } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
-import { CommunityMenu, NothingFoundBackground } from "@/components";
+import { AddMediaButton, CommunityMenu, NothingFoundBackground } from "@/components";
 import { useSession } from "next-auth/react";
 import { CommunityMenuActionProps } from "@/components/CommunityMenu";
 import Notify from "@/lib/notify";
@@ -233,13 +233,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                       <Text>{isMovie && formatDuration(media.runtime!)}</Text>
                     </Group>
 
-                    <Button
-                      leftIcon={<IconPlus size={rem(16)} />}
-                      size="sm"
-                      compact
-                    >
-                      Add
-                    </Button>
+                    <AddMediaButton media={media} menuProps={{position: "top-end"}}/>
                   </Group>
                   <Space h="xs" />
                   <Text>{media.genres.map((g) => g.name).join(", ")}</Text>

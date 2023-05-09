@@ -17,7 +17,6 @@ import {
   Group,
   Button,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
 import {
   getTitle,
   getTMDBShowcaseImageUrl,
@@ -29,7 +28,6 @@ import Link from "next/link";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { Carousel } from "@mantine/carousel";
 import { useSession } from "next-auth/react";
-import { useTheme } from "@emotion/react";
 import { AddMediaButton } from "@/components";
 
 const useStyles = createStyles((theme) => ({
@@ -219,7 +217,7 @@ export default function Home() {
                     >
                       Info
                     </Button>
-                    {session && <AddMediaButton media={showcasedMedia}/>}
+                    {session && <AddMediaButton media={showcasedMedia} menuProps={{position: "bottom-start"}}/>}
                   </Group>
                 </Stack>
               </Container>
