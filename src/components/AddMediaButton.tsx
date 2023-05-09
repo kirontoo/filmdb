@@ -1,9 +1,6 @@
-import { Button, rem, createStyles } from "@mantine/core";
+import { Button, rem, createStyles, MenuProps } from "@mantine/core";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useState } from "react";
-import { useDisclosure } from "@mantine/hooks";
-import { useCommunityContext } from "@/context/CommunityProvider";
-import { useTheme } from "@emotion/react";
 import CommunityMenu, { CommunityMenuActionProps } from "./CommunityMenu";
 import { TMDBMedia } from "@/lib/types";
 import Notify from "@/lib/notify";
@@ -25,15 +22,16 @@ const useStyles = createStyles((theme) => ({
     transform: "all 0.2s ease-out",
     visibility: "hidden",
     opactiy: 0,
-    width: 0
+    width: 0,
   },
 }));
 
 interface AddMediaButtonProps {
   media: TMDBMedia;
+  menuProps?: MenuProps;
 }
 
-export default function AddMediaButton({ media }: AddMediaButtonProps) {
+export default function AddMediaButton({ menuProps, media }: AddMediaButtonProps) {
   const [opened, setOpened] = useState(false);
   const { classes } = useStyles();
 
@@ -65,7 +63,8 @@ export default function AddMediaButton({ media }: AddMediaButtonProps) {
       if (res.ok) {
         Notify.success(
           `${community.name}`,
-          `${body.title} was added to ${watched ? "watched list" : "queued list"
+          `${body.title} was added to ${
+            watched ? "watched list" : "queued list"
           }`
         );
       } else {
@@ -73,7 +72,8 @@ export default function AddMediaButton({ media }: AddMediaButtonProps) {
       }
     } catch (e) {
       Notify.error(
-        `${media.title ?? media.name ?? media.original_title
+        `${
+          media.title ?? media.name ?? media.original_title
         } could not be added to ${community.name}`,
         "Please try again"
       );
@@ -88,6 +88,7 @@ export default function AddMediaButton({ media }: AddMediaButtonProps) {
         onChange: setOpened,
         classNames: classes,
         transitionProps: { transition: "scale", duration: 200 },
+        ...menuProps
       }}
       menuAction={(c: CommunityMenuActionProps) => addToList(media, c, false)}
     >
