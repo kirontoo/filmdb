@@ -77,29 +77,50 @@ async function deleteComment(
       ? communityId[0]
       : communityId!;
 
-    const community = await prisma.community
-      .findFirst({
-        where: {
-          AND: [{ id: cId }, { members: { some: { id: session!.user!.id } } }],
-        },
-      })
-      .catch(() => {
-        throw new APIError("not authorized", UnauthorizedError);
-      });
-
-    if (community) {
-      const comment = await prisma.comment.delete({
-        where: {
-          userId_id: {
-            id: cmId,
-            userId: session!.user!.id,
+    const data = await prisma.$transaction(async () => {
+      const community = await prisma.community
+        .findFirst({
+          where: {
+            AND: [
+              { id: cId },
+              { members: { some: { id: session!.user!.id } } },
+            ],
           },
-        },
-      });
+        })
+        .catch(() => {
+          throw new APIError("not authorized", UnauthorizedError);
+        });
+
+      const comment = await prisma.comment
+        .findUnique({ where: { id: cmId } })
+        .catch(() => {
+          throw new APIError("not authorized", UnauthorizedError);
+        });
+
+      if (comment && community) {
+        if (
+          comment.userId == session!.user!.id ||
+          community.createdBy == session!.user!.id
+        ) {
+          const deleted = await prisma.comment.delete({
+            where: {
+              userId_id: {
+                id: cmId,
+                userId: session!.user!.id,
+              },
+            },
+          });
+          return { comment: deleted };
+        }
+      }
+      return null;
+    });
+
+    if (data) {
       return res.status(200).json({
         status: "success",
         data: {
-          comment,
+          comment: data.comment,
         },
       });
     } else {
