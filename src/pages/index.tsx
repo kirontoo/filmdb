@@ -151,7 +151,7 @@ export default function Home() {
             .filter((m) => m.media_type == mediaType)
             .map((m) => (
               <Carousel.Slide key={m.id}>
-                <Link href={`/media/${mediaType}/${m.id}`}>
+                <Link href={`/media/${mediaType}/${m.id}`} title={getTitle(m)}>
                   <Image
                     radius="sm"
                     src={`${TMDB_IMAGE_API_BASE_URL}/w${
