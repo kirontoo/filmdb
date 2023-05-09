@@ -1,3 +1,4 @@
+import { useSession, signIn, signOut } from "next-auth/react";
 import {
   CommunityWithMembers,
   useCommunityContext,
@@ -15,10 +16,13 @@ import {
   Title,
   UnstyledButton,
   createStyles,
+  Divider,
 } from "@mantine/core";
 import {
   Icon,
   IconChevronDown,
+  IconGlobe,
+  IconInfoCircle,
   IconLogout,
   IconMoodPlus,
   IconPencilPlus,
@@ -26,7 +30,6 @@ import {
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import ToggleDarkTheme from "./ToggleDarkTheme";
 
@@ -47,6 +50,10 @@ const useStyles = createStyles((theme) => ({
     backgroundColor: "black",
     color: "white",
   },
+
+  root: {
+    backgroundColor: "black",
+  },
 }));
 
 function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
@@ -57,6 +64,14 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
   const router = useRouter();
 
   const btns: ProfileBtns[] = [
+    {
+      icon: IconGlobe,
+      label: "Discover",
+      onClick: () => {
+        router.push("/");
+        onClose();
+      },
+    },
     {
       icon: IconUser,
       label: "Profile",
@@ -91,7 +106,9 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
     {
       icon: IconLogout,
       label: "Log Out",
-      onClick: () => {},
+      onClick: () => {
+        signOut({ callbackUrl: "/auth/signin" });
+      },
     },
   ];
 
@@ -123,7 +140,7 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
           )}
           <UnstyledButton className={classes.communityButton}>
             <Text size="xs" tt="capitalize">
-              {community && community.name}'s Watch Party
+              {community && community.name}&apos;s Watch Party
             </Text>
             <IconChevronDown size="1.1rem" />
           </UnstyledButton>
@@ -138,10 +155,8 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         classNames={{
           body: classes.drawer,
           header: classes.drawer,
-          root: classes.drawer,
-          title: classes.drawer,
+          content: classes.drawer,
         }}
-        lockScroll
         opened={opened}
         onClose={onClose}
         {...rest}
@@ -154,9 +169,9 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
             />
           )
         }
-        closeButtonProps={{ "aria-label": "Close profile modal" }}
+        closeButtonProps={{ "aria-label": "Close profile modal", iconSize: 32 }}
       >
-        <Stack>
+        <Stack justify="space-between">
           {btns.map((b) => (
             <NavLink
               sx={{ color: "white" }}
@@ -166,6 +181,12 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
               onClick={b.onClick}
             />
           ))}
+          <Divider />
+          <NavLink
+            sx={{ color: "white" }}
+            label="About us"
+            icon={<IconInfoCircle />}
+          />
         </Stack>
       </Drawer>
     </>
