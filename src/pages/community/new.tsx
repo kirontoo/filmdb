@@ -117,7 +117,7 @@ function NewCommunity() {
           component="form"
           onSubmit={form.onSubmit(createCommunity)}
         >
-          <TextInput label="Name" required {...form.getInputProps("name")} />
+          <TextInput label={`Name (${form.values.name.length}/30)`} required {...form.getInputProps("name")} />
           <Group position="apart" mt="lg" className={classes.controls}>
             <Anchor
               color="dimmed"
