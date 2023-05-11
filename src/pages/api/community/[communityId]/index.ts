@@ -15,6 +15,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
+import slugify from "slugify";
 
 export default apiHandler({
   get: getCommunityById,
@@ -93,11 +94,15 @@ async function updateCommunity(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (user) {
+      const slug = req.body["name"]
+        ? slugify(req.body["name"], { lower: true })
+        : null;
       const updated = await prisma.community.update({
         where: { id },
         data: {
           name: req.body["name"] ?? undefined,
           description: req.body["description"] ?? undefined,
+          slug: slug ?? undefined,
         },
       });
 
