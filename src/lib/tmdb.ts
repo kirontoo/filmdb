@@ -16,7 +16,7 @@ export function buildTMDBImageURL(
   size: 342 | 500 = 342
 ): string {
   return path
-    ? `${TMDB_IMAGE_API_BASE_URL}/w${size}/${path}`
+    ? `${TMDB_IMAGE_API_BASE_URL}/w${size}${path}`
     : "https://placeholder.pics/svg/350x500";
 }
 
