@@ -121,6 +121,7 @@ function SearchMedia() {
         const results = data.results.filter(
           (m: TMDBMedia) => m.media_type !== "person"
         );
+        console.log(results[0])
         if (results.length == 0) {
           setMedias(null);
           setTotalResults(0);
@@ -224,9 +225,9 @@ function SearchMedia() {
                   key={m.id}
                   component={Link}
                   href={`/media/${m.media_type}/${m.id}`}
-                  image={`${TMDB_IMAGE_API_BASE_URL}/w${
+                  image={m.poster_path ? `${TMDB_IMAGE_API_BASE_URL}/w${
                     isDesktop ? "342" : "185"
-                  }/${m.poster_path}`}
+                  }/${m.poster_path}` : null}
                 >
                   <MediaImageCardHeader>
                     <>
