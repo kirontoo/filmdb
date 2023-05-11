@@ -15,7 +15,7 @@ export default function AvatarMemberList({ showcase, members }: MemberListProps)
     return (
       <Tooltip label={member.name} withArrow key={member.name}>
         <Avatar src={member.image ?? ""} radius="xl">
-          {member.name}
+          {member.name[0].toUpperCase()}
         </Avatar>
       </Tooltip>
     );
