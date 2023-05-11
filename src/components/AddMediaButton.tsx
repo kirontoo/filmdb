@@ -19,13 +19,22 @@ const useStyles = createStyles((theme) => ({
   },
   btnNoMargin: {
     marginRight: 0,
-    transition: "margin 0.3s ease-out",
+    transition: "margin 0.2s ease-out",
   },
   btnLabel: {
     transform: "all 0.2s ease-out",
     visibility: "hidden",
     opactiy: 0,
     width: 0,
+  },
+  btnMargin: {
+    transition: "margin 0.2s ease-out",
+  },
+  btnTransition: {
+    transform: "all 0.2s ease-out",
+    opactiy: 1,
+    width: "100%",
+    visibility: "visible",
   },
 }));
 
@@ -114,8 +123,8 @@ export default function AddMediaButton({
           compact
           color="violet.4"
           classNames={{
-            leftIcon: opened ? classes.btnNoMargin : "",
-            label: opened ? classes.btnLabel : "",
+            leftIcon: opened ? classes.btnNoMargin : classes.btnMargin,
+            label: opened ? classes.btnLabel : classes.btnTransition
           }}
           loading={loading}
           uppercase
@@ -126,7 +135,15 @@ export default function AddMediaButton({
     );
   }
   return (
-    <Button radius="xl" size="sm" compact color="violet.4" uppercase component={Link} href="/auth/signin">
+    <Button
+      radius="xl"
+      size="sm"
+      compact
+      color="violet.4"
+      uppercase
+      component={Link}
+      href="/auth/signin"
+    >
       Login to add
     </Button>
   );
