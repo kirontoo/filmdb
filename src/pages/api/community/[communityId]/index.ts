@@ -7,7 +7,6 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import { MediaType } from "@prisma/client";
 import {
   APIError,
   QueryError,
@@ -15,6 +14,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
+import slugify from "slugify";
 
 export default apiHandler({
   get: getCommunityById,
@@ -93,11 +93,15 @@ async function updateCommunity(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (user) {
+      const slug = req.body["name"]
+        ? slugify(req.body["name"], { lower: true })
+        : null;
       const updated = await prisma.community.update({
         where: { id },
         data: {
           name: req.body["name"] ?? undefined,
           description: req.body["description"] ?? undefined,
+          slug: slug ?? undefined,
         },
       });
 
@@ -129,7 +133,8 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
   // query: api/community/[id]
 
   const { communityId } = req.query;
-  const { title, mediaType, posterPath, watched, tmdbId } = req.body;
+  const { title, mediaType, posterPath, backdropPath, watched, tmdbId } =
+    req.body;
   try {
     const session = await getServerSession(req, res, authOptions);
     const id: string = Array.isArray(communityId)
@@ -165,10 +170,14 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
         },
         create: {
           title: title as string,
-          mediaType: mediaType as MediaType,
+          mediaType: mediaType,
           tmdbId: String(tmdbId),
           posterPath: posterPath as string,
+          backdropPath: backdropPath as string,
           watched: (watched as boolean) ?? false,
+          requestedBy: {
+            connect: { id: session!.user!.id },
+          },
           community: {
             connect: { id: id },
           },

@@ -82,6 +82,7 @@ model Media {
   mediaType     MediaType @map("media_type")
   title         String
   posterPath    String?   @map("poster_path")
+  backdropPath  String?   @map("backdrop_path")
   rating        Float     @default(0)
   watched       Boolean   @default(false)
   community     Community @relation(fields: [communityId], references: [id])
