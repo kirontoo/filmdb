@@ -62,6 +62,10 @@ const useStyles = createStyles((theme) => ({
   content: {
     position: "relative",
   },
+
+  footer: {
+    width: "100%",
+  },
 }));
 
 interface MediaImageCardProps {
@@ -121,12 +125,18 @@ export function MediaImageCardHeader({
 
 export function MediaImageCardFooter({
   children,
+  className,
   ...props
 }: {
   children?: ReactNode;
   className?: any;
 }): ReactJSXElement {
-  return <footer {...props}>{children}</footer>;
+  const { classes, cx } = useStyles();
+  return (
+    <footer {...props} className={cx(classes.footer, className)}>
+      {children}
+    </footer>
+  );
 }
 
 const MediaImageCard = createPolymorphicComponent<"div", MediaImageCardProps>(
