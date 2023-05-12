@@ -7,11 +7,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import {
-  APIError,
-  QueryError,
-  ValidationError,
-} from "@/lib/errors";
+import { APIError, QueryError, ValidationError } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
 
 export default apiHandler({
@@ -31,7 +27,9 @@ async function leaveCommunity(req: NextApiRequest, res: NextApiResponse) {
         id: session!.user!.id,
       },
       data: {
-        communities: [{ id: id }],
+        communities: {
+          disconnect: [{ id: id }],
+        },
       },
     });
 

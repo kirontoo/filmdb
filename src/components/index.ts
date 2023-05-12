@@ -12,3 +12,7 @@ export { default as ToggleDarkTheme } from "./ToggleDarkTheme";
 export { default as CommunityFormModal } from "./CommunityFormModal";
 export { default as MediaModal } from "./MediaModal";
 export { default as CommunityMenu } from "./CommunityMenu";
+export { default as MobileNav } from "./MobileNav";
+export { default as AvatarMemberList } from "./AvatarMemberList";
+export { default as ProfileDrawer } from "./ProfileDrawer";
+export { default as AddMediaButton } from "./AddMediaButton";

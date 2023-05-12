@@ -4,19 +4,18 @@ import {
   Card,
   rem,
   createPolymorphicComponent,
+  Center,
 } from "@mantine/core";
 import { ReactNode, forwardRef } from "react";
 import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
+import { IconPhoto } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   card: {
-    height: rem(380),
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
     backgroundColor:
       theme.colorScheme === "dark"
         ? theme.colors.dark[6]
@@ -24,15 +23,30 @@ const useStyles = createStyles((theme) => ({
     [`&:hover .${getStylesRef("image")}`]: {
       transform: "scale(1.05)",
     },
-    width: rem(250),
     border: "none",
+    width: "100%",
+    minHeight: rem("300px"),
+    [`@media(min-width: ${theme.breakpoints.md})`]: {
+      width: "100%",
+      height: rem("400px"),
+    },
+  },
+
+  placeholderImage: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    top: 0,
+    left: 0,
   },
 
   image: {
     ...theme.fn.cover(),
     ref: getStylesRef("image"),
     backgroundSize: "cover",
+    backgroundPosition: "center",
     transition: "transform 500ms ease",
+    backgroundRepeat: "no-repeat",
   },
 
   overlay: {
@@ -51,36 +65,42 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface MediaImageCardProps {
-  image: string;
-  children: ReactNode;
+  image?: string | null;
+  children?: ReactNode;
   className?: any;
 }
 
 const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
   ({ image, children, className, ...others }, ref) => {
     const { classes, cx } = useStyles();
+    console.log(image);
 
     return (
       <Card
         ref={ref}
-        p="lg"
+        p="md"
         shadow="lg"
         className={cx(classes.card, className)}
         radius="md"
         component="div"
         {...others}
       >
-        <div
-          className={classes.image}
-          style={{ backgroundImage: `url(${image ?? ""})` }}
-        />
+        {image !== null ? (
+          <div
+            className={classes.image}
+            style={{ backgroundImage: `url(${image ?? ""})` }}
+          />
+        ) : (
+          <Center className={classes.placeholderImage}>
+            <IconPhoto size="2rem" />
+          </Center>
+        )}
         <div className={classes.overlay} />
         {children}
       </Card>
     );
   }
 );
-
 _MediaImageCard.displayName = "_MediaImageCard";
 
 export function MediaImageCardHeader({

@@ -1,6 +1,7 @@
 import { useCommunityContext } from "@/context/CommunityProvider";
 import {
   createStyles,
+  Stack,
   Paper,
   Title,
   Text,
@@ -99,41 +100,43 @@ function NewCommunity() {
   };
 
   return (
-    <Container size={460}>
-      <Title className={classes.title} align="center">
-        Starting a new community?
-      </Title>
-      <Text c="dimmed" fz="sm" ta="center">
-        Just enter a name
-      </Text>
-      <Paper
-        withBorder
-        shadow="md"
-        p={30}
-        radius="md"
-        mt="xl"
-        component="form"
-        onSubmit={form.onSubmit(createCommunity)}
-      >
-        <TextInput label="Name" required {...form.getInputProps("name")} />
-        <Group position="apart" mt="lg" className={classes.controls}>
-          <Anchor
-            color="dimmed"
-            size="sm"
-            className={classes.control}
-            href="/community/join"
-            component={Link}
-          >
-            <Center inline>
-              <IconArrowLeft size={rem(12)} stroke={1.5} />
-              <Box ml={5}>Got an invite code?</Box>
-            </Center>
-          </Anchor>
-          <Button type="submit" className={classes.control} loading={isLoading}>
-            Create Community
-          </Button>
-        </Group>
-      </Paper>
+    <Container size={460} py="md">
+      <Stack justify="center" spacing="sm">
+        <Title className={classes.title} align="center">
+          Starting a new community?
+        </Title>
+        <Text c="dimmed" fz="sm" ta="center">
+          Just enter a name
+        </Text>
+        <Paper
+          withBorder
+          shadow="md"
+          p={30}
+          radius="md"
+          mt="xl"
+          component="form"
+          onSubmit={form.onSubmit(createCommunity)}
+        >
+          <TextInput label={`Name (${form.values.name.length}/30)`} required {...form.getInputProps("name")} />
+          <Group position="apart" mt="lg" className={classes.controls}>
+            <Anchor
+              color="dimmed"
+              size="sm"
+              className={classes.control}
+              href="/community/join"
+              component={Link}
+            >
+              <Center inline>
+                <IconArrowLeft size={rem(12)} stroke={1.5} />
+                <Box ml={5}>Got an invite code?</Box>
+              </Center>
+            </Anchor>
+            <Button type="submit" className={classes.control} loading={isLoading}>
+              Create Community
+            </Button>
+          </Group>
+        </Paper>
+      </Stack>
     </Container>
   );
 }
