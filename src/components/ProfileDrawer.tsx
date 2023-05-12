@@ -135,10 +135,10 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         {session && (
           <Avatar
             size="lg"
-            src={image ?? `https://ui-avatars.com/api/?name=${encodeURI(name)}`}
+            src={image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`}
             radius="xl"
           >
-            {name}
+            {name[0]}
           </Avatar>
         )}
         <Box>
