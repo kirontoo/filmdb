@@ -1,4 +1,4 @@
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   CommunityWithMembers,
   useCommunityContext,
@@ -92,7 +92,10 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
     {
       icon: IconUsers,
       label: "Manage Communities",
-      onClick: () => {},
+      onClick: () => {
+        router.push("/community");
+        onClose();
+      },
       default: false,
     },
     {
@@ -135,7 +138,9 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         {session && (
           <Avatar
             size="lg"
-            src={image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`}
+            src={
+              image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`
+            }
             radius="xl"
           >
             {name[0]}
