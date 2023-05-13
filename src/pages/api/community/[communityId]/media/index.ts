@@ -1,17 +1,13 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+
 import prisma from "@/lib/prismadb";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import {
-  APIError,
-  QueryError,
-  UnauthorizedError,
-  ValidationError,
-} from "@/lib/errors";
+import { APIError, QueryError, ValidationError } from "@/lib/errors";
 
 import { apiHandler } from "@/lib/apiHandler";
 
@@ -19,52 +15,50 @@ export default apiHandler({
   get: getMedias,
 });
 
-
-// query: /api/media?community={community slug}
-// query: /api/media?communityId={community id}
+// query: /api/community/:communityId/media
 async function getMedias(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<void> {
   try {
-    const session = await getServerSession(req, res, authOptions);
     const { query } = req;
-    const community: string = Array.isArray(query.community)
-      ? query.community[0]
-      : query.community!;
+
+    const session = await getServerSession(req, res, authOptions);
+
     const communityId: string = Array.isArray(query.communityId)
       ? query.communityId[0]
       : query.communityId!;
 
-    const c = await prisma.community.findFirst({
+    const medias = await prisma.media.findMany({
       where: {
-        OR: [
-          { id: communityId || undefined },
-          { slug: community || undefined },
-        ],
-        members: {
-          some: { id: session!.user!.id },
-        },
+        communityId: communityId,
+      },
+      orderBy: {
+        title: "asc",
       },
       include: {
-        medias: {
+        _count: {
+          select: { ratings: true },
+        },
+        ratings: {
+          where: {
+            userId: session!.user!.id,
+          },
+        },
+        comments: {
           orderBy: {
-            title: "asc",
+            createdAt: "asc",
           },
         },
       },
     });
 
-    if (c) {
-      return res.status(200).json({
-        status: "success",
-        data: {
-          medias: c.medias,
-        },
-      });
-    } else {
-      throw new APIError("not authorized", UnauthorizedError);
-    }
+    return res.status(200).json({
+      status: "success",
+      data: {
+        medias: medias,
+      },
+    });
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {
       throw new APIError(e.message, QueryError);
