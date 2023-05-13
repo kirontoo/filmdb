@@ -21,6 +21,7 @@ import {
   createStyles,
   Button,
   Rating,
+  ScrollArea,
 } from "@mantine/core";
 import Head from "next/head";
 import format from "date-format";
@@ -114,19 +115,19 @@ const SortItems: Array<{
   value: keyof Media;
   label: string;
 }> = [
-    {
-      value: "title",
-      label: "Alphabetical",
-    },
-    {
-      value: "createdAt",
-      label: "Date Added",
-    },
-    {
-      value: "dateWatched",
-      label: "Date Watched",
-    },
-  ];
+  {
+    value: "title",
+    label: "Alphabetical",
+  },
+  {
+    value: "createdAt",
+    label: "Date Added",
+  },
+  {
+    value: "dateWatched",
+    label: "Date Watched",
+  },
+];
 
 function CommunityDashboard() {
   const theme = useMantineTheme();
@@ -241,6 +242,7 @@ function CommunityDashboard() {
       modal: "media",
       title: `${media.title}`,
       size: "xl",
+      lockScroll: true,
       innerProps: { media },
     });
   };
@@ -472,8 +474,9 @@ function CommunityDashboard() {
                     <MediaImageCard
                       component="button"
                       key={m.id}
-                      image={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                        }/${m.posterPath}`}
+                      image={`${TMDB_IMAGE_API_BASE_URL}/w${
+                        isDesktop ? "342" : "185"
+                      }/${m.posterPath}`}
                       className={classes.mediaCard}
                       onClick={() => openMediaModal(m)}
                     >
