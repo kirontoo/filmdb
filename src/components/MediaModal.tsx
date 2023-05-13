@@ -7,20 +7,31 @@ import {
   Flex,
   Image,
   Tooltip,
+  Rating,
+  Box,
+  Transition,
 } from "@mantine/core";
 import { ContextModalProps, modals } from "@mantine/modals";
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import Notify from "@/lib/notify";
 import useSwr from "swr";
 import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
-import { Media } from "@prisma/client";
-import { IconList, IconBookmark, IconTrash } from "@tabler/icons-react";
+import {
+  IconList,
+  IconBookmark,
+  IconTrash,
+  IconStarsFilled,
+} from "@tabler/icons-react";
 import { TMDBMedia } from "@/lib/types";
 import { updateMedia } from "@/lib/util";
-import { useMediaContext } from "@/context/MediaProvider";
+import {
+  MediaWithRatingAndComments,
+  useMediaContext,
+} from "@/context/MediaProvider";
+import { useDisclosure } from "@mantine/hooks";
 
 interface MediaModalProps {
-  media: Media;
+  media: MediaWithRatingAndComments;
   communityId: string;
 }
 
@@ -28,6 +39,7 @@ interface LoadingState {
   loadingAddToWatchedList: boolean;
   loadingAddToQueue: boolean;
   loadingDeleteMedia: boolean;
+  loadingRateMedia: boolean;
 }
 
 type LoadingAction =
@@ -36,7 +48,9 @@ type LoadingAction =
   | { type: "isLoadingWatchedList" }
   | { type: "stopLoadingWatchedList" }
   | { type: "isLoadingDeleteMedia" }
-  | { type: "stopLoadingDeleteMedia" };
+  | { type: "stopLoadingDeleteMedia" }
+  | { type: "isLoadingRateMedia" }
+  | { type: "stopLoadingRateMedia" };
 
 const useStyles = createStyles((theme) => ({
   imgContainer: {
@@ -54,14 +68,18 @@ function reducer(state: LoadingState, action: LoadingAction): LoadingState {
       return { ...state, loadingAddToQueue: true };
     case "isLoadingWatchedList":
       return { ...state, loadingAddToWatchedList: true };
+    case "isLoadingRateMedia":
+      return { ...state, loadingRateMedia: true };
     case "isLoadingDeleteMedia":
-      return { ...state, loadingDeleteMedia: true };
+      return { ...state, loadingRateMedia: true };
     case "stopLoadingQueue":
       return { ...state, loadingAddToQueue: false };
     case "stopLoadingWatchedList":
       return { ...state, loadingAddToWatchedList: false };
     case "stopLoadingDeleteMedia":
       return { ...state, loadingDeleteMedia: false };
+    case "stopLoadingRateMedia":
+      return { ...state, loadingRateMedia: false };
     default:
       throw Error("Unknown action");
   }
@@ -75,15 +93,23 @@ export default function MediaModal({
   const { classes } = useStyles();
 
   const [
-    { loadingAddToQueue, loadingAddToWatchedList, loadingDeleteMedia },
+    {
+      loadingAddToQueue,
+      loadingAddToWatchedList,
+      loadingDeleteMedia,
+      loadingRateMedia,
+    },
     dispatch,
   ] = useReducer(reducer, {
     loadingAddToQueue: false,
     loadingAddToWatchedList: false,
     loadingDeleteMedia: false,
+    loadingRateMedia: false,
   });
   const { media, communityId } = innerProps;
   const { updateMedias, removeMedia } = useMediaContext();
+  const [opened, { close: closeRateInput, toggle }] = useDisclosure(false);
+  const [rateMedia, setRateMedia] = useState(1);
 
   const fetcher = (url: string) => fetch(url).then((r) => r.json());
   const { data, isLoading } = useSwr<TMDBMedia>(
@@ -168,6 +194,51 @@ export default function MediaModal({
     }
   };
 
+  const updateRating = async (value: number) => {
+    if (value < 0) {
+      closeRateInput();
+      return;
+    }
+
+    dispatch({ type: "isLoadingRateMedia" });
+    setRateMedia(value);
+
+    // api call
+    try {
+      const alreadyRated = media.ratings.find((r) => r.mediaId == media.id);
+
+      let method = "POST";
+      if (alreadyRated) {
+        method = "PATCH";
+      }
+
+      const res = await fetch(
+        `/api/community/${media.communityId}/media/${media.id}/rating`,
+        {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            value: value,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        // update the state
+        media.rating = data.data.media.rating;
+        updateMedias(media.id, { ...media });
+      }
+    } catch (error) {
+    } finally {
+      setRateMedia(0);
+      closeRateInput();
+      dispatch({ type: "stopLoadingRateMedia" });
+    }
+  };
+
   return (
     <>
       {!isLoading && (
@@ -181,9 +252,28 @@ export default function MediaModal({
               />
             </div>
             <Stack spacing="sm">
-              <Text fz="xl" component="h1">
-                {data?.title ?? data?.name}
-              </Text>
+              <Group>
+                <Text fz="xl" component="h1">
+                  {data?.title ?? data?.name}
+                </Text>
+
+                <Group
+                  sx={(theme) => ({
+                    background: theme.colors.gray[9],
+                    borderRadius: theme.radius.sm,
+                    padding: "0.2rem",
+                    border: `1px solid ${theme.colors.gray[7]}`,
+                  })}
+                >
+                  <Rating
+                    value={media.rating}
+                    fractions={5}
+                    readOnly
+                    color="yellow.4"
+                  />
+                  <Text>{media.rating}/5</Text>
+                </Group>
+              </Group>
               <Text component="h3">
                 {data?.release_date ??
                   data?.first_air_date ??
@@ -194,7 +284,7 @@ export default function MediaModal({
                 <Tooltip label="Delete from all lists">
                   <ActionIcon
                     variant="subtle"
-                    loading={loadingAddToWatchedList}
+                    loading={loadingDeleteMedia}
                     onClick={openDeleteModal}
                     color="red"
                   >
@@ -213,7 +303,7 @@ export default function MediaModal({
                 </Tooltip>
                 <Tooltip label="Move to watched list">
                   <ActionIcon
-                    variant="filled"
+                    variant="subtle"
                     loading={loadingAddToWatchedList}
                     onClick={() => addToList(true)}
                     color="blue"
@@ -221,6 +311,42 @@ export default function MediaModal({
                     <IconBookmark />
                   </ActionIcon>
                 </Tooltip>
+                <Tooltip label={`Rate ${media.title}`}>
+                  <ActionIcon
+                    variant="subtle"
+                    color="yellow"
+                    onClick={toggle}
+                    loading={loadingRateMedia}
+                  >
+                    <IconStarsFilled />
+                  </ActionIcon>
+                </Tooltip>
+                <Transition
+                  mounted={opened}
+                  transition="slide-right"
+                  duration={200}
+                  timingFunction="ease-in-out"
+                >
+                  {(styles) => (
+                    <Box
+                      style={styles}
+                      sx={(theme) => ({
+                        background: theme.colors.gray[9],
+                        borderRadius: theme.radius.sm,
+                        padding: "0.2rem",
+                        border: `1px solid ${theme.colors.gray[7]}`,
+                      })}
+                    >
+                      <Rating
+                        fractions={2}
+                        value={rateMedia}
+                        onChange={updateRating}
+                        defaultValue={1}
+                        color="yellow.4"
+                      />
+                    </Box>
+                  )}
+                </Transition>
               </Group>
             </Stack>
           </Flex>
