@@ -49,6 +49,9 @@ dependencies:
   date-format:
     specifier: ^4.0.14
     version: 4.0.14
+  dayjs:
+    specifier: ^1.11.7
+    version: 1.11.7
   embla-carousel-react:
     specifier: ^7.1.0
     version: 7.1.0(react@18.2.0)
@@ -1178,6 +1181,10 @@ packages:
   /date-format@4.0.14:
     resolution: {integrity: sha512-39BOQLs9ZjKh0/patS9nrT8wc3ioX3/eA/zgbKNopnF2wCqJEoxywwwElATYvRsXdnOxA/OQeQoFZ3rFjVajhg==}
     engines: {node: '>=4.0'}
+    dev: false
+
+  /dayjs@1.11.7:
+    resolution: {integrity: sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==}
     dev: false
 
   /debug@3.2.7:
