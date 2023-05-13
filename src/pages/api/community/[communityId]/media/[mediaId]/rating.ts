@@ -19,7 +19,7 @@ export default apiHandler({
   post: createRating,
   get: getRatings,
   delete: deleteRating,
-  patch: updateRating
+  patch: updateRating,
 });
 
 async function getRatings(
@@ -109,9 +109,6 @@ async function createRating(
             media: {
               connect: { id: mId },
             },
-            community: {
-              connect: { id: cId },
-            },
           },
         });
 
@@ -128,6 +125,16 @@ async function createRating(
           where: { id: mId },
           data: {
             rating: avg._avg.value !== null ? avg._avg.value : undefined,
+          },
+          include: {
+            _count: {
+              select: { ratings: true },
+            },
+            ratings: {
+              where: {
+                userId: session!.user!.id,
+              },
+            },
           },
         });
 
@@ -269,6 +276,16 @@ async function updateRating(
         where: { id: mId },
         data: {
           rating: avg._avg.value !== null ? avg._avg.value : undefined,
+        },
+        include: {
+          _count: {
+            select: { ratings: true },
+          },
+          ratings: {
+            where: {
+              userId: session!.user!.id,
+            },
+          },
         },
       });
 
