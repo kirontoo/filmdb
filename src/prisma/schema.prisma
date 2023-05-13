@@ -78,6 +78,7 @@ enum MediaType {
 model Media {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   tmdbId        String
+  imdbId        String?
   dateWatched   DateTime? @map("date_watched")
   mediaType     MediaType @map("media_type")
   title         String
