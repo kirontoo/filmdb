@@ -20,6 +20,7 @@ import {
   Tooltip,
   createStyles,
   Button,
+  Rating,
 } from "@mantine/core";
 import Head from "next/head";
 import format from "date-format";
@@ -90,6 +91,12 @@ const useStyles = createStyles((theme) => ({
     textTransform: "uppercase",
   },
 
+  mediaCardFooter: {
+    backgroundColor: "rgba(0,0,0,0.8)",
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
+  },
+
   mediaCard: {
     margin: "auto",
     [`@media (min-width:${theme.breakpoints.md})`]: {
@@ -107,19 +114,19 @@ const SortItems: Array<{
   value: keyof Media;
   label: string;
 }> = [
-  {
-    value: "title",
-    label: "Alphabetical",
-  },
-  {
-    value: "createdAt",
-    label: "Date Added",
-  },
-  {
-    value: "dateWatched",
-    label: "Date Watched",
-  },
-];
+    {
+      value: "title",
+      label: "Alphabetical",
+    },
+    {
+      value: "createdAt",
+      label: "Date Added",
+    },
+    {
+      value: "dateWatched",
+      label: "Date Watched",
+    },
+  ];
 
 function CommunityDashboard() {
   const theme = useMantineTheme();
@@ -243,11 +250,11 @@ function CommunityDashboard() {
       <Head>
         <title>FilmDB | {`${currentCommunity && currentCommunity.name}`}</title>
       </Head>
-      <Container size="xl">
+      <Container size="xl" py={16}>
         <>
           {currentCommunity && (
             <>
-              <Paper>
+              <Paper p={16}>
                 <Flex
                   justify="space-between"
                   direction={{ base: "column", lg: "row" }}
@@ -465,23 +472,26 @@ function CommunityDashboard() {
                     <MediaImageCard
                       component="button"
                       key={m.id}
-                      image={`${TMDB_IMAGE_API_BASE_URL}/w${
-                        isDesktop ? "342" : "185"
-                      }/${m.posterPath}`}
+                      image={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
+                        }/${m.posterPath}`}
                       className={classes.mediaCard}
                       onClick={() => openMediaModal(m)}
                     >
                       <MediaImageCardHeader className={classes.cardHeader}>
-                        <>
-                          <Text align="left" className={classes.date} size="xs">
-                            {format("yyyy/MM/dd", new Date(m.createdAt))}
-                          </Text>
-                          <Title order={3} align="left">
-                            {m.title}
-                          </Title>
-                        </>
+                        <Text align="left" className={classes.date} size="xs">
+                          {format("yyyy/MM/dd", new Date(m.createdAt))}
+                        </Text>
+                        <Title order={3} align="left">
+                          {m.title}
+                        </Title>
                       </MediaImageCardHeader>
-                      <MediaImageCardFooter>hi</MediaImageCardFooter>
+                      <MediaImageCardFooter>
+                        {m.rating > 0 && (
+                          <Box className={classes.mediaCardFooter}>
+                            <Rating readOnly value={m.rating} fractions={2} />
+                          </Box>
+                        )}
+                      </MediaImageCardFooter>
                     </MediaImageCard>
                   );
                 })}
