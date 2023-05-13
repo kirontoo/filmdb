@@ -1,4 +1,4 @@
-import { Media } from "@prisma/client";
+import { Media, Rating, Comment } from "@prisma/client";
 import {
   useState,
   useContext,
@@ -8,11 +8,16 @@ import {
   SetStateAction,
 } from "react";
 
+export type MediaWithRatingAndComments = {
+  ratings: Rating[];
+  comments: Comment[];
+} & Media;
+
 interface MediaState {
-  medias: Media[];
-  setMedias: Dispatch<SetStateAction<Media[]>>;
-  addMedia: (data: Media) => void;
-  updateMedias: (id: string, media: Media) => void;
+  medias: MediaWithRatingAndComments[];
+  setMedias: Dispatch<SetStateAction<MediaWithRatingAndComments[]>>;
+  addMedia: (data: MediaWithRatingAndComments) => void;
+  updateMedias: (id: string, media: MediaWithRatingAndComments) => void;
   removeMedia: (id: string) => void;
 }
 
@@ -33,13 +38,13 @@ export const useMediaContext = () => {
 };
 
 export const useMediaProvider = () => {
-  const [medias, setMedias] = useState<Media[]>([]);
+  const [medias, setMedias] = useState<MediaWithRatingAndComments[]>([]);
 
-  const addMedia = (data: Media) => {
+  const addMedia = (data: MediaWithRatingAndComments) => {
     setMedias((prev) => [...prev, data]);
   };
 
-  const updateMedias = (id: string, media: Media) => {
+  const updateMedias = (id: string, media: MediaWithRatingAndComments) => {
     const index = medias.findIndex((m) => m.id === id);
     if (index === -1) {
       // don't update anything if it doesn't exist
@@ -66,7 +71,7 @@ export const useMediaProvider = () => {
     setMedias,
     addMedia,
     updateMedias,
-    removeMedia
+    removeMedia,
   };
 };
 
