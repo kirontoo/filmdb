@@ -1,3 +1,4 @@
+import { MediaWithRatingAndComments } from "@/context/MediaProvider";
 import { Media } from "@prisma/client";
 
 export function generateInviteCode(length: number): string {
@@ -15,7 +16,7 @@ export function generateInviteCode(length: number): string {
 
 export async function updateMedia(media: Media): Promise<{
   res: Response;
-  data: { status: string; data: { media: Media } };
+  data: { status: string; data: { media: MediaWithRatingAndComments } };
 }> {
   const res = await fetch(
     `/api/community/${media.communityId}/media/${media.id}`,
