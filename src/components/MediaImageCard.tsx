@@ -77,7 +77,6 @@ interface MediaImageCardProps {
 const _MediaImageCard = forwardRef<HTMLDivElement, MediaImageCardProps>(
   ({ image, children, className, ...others }, ref) => {
     const { classes, cx } = useStyles();
-    console.log(image);
 
     return (
       <Card
