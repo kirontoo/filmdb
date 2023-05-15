@@ -60,12 +60,12 @@ async function createComment(
     const session = await getServerSession(req, res, authOptions);
     const { communityId, mediaId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
-    const { text, parentId } = req.body;
+    const { text: body, parentId } = req.body;
     const cId: string = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
 
-    if (text === undefined || text === null) {
+    if (body === undefined || body === null) {
       throw new APIError("missing text value", ValidationError);
     }
 
@@ -84,7 +84,7 @@ async function createComment(
         data: {
           user: { connect: { id: session!.user!.id } },
           media: { connect: { id: mId } },
-          text: text,
+          body: body,
           parent: { connect: { id: parentId ? parentId : undefined } },
         },
       });

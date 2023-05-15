@@ -28,9 +28,9 @@ async function updateComment(
     const session = await getServerSession(req, res, authOptions);
     const { commentId } = req.query;
     const cId: string = Array.isArray(commentId) ? commentId[0] : commentId!;
-    const { text } = req.body;
+    const { text: body } = req.body;
 
-    if (text === undefined || text === null) {
+    if (body === undefined || body === null) {
       throw new APIError("missing text value", ValidationError);
     }
 
@@ -42,7 +42,7 @@ async function updateComment(
         },
       },
       data: {
-        text: text,
+        body: body,
       },
     });
 
