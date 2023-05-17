@@ -20,13 +20,15 @@ interface CommentState {
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
   createComment: (t: string) => void;
+  deleteComment: (t: string) => void;
 }
 
 export const CommentContext = createContext<CommentState>({
   comments: [],
   loadingComments: false,
-  addNewComment: (c: CommentWithUser) => null,
-  createComment: async (t: string) => null,
+  addNewComment: (_: CommentWithUser) => null,
+  createComment: async (_: string) => null,
+  deleteComment: async (_: string) => null,
 });
 
 export const useCommentContext = () => {
@@ -92,7 +94,28 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
     }
   };
 
-  return { comments, loadingComments, addNewComment, createComment };
+  const deleteComment = async (commentId: string) => {
+    try {
+      const res = await fetch(
+        `/api/community/${communityId}/media/${mediaId}/comments/${commentId}`,
+        { method: "DELETE" }
+      );
+
+      if (res.ok) {
+        // filter out the comment
+        const newCommentItems = comments.filter((c) => c.id !== commentId);
+        setComments([...newCommentItems]);
+      }
+    } catch (e) {}
+  };
+
+  return {
+    comments,
+    loadingComments,
+    addNewComment,
+    createComment,
+    deleteComment,
+  };
 };
 
 interface CommentProviderProps {
