@@ -243,7 +243,7 @@ function CommunityDashboard() {
       title: `${media.title}`,
       size: "xl",
       lockScroll: true,
-      innerProps: { media },
+      innerProps: { media, communityId: currentCommunity!.id },
     });
   };
 
