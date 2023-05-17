@@ -7,6 +7,7 @@ import { useCommentContext } from "@/context/CommentProvider";
 import { Stack, useMantineTheme, Button, Group } from "@mantine/core";
 import { useState } from "react";
 import { CommentTextEditor } from ".";
+import { useSession } from "next-auth/react";
 
 interface CommentListProps {
   children?: React.ReactNode;
@@ -18,10 +19,13 @@ function CommentList({ children }: CommentListProps) {
   const [commentContent, setCommentContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { comments, createComment, loadingComments } = useCommentContext();
+  const { data: session } = useSession();
 
   const createNewComment = async () => {
     setIsLoading(true);
-    await createComment(commentContent);
+    if (commentContent != "") {
+      await createComment(commentContent);
+    }
     setIsLoading(false);
   };
 
@@ -53,9 +57,11 @@ function CommentList({ children }: CommentListProps) {
           {comments.map((c) => (
             <Comment
               key={c.id}
+              id={c.id}
               createdAt={dayjs().to(dayjs(c.createdAt))}
               body={c.body}
               author={c.user}
+              isOwner={session ? c.userId === session!.user!.id : false}
             />
           ))}
         </>
