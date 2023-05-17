@@ -32,6 +32,14 @@ async function getComments(
       where: {
         mediaId: mId,
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
     });
 
     return res.status(200).json({
