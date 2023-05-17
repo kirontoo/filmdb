@@ -1,4 +1,4 @@
-import { Box, Flex, Group, Skeleton } from "@mantine/core";
+import { Box, Flex, Skeleton } from "@mantine/core";
 
 const SkeletonComment = () => {
   return (
