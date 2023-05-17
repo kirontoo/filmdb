@@ -17,5 +17,6 @@ export { default as AvatarMemberList } from "./AvatarMemberList";
 export { default as ProfileDrawer } from "./ProfileDrawer";
 export { default as AddMediaButton } from "./AddMediaButton";
 export { default as Comment } from "./Comment";
+export { default as SkeletonComment } from "./SkeletonComment";
 export { default as CommentList } from "./CommentList";
 export { default as CommentTextEditor } from "./CommentTextEditor";
