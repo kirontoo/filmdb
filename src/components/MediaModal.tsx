@@ -1,3 +1,7 @@
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
 import {
   createStyles,
   ActionIcon,
@@ -10,6 +14,7 @@ import {
   Rating,
   Box,
   Transition,
+  Divider,
 } from "@mantine/core";
 import { ContextModalProps, modals } from "@mantine/modals";
 import { useReducer, useState } from "react";
@@ -29,6 +34,8 @@ import {
   useMediaContext,
 } from "@/context/MediaProvider";
 import { useDisclosure } from "@mantine/hooks";
+import { CommentList } from ".";
+import { CommentProvider } from "@/context/CommentProvider";
 
 interface MediaModalProps {
   media: MediaWithRatingAndComments;
@@ -243,113 +250,124 @@ export default function MediaModal({
     <>
       {!isLoading && (
         <>
-          <Flex gap="md">
-            <div className={classes.imgContainer}>
-              <Image
-                src={buildTMDBImageURL(media.posterPath, 342)}
-                alt={`${media.title} poster`}
-                radius="md"
-              />
-            </div>
-            <Stack spacing="sm">
-              <Group>
-                <Text fz="xl" component="h1">
-                  {data?.title ?? data?.name}
-                </Text>
+          <Stack>
+            <Flex gap="md">
+              <div className={classes.imgContainer}>
+                <Image
+                  src={buildTMDBImageURL(media.posterPath, 342)}
+                  alt={`${media.title} poster`}
+                  radius="md"
+                />
+              </div>
+              <Stack spacing="sm">
+                <Group>
+                  <Text fz="xl" component="h1">
+                    {data?.title ?? data?.name}
+                  </Text>
 
-                <Group
-                  sx={(theme) => ({
-                    background: theme.colors.gray[9],
-                    borderRadius: theme.radius.sm,
-                    padding: "0.2rem",
-                    border: `1px solid ${theme.colors.gray[7]}`,
-                  })}
-                >
-                  <Rating
-                    value={media.rating}
-                    fractions={5}
-                    readOnly
-                    color="yellow.4"
-                  />
-                  <Text>{media.rating}/5</Text>
+                  <Group
+                    sx={(theme) => ({
+                      background: theme.colors.gray[9],
+                      borderRadius: theme.radius.sm,
+                      padding: "0.2rem",
+                      border: `1px solid ${theme.colors.gray[7]}`,
+                    })}
+                  >
+                    <Rating
+                      value={media.rating}
+                      fractions={5}
+                      readOnly
+                      color="yellow.4"
+                    />
+                    <Text>{media.rating}/5</Text>
+                  </Group>
                 </Group>
-              </Group>
-              <Text component="h3">
-                {data?.release_date ??
-                  data?.first_air_date ??
-                  "Release Date: N/A"}
-              </Text>
-              <Text component="p">{data?.overview}</Text>
-              <Group>
-                <Tooltip label="Delete from all lists">
-                  <ActionIcon
-                    variant="subtle"
-                    loading={loadingDeleteMedia}
-                    onClick={openDeleteModal}
-                    color="red"
-                  >
-                    <IconTrash />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Move to queue">
-                  <ActionIcon
-                    variant="subtle"
-                    loading={loadingAddToQueue}
-                    onClick={() => addToList(false)}
-                    color="light"
-                  >
-                    <IconList />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Move to watched list">
-                  <ActionIcon
-                    variant="subtle"
-                    loading={loadingAddToWatchedList}
-                    onClick={() => addToList(true)}
-                    color="blue"
-                  >
-                    <IconBookmark />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label={`Rate ${media.title}`}>
-                  <ActionIcon
-                    variant="subtle"
-                    color="yellow"
-                    onClick={toggle}
-                    loading={loadingRateMedia}
-                  >
-                    <IconStarsFilled />
-                  </ActionIcon>
-                </Tooltip>
-                <Transition
-                  mounted={opened}
-                  transition="slide-right"
-                  duration={200}
-                  timingFunction="ease-in-out"
-                >
-                  {(styles) => (
-                    <Box
-                      style={styles}
-                      sx={(theme) => ({
-                        background: theme.colors.gray[9],
-                        borderRadius: theme.radius.sm,
-                        padding: "0.2rem",
-                        border: `1px solid ${theme.colors.gray[7]}`,
-                      })}
+                <Text component="h3">
+                  {data?.release_date ??
+                    data?.first_air_date ??
+                    "Release Date: N/A"}
+                </Text>
+                <Text component="p">{data?.overview}</Text>
+                <Group>
+                  <Tooltip label="Delete from all lists">
+                    <ActionIcon
+                      variant="subtle"
+                      loading={loadingDeleteMedia}
+                      onClick={openDeleteModal}
+                      color="red"
                     >
-                      <Rating
-                        fractions={2}
-                        value={rateMedia}
-                        onChange={updateRating}
-                        defaultValue={1}
-                        color="yellow.4"
-                      />
-                    </Box>
-                  )}
-                </Transition>
-              </Group>
-            </Stack>
-          </Flex>
+                      <IconTrash />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Move to queue">
+                    <ActionIcon
+                      variant="subtle"
+                      loading={loadingAddToQueue}
+                      onClick={() => addToList(false)}
+                      color="light"
+                    >
+                      <IconList />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Move to watched list">
+                    <ActionIcon
+                      variant="subtle"
+                      loading={loadingAddToWatchedList}
+                      onClick={() => addToList(true)}
+                      color="blue"
+                    >
+                      <IconBookmark />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label={`Rate ${media.title}`}>
+                    <ActionIcon
+                      variant="subtle"
+                      color="yellow"
+                      onClick={toggle}
+                      loading={loadingRateMedia}
+                    >
+                      <IconStarsFilled />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Transition
+                    mounted={opened}
+                    transition="slide-right"
+                    duration={200}
+                    timingFunction="ease-in-out"
+                  >
+                    {(styles) => (
+                      <Box
+                        style={styles}
+                        sx={(theme) => ({
+                          background: theme.colors.gray[9],
+                          borderRadius: theme.radius.sm,
+                          padding: "0.2rem",
+                          border: `1px solid ${theme.colors.gray[7]}`,
+                        })}
+                      >
+                        <Rating
+                          fractions={2}
+                          value={rateMedia}
+                          onChange={updateRating}
+                          defaultValue={1}
+                          color="yellow.4"
+                        />
+                      </Box>
+                    )}
+                  </Transition>
+                </Group>
+              </Stack>
+            </Flex>
+
+            <Divider
+              label="comments"
+              labelPosition="center"
+              labelProps={{ fz: "md" }}
+            />
+            <CommentProvider communityId={communityId} mediaId={media.id}>
+              <CommentList />
+            </CommentProvider>
+          </Stack>
         </>
       )}
     </>
