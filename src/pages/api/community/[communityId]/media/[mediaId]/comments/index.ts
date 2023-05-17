@@ -68,7 +68,7 @@ async function createComment(
     const session = await getServerSession(req, res, authOptions);
     const { communityId, mediaId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
-    const { text: body, parentId } = req.body;
+    const { body, parentId } = req.body;
     const cId: string = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
@@ -88,12 +88,24 @@ async function createComment(
       });
 
     if (community) {
+      const data = {
+        user: { connect: { id: session!.user!.id } },
+        media: { connect: { id: mId } },
+        body: body,
+      };
+
+      if (parentId !== undefined && parentId !== null) {
+        Object.assign(data, { parent: { connect: { id: parentId } } });
+      }
+
       const comment = await prisma.comment.create({
         data: {
-          user: { connect: { id: session!.user!.id } },
-          media: { connect: { id: mId } },
-          body: body,
-          parent: { connect: { id: parentId ? parentId : undefined } },
+          ...data,
+        },
+        include: {
+          media: true,
+          user: { select: { name: true, image: true } },
+          parent: true,
         },
       });
 
