@@ -3,12 +3,13 @@ import { BubbleMenu, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import { Button, Group } from "@mantine/core";
+import { Dispatch, SetStateAction } from "react";
 
 interface CommentTextEditorProps {
   content?: string;
+  setContent?: Dispatch<SetStateAction<string>>;
 }
-function CommentTextEditor({ content }: CommentTextEditorProps) {
+function CommentTextEditor({ content, setContent }: CommentTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -17,6 +18,11 @@ function CommentTextEditor({ content }: CommentTextEditorProps) {
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
     content,
+    onUpdate({ editor }) {
+      if (setContent) {
+        setContent(editor.getHTML());
+      }
+    },
   });
 
   return (
