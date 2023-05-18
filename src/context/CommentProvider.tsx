@@ -21,6 +21,7 @@ interface CommentState {
   addNewComment: (c: CommentWithUser) => void;
   createComment: (t: string) => void;
   deleteComment: (t: string) => void;
+  editComment: (t: string, _: string) => void;
 }
 
 export const CommentContext = createContext<CommentState>({
@@ -29,6 +30,7 @@ export const CommentContext = createContext<CommentState>({
   addNewComment: (_: CommentWithUser) => null,
   createComment: async (_: string) => null,
   deleteComment: async (_: string) => null,
+  editComment: async (_: string, _b: string) => null,
 });
 
 export const useCommentContext = () => {
@@ -109,12 +111,55 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
     } catch (e) {}
   };
 
+  const editComment = async (commentId: string, body: string) => {
+    try {
+      const res = await fetch(
+        `/api/community/${communityId}/media/${mediaId}/comments/${commentId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            body: body,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        // update comment
+
+        const { data } = await res.json();
+
+        const index = comments.findIndex((m) => m.id === commentId);
+        if (index === -1) {
+          // don't update anything if it doesn't exist
+          return;
+        }
+        let foundComment = comments[index];
+        const newCommentItems = comments.filter((m) => m.id !== commentId);
+
+        // merge comment data
+        setComments([
+          ...newCommentItems.slice(0, index),
+          { ...foundComment, ...data.comment },
+          ...newCommentItems.slice(index),
+        ]);
+      } else {
+        throw new Error("request failed");
+      }
+    } catch (e) {
+      throw e;
+    }
+  };
+
   return {
     comments,
     loadingComments,
     addNewComment,
     createComment,
     deleteComment,
+    editComment,
   };
 };
 

@@ -1,4 +1,5 @@
 import { useCommentContext } from "@/context/CommentProvider";
+import Notify from "@/lib/notify";
 import {
   createStyles,
   Text,
@@ -16,7 +17,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure, useHover } from "@mantine/hooks";
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
-import { useSession } from "next-auth/react";
+import { useState } from "react";
 import CommentTextEditor from "./CommentTextEditor";
 
 const useStyles = createStyles((theme) => ({
@@ -39,6 +40,10 @@ const useStyles = createStyles((theme) => ({
   actionBtn: {
     justifySelf: "flex-end",
   },
+
+  editComment: {
+    marginTop: theme.spacing.xs,
+  },
 }));
 
 interface CommentProps {
@@ -54,10 +59,25 @@ interface CommentProps {
 
 function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
   const { classes } = useStyles();
-  const [opened, { open, close }] = useDisclosure(false);
+  const [openReply, replyControl] = useDisclosure(false);
   const { hovered, ref } = useHover();
   isOwner = isOwner ?? false;
-  const { deleteComment } = useCommentContext();
+  const { deleteComment, editComment } = useCommentContext();
+  const [toggleEditComment, editCommentControl] = useDisclosure(false);
+  const [content, setContent] = useState<string>(body);
+  const [updatingComment, setUpdatingComment] = useState<boolean>(false);
+
+  const updateComment = async () => {
+    try {
+      setUpdatingComment(true);
+      await editComment(id, content);
+      editCommentControl.close();
+    } catch (e) {
+      Notify.error("request failed");
+    } finally {
+      setUpdatingComment(false);
+    }
+  };
 
   return (
     <Flex gap="sm" ref={ref}>
@@ -67,23 +87,48 @@ function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
         <Text size="xs" color="dimmed">
           {createdAt}
         </Text>
-        <Spoiler maxHeight={100} showLabel="Read more" hideLabel="Show less">
-          <TypographyStylesProvider>
-            <div
-              className={classes.content}
-              dangerouslySetInnerHTML={{ __html: body }}
-            />
-          </TypographyStylesProvider>
-        </Spoiler>
+        {toggleEditComment ? (
+          <div className={classes.editComment}>
+            <CommentTextEditor content={content} setContent={setContent} />
+            <Group position="right" className={classes.editComment}>
+              <Button
+                compact
+                variant="subtle"
+                color="gray"
+                onClick={editCommentControl.close}
+              >
+                Cancel
+              </Button>
+              <Button
+                compact
+                variant="filled"
+                disabled={content == body}
+                onClick={updateComment}
+                loading={updatingComment}
+              >
+                Save
+              </Button>
+            </Group>
+          </div>
+        ) : (
+          <Spoiler maxHeight={100} showLabel="Read more" hideLabel="Show less">
+            <TypographyStylesProvider>
+              <div
+                className={classes.content}
+                dangerouslySetInnerHTML={{ __html: body }}
+              />
+            </TypographyStylesProvider>
+          </Spoiler>
+        )}
         <Group>
-          <Button color="gray" compact variant="subtle" onClick={open}>
+          <Button color="gray" compact variant="subtle" onClick={replyControl.open}>
             Reply
           </Button>
-          <Collapse in={opened}>
+          <Collapse in={openReply}>
             <Stack>
               <CommentTextEditor />
               <Group position="right">
-                <Button variant="subtle" color="gray" onClick={close}>
+                <Button variant="subtle" color="gray" onClick={replyControl.close}>
                   Cancel
                 </Button>
                 <Button variant="light">Comment</Button>
@@ -92,7 +137,7 @@ function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
           </Collapse>
         </Group>
       </Stack>
-      {hovered && isOwner && (
+      {hovered && isOwner && !toggleEditComment && (
         <Menu shadow="md" width={200}>
           <Menu.Target>
             <ActionIcon>
@@ -101,7 +146,12 @@ function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
           </Menu.Target>
 
           <Menu.Dropdown>
-            <Menu.Item icon={<IconEdit size={14} />}>Edit</Menu.Item>
+            <Menu.Item
+              icon={<IconEdit size={14} />}
+              onClick={editCommentControl.open}
+            >
+              Edit
+            </Menu.Item>
             <Menu.Item
               color="red"
               icon={<IconTrash size={14} />}
