@@ -19,18 +19,30 @@ interface CommentState {
   comments: CommentWithUser[];
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
-  createComment: (t: string) => void;
-  deleteComment: (t: string) => void;
-  editComment: (t: string, _: string) => void;
+  createComment: (t: string) => Promise<void>;
+  deleteComment: (t: string) => Promise<void>;
+  editComment: (t: string, _: string) => Promise<void>;
 }
 
 export const CommentContext = createContext<CommentState>({
   comments: [],
   loadingComments: false,
   addNewComment: (_: CommentWithUser) => null,
-  createComment: async (_: string) => null,
-  deleteComment: async (_: string) => null,
-  editComment: async (_: string, _b: string) => null,
+  createComment: async (_: string) => {
+    return new Promise((resolve) => {
+      resolve();
+    });
+  },
+  deleteComment: async (_: string) => {
+    return new Promise((resolve) => {
+      resolve();
+    });
+  },
+  editComment: async (t: string, _: string) => {
+    return new Promise((resolve) => {
+      resolve();
+    });
+  },
 });
 
 export const useCommentContext = () => {
@@ -108,7 +120,9 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
         const newCommentItems = comments.filter((c) => c.id !== commentId);
         setComments([...newCommentItems]);
       }
-    } catch (e) {}
+    } catch (e) {
+      throw e;
+    }
   };
 
   const editComment = async (commentId: string, body: string) => {
