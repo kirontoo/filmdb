@@ -77,14 +77,14 @@ export const useCommunityProvider = (): CommunityState => {
             setCurrentCommunityIndex(0);
           }
         } catch (e) {
-          setCommunities([]);
-          setCurrentCommunityIndex(-1);
+          resetCommunityContext();
         } finally {
           setLoading(false);
           setIsFetching(false);
         }
       })();
     } else {
+      resetCommunityContext();
       setLoading(false);
     }
   }, [status]);
