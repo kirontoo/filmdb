@@ -58,7 +58,7 @@ function CommentList({ children }: CommentListProps) {
             <Comment
               key={c.id}
               id={c.id}
-              createdAt={dayjs().to(dayjs(c.createdAt))}
+              date={dayjs().to(dayjs(c.updatedAt))}
               body={c.body}
               author={c.user}
               isOwner={session ? c.userId === session!.user!.id : false}
