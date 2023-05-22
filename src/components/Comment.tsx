@@ -48,7 +48,7 @@ const useStyles = createStyles((theme) => ({
 
 interface CommentProps {
   id: string;
-  createdAt: any;
+  date: any;
   body: string;
   author: {
     name: string;
@@ -57,7 +57,7 @@ interface CommentProps {
   isOwner?: boolean;
 }
 
-function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
+function Comment({ id, date, body, author, isOwner }: CommentProps) {
   const { classes } = useStyles();
   const [openReply, replyControl] = useDisclosure(false);
   const { hovered, ref } = useHover();
@@ -85,7 +85,7 @@ function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
       <Stack spacing="none" className={classes.contentContainer}>
         <Text size="md">{author.name}</Text>
         <Text size="xs" color="dimmed">
-          {createdAt}
+          {date}
         </Text>
         {toggleEditComment ? (
           <div className={classes.editComment}>
@@ -121,14 +121,23 @@ function Comment({ id, createdAt, body, author, isOwner }: CommentProps) {
           </Spoiler>
         )}
         <Group>
-          <Button color="gray" compact variant="subtle" onClick={replyControl.open}>
+          <Button
+            color="gray"
+            compact
+            variant="subtle"
+            onClick={replyControl.open}
+          >
             Reply
           </Button>
           <Collapse in={openReply}>
             <Stack>
               <CommentTextEditor />
               <Group position="right">
-                <Button variant="subtle" color="gray" onClick={replyControl.close}>
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  onClick={replyControl.close}
+                >
                   Cancel
                 </Button>
                 <Button variant="light">Comment</Button>
