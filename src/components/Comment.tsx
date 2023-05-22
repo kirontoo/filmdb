@@ -14,6 +14,7 @@ import {
   Flex,
   ActionIcon,
   Menu,
+  Skeleton,
 } from "@mantine/core";
 import { useDisclosure, useHover } from "@mantine/hooks";
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
@@ -66,6 +67,7 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
   const [content, setContent] = useState<string>(body);
   const [updatingComment, setUpdatingComment] = useState<boolean>(false);
+  const [deletingComment, setDeletingComment] = useState<boolean>(false);
 
   const updateComment = async () => {
     try {
@@ -76,6 +78,16 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
       Notify.error("request failed");
     } finally {
       setUpdatingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async () => {
+    try {
+      setDeletingComment(true);
+      await deleteComment(id);
+    } catch (e) {
+    } finally {
+      setDeletingComment(false);
     }
   };
 
@@ -113,10 +125,18 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
         ) : (
           <Spoiler maxHeight={100} showLabel="Read more" hideLabel="Show less">
             <TypographyStylesProvider>
-              <div
-                className={classes.content}
-                dangerouslySetInnerHTML={{ __html: body }}
-              />
+              {deletingComment ? (
+                <div>
+                  <Skeleton height={8} radius="xl" />
+                  <Skeleton height={8} mt={6} radius="xl" />
+                  <Skeleton height={8} mt={6} width="70%" radius="xl" />
+                </div>
+              ) : (
+                <div
+                  className={classes.content}
+                  dangerouslySetInnerHTML={{ __html: body }}
+                />
+              )}
             </TypographyStylesProvider>
           </Spoiler>
         )}
@@ -164,7 +184,7 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
             <Menu.Item
               color="red"
               icon={<IconTrash size={14} />}
-              onClick={() => deleteComment(id)}
+              onClick={handleDeleteComment}
             >
               Delete
             </Menu.Item>
