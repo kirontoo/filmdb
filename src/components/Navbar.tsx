@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import {
   Center,
   Menu,
-  Button,
   createStyles,
   Header,
   Text,
@@ -28,7 +27,7 @@ import {
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
-import { LoginBtn, ProfileDrawer, ToggleDarkTheme } from ".";
+import { LoginBtn, ProfileDrawer } from ".";
 import { useSession } from "next-auth/react";
 import { useCommunityContext } from "@/context/CommunityProvider";
 
@@ -218,8 +217,6 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           />
 
           <LoginBtn />
-
-          <ToggleDarkTheme />
 
           <ActionIcon component={Link} href="/media/search">
             <IconSearch size="1.1rem" stroke={1.5} />
