@@ -1,10 +1,9 @@
-import { MobileNav, Footer, Navbar } from "@/components";
+import { Footer, Navbar } from "@/components";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { LoadingOverlay } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { ReactNode } from "react";
 import { NavLinkProp } from "./Navbar";
-import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,7 +12,6 @@ interface LayoutProps {
 
 export default function Layout({ links, children }: LayoutProps) {
   const { isLoading } = useLoadingContext();
-  const isDesktop = useIsDesktopDevice();
   return (
     <>
       <Navbar links={links} />
@@ -22,12 +20,9 @@ export default function Layout({ links, children }: LayoutProps) {
         <LoadingOverlay visible={isLoading} overlayBlur={2} />
         {children}
       </main>
-      {isDesktop && (
-        <footer>
-          <Footer />
-        </footer>
-      )}
+      <footer>
+        <Footer />
+      </footer>
     </>
   );
 }
-
