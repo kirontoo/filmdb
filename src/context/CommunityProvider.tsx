@@ -62,7 +62,7 @@ export const useCommunityProvider = (): CommunityState => {
     useState<number>(-1);
   const { status } = useSession();
   const { setLoading } = useLoadingContext();
-  const [isFetching, setIsFetching] = useState<boolean>(true);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
 
   useEffect(() => {
     setLoading(true);
@@ -77,14 +77,14 @@ export const useCommunityProvider = (): CommunityState => {
             setCurrentCommunityIndex(0);
           }
         } catch (e) {
-          setCommunities([]);
-          setCurrentCommunityIndex(-1);
+          resetCommunityContext();
         } finally {
           setLoading(false);
           setIsFetching(false);
         }
       })();
     } else {
+      resetCommunityContext();
       setLoading(false);
     }
   }, [status]);

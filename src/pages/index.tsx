@@ -89,12 +89,6 @@ const useStyles = createStyles((theme) => ({
     color: theme.colorScheme === "dark" ? theme.white : theme.black,
     position: "relative",
   },
-
-  trendingList: {
-    [`@media(max-width:${theme.breakpoints.md})`]: {
-      marginBottom: "7rem",
-    },
-  },
 }));
 
 export default function Home() {
@@ -102,7 +96,7 @@ export default function Home() {
   const { classes, cx } = useStyles();
   const [showcasedMedia, setShowcasedMedia] = useState<TMDBMedia | null>(null);
   const isDesktop = useIsDesktopDevice();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [isLoading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -226,9 +220,7 @@ export default function Home() {
                 </Stack>
               </Container>
             </BackgroundImage>
-            <Container
-              className={cx(classes.visibleContent, classes.trendingList)}
-            >
+            <Container className={classes.visibleContent}>
               <Stack my={rem(32)}>
                 <Text fw="bold" tt="capitalize" fz="lg" component="h2">
                   trending movies
