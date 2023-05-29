@@ -40,7 +40,7 @@ function CommunityDashboard() {
   const router = useRouter();
   const { classes } = useStyles();
   const { setLoading } = useLoadingContext();
-  const { currentCommunity, setCurrentCommunity, isFetching } =
+  const { currentCommunity, setCurrentCommunity, isFetching, communities, currentCommunityIndex } =
     useCommunityContext();
   const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
@@ -59,16 +59,13 @@ function CommunityDashboard() {
       const community = Array.isArray(slug) ? slug[0] : slug;
       if (community) {
         setCurrentCommunity(community);
-        if (currentCommunity) {
-          const res = await fetch(
-            `/api/community/${currentCommunity.id}/media`
-          );
-          if (res.ok) {
-            const { data } = await res.json();
-            setMedias(data.medias);
-          } else {
-            throw new Error("community does not exist");
-          }
+        const id = communities[currentCommunityIndex].id;
+        const res = await fetch(`/api/community/${id}/media`);
+        if (res.ok) {
+          const { data } = await res.json();
+          setMedias(data.medias);
+        } else {
+          throw new Error("community does not exist");
         }
       }
     } catch (e) {
