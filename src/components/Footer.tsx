@@ -1,8 +1,6 @@
 import { createStyles, Container, Group, ActionIcon, rem } from "@mantine/core";
 import {
-  IconBrandTwitter,
-  IconBrandYoutube,
-  IconBrandInstagram,
+  IconBrandGithub,
 } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
@@ -38,14 +36,8 @@ export default function Footer() {
       <Container size="xl" className={classes.inner}>
         <span>FilmDB</span>
         <Group spacing={0} className={classes.links} position="right" noWrap>
-          <ActionIcon size="lg">
-            <IconBrandTwitter size="1.05rem" stroke={1.5} />
-          </ActionIcon>
-          <ActionIcon size="lg">
-            <IconBrandYoutube size="1.05rem" stroke={1.5} />
-          </ActionIcon>
-          <ActionIcon size="lg">
-            <IconBrandInstagram size="1.05rem" stroke={1.5} />
+          <ActionIcon size="lg" href="https://github.com/kirontoo/filmdb" component="a" target="__blank">
+            <IconBrandGithub size="1.05rem" stroke={1.5} />
           </ActionIcon>
         </Group>
       </Container>
