@@ -15,7 +15,7 @@ import {
 import Head from "next/head";
 import { AvatarMemberList } from "@/components";
 import { TMDB_IMAGE_API_BASE_URL } from "@/lib/tmdb";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Media } from "@prisma/client";
 
 import { Carousel } from "@mantine/carousel";
@@ -34,22 +34,44 @@ const useStyles = createStyles((theme) => ({
     paddingTop: theme.spacing.xl,
     paddingBottom: theme.spacing.xl,
   },
+  mediaCard: {
+    [`@media (min-width:${theme.breakpoints.md})`]: {
+      width: "27%",
+    },
+    [`@media (max-width:${theme.breakpoints.md})`]: {
+      width: "29%",
+    },
+  },
 }));
 
 function CommunityDashboard() {
   const router = useRouter();
   const { classes } = useStyles();
   const { setLoading } = useLoadingContext();
-  const { currentCommunity, setCurrentCommunity, isFetching, communities, currentCommunityIndex } =
-    useCommunityContext();
+  const {
+    setCurrentCommunity,
+    currentCommunity,
+    isFetching,
+  } = useCommunityContext();
   const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
+  const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
+
+  useEffect(() => {
+    if (currentCommunity) {
+      router.push(`/community/${currentCommunity.slug}`);
+    }
+  }, [currentCommunity]);
 
   useEffect(() => {
     if (session && !isFetching) {
       loadData();
+      const community = Array.isArray(slug) ? slug[0] : slug;
+      if (community) {
+        setCurrentCommunity(community);
+      }
     }
   }, [slug, session, isFetching]);
 
@@ -58,12 +80,24 @@ function CommunityDashboard() {
     try {
       const community = Array.isArray(slug) ? slug[0] : slug;
       if (community) {
-        setCurrentCommunity(community);
-        const id = communities[currentCommunityIndex].id;
-        const res = await fetch(`/api/community/${id}/media`);
+        const res = await fetch(`/api/community/${community}/media`);
         if (res.ok) {
           const { data } = await res.json();
-          setMedias(data.medias);
+          const upcoming = data.medias.find((m: Media) => m.queue === 1);
+          setUpcomingMedia(upcoming);
+          setMedias(
+            data.medias.sort((a: Media, b: Media) => {
+              const qA = a.queue ?? 0;
+              const qB = b.queue ?? 0;
+              if (qA < qB) {
+                return -1;
+              }
+              if (qA > qB) {
+                return 1;
+              }
+              return 0;
+            })
+          );
         } else {
           throw new Error("community does not exist");
         }
@@ -186,6 +220,20 @@ function CommunityDashboard() {
               Upcoming
             </Title>
           </Group>
+          {upcomingMedia && (
+            <div className={classes.mediaCard}>
+              <UnstyledButton onClick={() => openMediaModal(upcomingMedia)}>
+                <Image
+                  radius="sm"
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                    isDesktop ? "342" : "185"
+                  }/${upcomingMedia.posterPath}`}
+                  alt={upcomingMedia.title}
+                />
+              </UnstyledButton>
+            </div>
+          )}
+
           <Group position="apart">
             <Title order={2} size="h3">
               Watching Next
@@ -194,7 +242,7 @@ function CommunityDashboard() {
               see more
             </Button>
           </Group>
-          {mediaCarousel(true)}
+          {mediaCarousel(false)}
           <Group position="apart">
             <Title order={2} size="h3">
               Previously Watched
@@ -203,7 +251,7 @@ function CommunityDashboard() {
               see more
             </Button>
           </Group>
-          {mediaCarousel(false)}
+          {mediaCarousel(true)}
         </Stack>
       </Container>
     </>
