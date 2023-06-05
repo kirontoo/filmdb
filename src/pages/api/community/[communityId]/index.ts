@@ -141,71 +141,63 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
       ? communityId[0]
       : communityId!;
 
-    const user = await prisma.user
-      .findFirst({
-        where: {
-          email: session!.user!.email,
-          communities: {
-            some: { id: id },
-          },
-        },
-      })
-      .catch(() => {
+    const community = await prisma.community.findUnique({
+      where: { id: id },
+    });
+
+    const isMember = community?.memberIds.some(
+      (id) => id === session!.user!.id
+    );
+
+    // user is a member but NOT the community owner
+    if (isMember && community?.createdBy !== session!.user!.id) {
+      // community members can only add to the queued list
+      if (watched) {
         throw new APIError(
-          "must be a member of this community",
+          "only the community owner can add to the watched list",
           UnauthorizedError
         );
-      });
-
-    if (user) {
-      const media = await prisma.media.upsert({
-        where: {
-          tmdbId_communityId: {
-            tmdbId: String(tmdbId),
-            communityId: id,
-          },
-        },
-        update: {
-          watched: (watched as boolean) ?? undefined,
-        },
-        create: {
-          title: title as string,
-          mediaType: mediaType,
-          tmdbId: String(tmdbId),
-          posterPath: posterPath as string,
-          backdropPath: backdropPath as string,
-          watched: (watched as boolean) ?? false,
-          requestedBy: {
-            connect: { id: session!.user!.id },
-          },
-          community: {
-            connect: { id: id },
-          },
-        },
-      });
-
-      // const media = await prisma.media.create({
-      //   data: {
-      //     title: title as string,
-      //     mediaType: mediaType as string,
-      //     tmdbId: String(tmdbId),
-      //     posterPath: posterPath as string,
-      //     watched: (watched as boolean) ?? false,
-      //     community: {
-      //       connect: { id: communityId },
-      //     },
-      //   },
-      // });
-
-      return res.status(200).json({
-        status: "success",
-        data: {
-          media: media,
-        },
-      });
+      }
+    } else if (!isMember) {
+      throw new APIError(
+        "must be a member of this community",
+        UnauthorizedError
+      );
     }
+
+    const media = await prisma.media.upsert({
+      where: {
+        tmdbId_communityId: {
+          tmdbId: String(tmdbId),
+          communityId: id,
+        },
+      },
+      update: {
+        watched: (watched as boolean) ?? undefined,
+      },
+      create: {
+        title: title as string,
+        mediaType: mediaType,
+        tmdbId: String(tmdbId),
+        posterPath: posterPath as string,
+        backdropPath: backdropPath as string,
+        watched: (watched as boolean) ?? false,
+        requestedBy: {
+          connect: { id: session!.user!.id },
+        },
+        community: {
+          connect: { id: id },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        media: media,
+      },
+    });
   } catch (e) {
-    console.log(e);
     if (e instanceof PrismaClientKnownRequestError) {
       const target = e.meta!["target"];
       if (target == "medias_tmdbId_communityId_key") {
