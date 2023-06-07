@@ -15,6 +15,7 @@ import {
 } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
 import slugify from "slugify";
+import { getQueueCount } from "@/lib/apiUtil";
 
 export default apiHandler({
   get: getCommunityById,
@@ -137,58 +138,66 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
     req.body;
   try {
     const session = await getServerSession(req, res, authOptions);
-    const id: string = Array.isArray(communityId)
+    const cId: string = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
+    const { media } = await prisma.$transaction(async () => {
+      const community = await prisma.community.findUnique({
+        where: { id: cId },
+      });
 
-    const community = await prisma.community.findUnique({
-      where: { id: id },
-    });
+      const isMember = community?.memberIds.some(
+        (id) => id === session!.user!.id
+      );
 
-    const isMember = community?.memberIds.some(
-      (id) => id === session!.user!.id
-    );
-
-    // user is a member but NOT the community owner
-    if (isMember && community?.createdBy !== session!.user!.id) {
-      // community members can only add to the queued list
-      if (watched) {
+      // user is a member but NOT the community owner
+      if (isMember && community?.createdBy !== session!.user!.id) {
+        // community members can only add to the queued list
+        if (watched) {
+          throw new APIError(
+            "only the community owner can add to the watched list",
+            UnauthorizedError
+          );
+        }
+      } else if (!isMember) {
         throw new APIError(
-          "only the community owner can add to the watched list",
+          "must be a member of this community",
           UnauthorizedError
         );
       }
-    } else if (!isMember) {
-      throw new APIError(
-        "must be a member of this community",
-        UnauthorizedError
-      );
-    }
 
-    const media = await prisma.media.upsert({
-      where: {
-        tmdbId_communityId: {
+      const queueCount = await getQueueCount(cId);
+      const watchedPropExists = req.body.hasOwnProperty("watched");
+
+      const media = await prisma.media.upsert({
+        where: {
+          tmdbId_communityId: {
+            tmdbId: String(tmdbId),
+            communityId: cId,
+          },
+        },
+        update: {
+          watched: (watched as boolean) ?? undefined,
+          dateWatched: watchedPropExists ? new Date() : undefined,
+          queue: watchedPropExists && !req.body.watched ? queueCount + 1 : null,
+        },
+        create: {
+          title: title as string,
+          mediaType: mediaType,
           tmdbId: String(tmdbId),
-          communityId: id,
+          posterPath: posterPath as string,
+          backdropPath: backdropPath as string,
+          watched: (watched as boolean) ?? false,
+          requestedBy: {
+            connect: { id: session!.user!.id },
+          },
+          community: {
+            connect: { id: cId },
+          },
         },
-      },
-      update: {
-        watched: (watched as boolean) ?? undefined,
-      },
-      create: {
-        title: title as string,
-        mediaType: mediaType,
-        tmdbId: String(tmdbId),
-        posterPath: posterPath as string,
-        backdropPath: backdropPath as string,
-        watched: (watched as boolean) ?? false,
-        requestedBy: {
-          connect: { id: session!.user!.id },
-        },
-        community: {
-          connect: { id: id },
-        },
-      },
+      });
+
+      return { media };
     });
 
     return res.status(200).json({
