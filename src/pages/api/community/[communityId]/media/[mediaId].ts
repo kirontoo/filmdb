@@ -14,6 +14,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
+import { getQueueCount } from "@/lib/apiUtil";
 
 export default apiHandler({
   delete: deleteMedia,
@@ -76,41 +77,48 @@ async function updateMedia(req: NextApiRequest, res: NextApiResponse) {
       : communityId!;
     const session = await getServerSession(req, res, authOptions);
 
-    // make sure user has permission
-    // user is a member of the community
-    const community = await prisma.community.findUnique({
-      where: { id: cId },
-    });
+    const { media } = await prisma.$transaction(async () => {
+      // make sure user has permission
+      // user is a member of the community
+      const community = await prisma.community.findUnique({
+        where: { id: cId },
+      });
 
-    const isMember = community?.memberIds.some(
-      (id) => id === session!.user!.id
-    );
+      const isMember = community?.memberIds.some(
+        (id) => id === session!.user!.id
+      );
 
-    // user is a member but NOT the community owner
-    if (isMember && community?.createdBy !== session!.user!.id) {
-      // community members can only add to the queued list
-      if (body.watched) {
+      // user is a member but NOT the community owner
+      if (isMember && community?.createdBy !== session!.user!.id) {
+        // community members can only add to the queued list
+        if (body.watched) {
+          throw new APIError(
+            "only the community owner can add to the watched list",
+            UnauthorizedError
+          );
+        }
+      } else if (!isMember) {
         throw new APIError(
-          "only the community owner can add to the watched list",
+          "must be a member of this community",
           UnauthorizedError
         );
       }
-    } else if (!isMember) {
-      throw new APIError(
-        "must be a member of this community",
-        UnauthorizedError
-      );
-    }
 
-    const watchedPropExists = body.hasOwnProperty("watched");
-    const media = await prisma.media.update({
-      where: {
-        id: id,
-      },
-      data: {
-        watched: body.watched,
-        dateWatched: watchedPropExists ? new Date() : undefined,
-      },
+      const queueCount = await getQueueCount(cId);
+
+      const watchedPropExists = body.hasOwnProperty("watched");
+      const media = await prisma.media.update({
+        where: {
+          id: id,
+        },
+        data: {
+          watched: body.watched,
+          dateWatched: watchedPropExists ? new Date() : undefined,
+          queue: watchedPropExists && !body.watched ? queueCount + 1 : null,
+        },
+      });
+
+      return { media };
     });
 
     if (media) {
