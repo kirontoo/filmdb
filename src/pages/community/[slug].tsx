@@ -48,11 +48,8 @@ function CommunityDashboard() {
   const router = useRouter();
   const { classes } = useStyles();
   const { setLoading } = useLoadingContext();
-  const {
-    setCurrentCommunity,
-    currentCommunity,
-    isFetching,
-  } = useCommunityContext();
+  const { setCurrentCommunity, currentCommunity, isFetching } =
+    useCommunityContext();
   const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession();
@@ -67,10 +64,12 @@ function CommunityDashboard() {
 
   useEffect(() => {
     if (session && !isFetching) {
-      loadData();
       const community = Array.isArray(slug) ? slug[0] : slug;
       if (community) {
         setCurrentCommunity(community);
+      }
+      if (currentCommunity.slug == community) {
+        loadData();
       }
     }
   }, [slug, session, isFetching]);
