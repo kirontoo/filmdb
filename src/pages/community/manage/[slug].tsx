@@ -5,14 +5,22 @@ import {
   rem,
   Button,
   Group,
+  Stack,
+  Title,
+  Collapse,
+  Box,
+  Divider,
 } from "@mantine/core";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useListState } from "@mantine/hooks";
+import { useListState, useDisclosure } from "@mantine/hooks";
 import { Media, User } from "@prisma/client";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Notify from "@/lib/notify";
 import { useCommunityContext } from "@/context/CommunityProvider";
+import Head from "next/head";
+import { CommunityForm } from "@/components";
+import { IconEdit } from "@tabler/icons-react";
 
 type MediaWithRequester = {
   requestedBy: User;
@@ -28,9 +36,8 @@ const useStyles = createStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     borderRadius: theme.radius.md,
-    border: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.colors.gray[2]
-    }`,
+    border: `${rem(1)} solid ${theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.colors.gray[2]
+      }`,
     padding: `${theme.spacing.sm} ${theme.spacing.xl}`,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.white,
@@ -40,6 +47,8 @@ const useStyles = createStyles((theme) => ({
   itemDragging: {
     boxShadow: theme.shadows.sm,
   },
+
+  queueContainer: {},
 
   position: {
     fontSize: rem(30),
@@ -56,6 +65,11 @@ function ManageCommunitySlug() {
   const { currentCommunity } = useCommunityContext();
   const { classes, cx } = useStyles();
   const [queuedMedia, handlers] = useListState<MediaWithRequester>([]);
+  const [openedQueueForm, { toggle: toggleQueueForm }] = useDisclosure(false);
+  const [
+    openedCommunityForm,
+    { close: closeCommunityForm, toggle: toggleCommunityForm },
+  ] = useDisclosure(false);
 
   useEffect(() => {
     if (currentCommunity) {
@@ -155,20 +169,75 @@ function ManageCommunitySlug() {
     );
   }
 
-  return (
-    <Container className={classes.container}>
-      {!isLoading && (
-        <Container size="xs">
-          <DndList>{items}</DndList>
+  if (!currentCommunity) {
+    return <Text>Community does not exist</Text>;
+  }
 
-          <Group position="right">
-            <Button loading={savingQueue} onClick={saveQueue}>
-              Save Queue
+  return (
+    <>
+      <Head>
+        <title>{`${currentCommunity && currentCommunity.name}`} | FilmDB</title>
+      </Head>
+      <Container className={classes.container}>
+        <Stack>
+          <Title tt="capitalize">{currentCommunity.name}</Title>
+          <Divider />
+          <Group position="apart">
+            <Title order={2} size="h3">
+              Community Details
+            </Title>
+            <Button
+              size="xs"
+              onClick={toggleCommunityForm}
+              leftIcon={<IconEdit size="1rem" />}
+            >
+              Edit
             </Button>
           </Group>
-        </Container>
-      )}
-    </Container>
+
+          <Box>
+            <Collapse in={openedCommunityForm}>
+              <CommunityForm
+                communityId={currentCommunity.id}
+                name={currentCommunity.name ?? ""}
+                description={currentCommunity.description ?? ""}
+                onCancel={closeCommunityForm}
+              />
+            </Collapse>
+          </Box>
+
+          <Box>
+            <Group position="apart" mb="md">
+              <Title order={2} size="h3">
+                Queue
+              </Title>
+              <Button
+                size="xs"
+                onClick={toggleQueueForm}
+                leftIcon={<IconEdit size="1rem" />}
+              >
+                Edit
+              </Button>
+            </Group>
+
+            <Collapse in={openedQueueForm}>
+              <Divider mb="md" />
+              {!isLoading && (
+                <Container size="xs">
+                  <DndList>{items}</DndList>
+
+                  <Group position="right">
+                    <Button loading={savingQueue} onClick={saveQueue}>
+                      Save Queue
+                    </Button>
+                  </Group>
+                </Container>
+              )}
+            </Collapse>
+          </Box>
+        </Stack>
+      </Container>
+    </>
   );
 }
 
