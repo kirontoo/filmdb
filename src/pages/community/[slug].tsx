@@ -68,7 +68,7 @@ function CommunityDashboard() {
       if (community) {
         setCurrentCommunity(community);
       }
-      if (currentCommunity.slug == community) {
+      if (currentCommunity!.slug == community) {
         loadData();
       }
     }
@@ -203,7 +203,7 @@ function CommunityDashboard() {
   return (
     <>
       <Head>
-        <title>FilmDB | {`${currentCommunity && currentCommunity.name}`}</title>
+        <title>{`${currentCommunity && currentCommunity.name}`} | FilmDB</title>
       </Head>
       <Container>
         <Stack className={classes.container}>
