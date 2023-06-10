@@ -6,7 +6,6 @@ import {
   TextInput,
   Textarea,
 } from "@mantine/core";
-import { ContextModalProps } from "@mantine/modals";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { useCommunityContext } from "@/context/CommunityProvider";
@@ -16,6 +15,7 @@ interface CommunityFormModalProps {
   name: string;
   description: string;
   communityId: string;
+  onCancel: () => void;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -27,10 +27,11 @@ const useStyles = createStyles((theme) => ({
 }));
 
 export default function CommunityFormModal({
-  context,
-  id,
-  innerProps,
-}: ContextModalProps<CommunityFormModalProps>) {
+  name,
+  description,
+  communityId,
+  onCancel
+}: CommunityFormModalProps) {
   const { classes } = useStyles();
   const [error, setError] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -38,8 +39,8 @@ export default function CommunityFormModal({
 
   const form = useForm({
     initialValues: {
-      name: innerProps.name,
-      description: innerProps.description,
+      name: name,
+      description: description,
     },
 
     validate: {
@@ -57,7 +58,7 @@ export default function CommunityFormModal({
   const submitChanges = async (values: typeof form.values) => {
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/community/${innerProps.communityId}`, {
+      const res = await fetch(`/api/community/${communityId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +71,7 @@ export default function CommunityFormModal({
 
       if (res.ok) {
         const { values } = form;
-        updateCommunityInfo(innerProps.communityId, {
+        updateCommunityInfo(communityId, {
           name: values.name,
           description: values.description,
         });
@@ -110,7 +111,7 @@ export default function CommunityFormModal({
         <Group position="right">
           <Button
             variant="subtle"
-            onClick={() => context.closeContextModal(id)}
+            onClick={onCancel}
           >
             Cancel
           </Button>

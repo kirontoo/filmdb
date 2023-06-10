@@ -15,6 +15,7 @@ import {
 } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
 import slugify from "slugify";
+import { getQueueCount } from "@/lib/apiUtil";
 
 export default apiHandler({
   get: getCommunityById,
@@ -137,36 +138,48 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
     req.body;
   try {
     const session = await getServerSession(req, res, authOptions);
-    const id: string = Array.isArray(communityId)
+    const cId: string = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
+    const { media } = await prisma.$transaction(async () => {
+      const community = await prisma.community.findUnique({
+        where: { id: cId },
+      });
 
-    const user = await prisma.user
-      .findFirst({
-        where: {
-          email: session!.user!.email,
-          communities: {
-            some: { id: id },
-          },
-        },
-      })
-      .catch(() => {
+      const isMember = community?.memberIds.some(
+        (id) => id === session!.user!.id
+      );
+
+      // user is a member but NOT the community owner
+      if (isMember && community?.createdBy !== session!.user!.id) {
+        // community members can only add to the queued list
+        if (watched) {
+          throw new APIError(
+            "only the community owner can add to the watched list",
+            UnauthorizedError
+          );
+        }
+      } else if (!isMember) {
         throw new APIError(
           "must be a member of this community",
           UnauthorizedError
         );
-      });
+      }
 
-    if (user) {
+      const queueCount = await getQueueCount(cId);
+      const watchedPropExists = req.body.hasOwnProperty("watched");
+
       const media = await prisma.media.upsert({
         where: {
           tmdbId_communityId: {
             tmdbId: String(tmdbId),
-            communityId: id,
+            communityId: cId,
           },
         },
         update: {
           watched: (watched as boolean) ?? undefined,
+          dateWatched: watchedPropExists ? new Date() : undefined,
+          queue: watchedPropExists && !req.body.watched ? queueCount + 1 : null,
         },
         create: {
           title: title as string,
@@ -179,49 +192,37 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
             connect: { id: session!.user!.id },
           },
           community: {
-            connect: { id: id },
+            connect: { id: cId },
           },
         },
       });
 
-      // const media = await prisma.media.create({
-      //   data: {
-      //     title: title as string,
-      //     mediaType: mediaType as string,
-      //     tmdbId: String(tmdbId),
-      //     posterPath: posterPath as string,
-      //     watched: (watched as boolean) ?? false,
-      //     community: {
-      //       connect: { id: communityId },
-      //     },
-      //   },
-      // });
-
-      return res.status(201).json({
-        status: "success",
-        data: {
-          media: media,
-        },
-      });
-    }
-  } catch (e) {
-    console.log(e);
-    if (e instanceof PrismaClientKnownRequestError) {
-      const target = e.meta!["target"];
-      if (target == "medias_tmdbId_communityId_key") {
-        throw new APIError(`${title} has already been added`, QueryError);
-      }
-
-      throw new APIError(`${title} could not be added`);
-    }
-
-    if (e instanceof PrismaClientValidationError) {
-      throw new APIError(e.message, ValidationError);
-    }
-
-    return res.status(500).send({
-      status: "error",
-      message: "could not add media to community",
+      return { media };
     });
+
+    return res.status(201).json({
+      status: "success",
+      data: {
+        media: media,
+      },
+    });
+  } catch (e) {
+  if (e instanceof PrismaClientKnownRequestError) {
+    const target = e.meta!["target"];
+    if (target == "medias_tmdbId_communityId_key") {
+      throw new APIError(`${title} has already been added`, QueryError);
+    }
+
+    throw new APIError(`${title} could not be added`);
   }
+
+  if (e instanceof PrismaClientValidationError) {
+    throw new APIError(e.message, ValidationError);
+  }
+
+  return res.status(500).send({
+    status: "error",
+    message: "could not add media to community",
+  });
+}
 }

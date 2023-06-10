@@ -23,8 +23,6 @@ export default apiHandler({
   post: postCommunity,
 });
 
-// connect media to community
-// TODO: move this to POST /api/community/:communityId/media
 async function postCommunity(req: NextApiRequest, res: NextApiResponse) {
   // find user id
   try {
@@ -53,6 +51,7 @@ async function postCommunity(req: NextApiRequest, res: NextApiResponse) {
     if (user) {
       const { name, description } = req.body;
       const inviteCode = generateInviteCode(5);
+      // TODO: retry if slug already exists
       const slug = slugify(name, { lower: true });
 
       const community = await prisma.community.create({

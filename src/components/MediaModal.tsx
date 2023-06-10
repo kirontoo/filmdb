@@ -180,6 +180,7 @@ export default function MediaModal({
       dispatch({ type: watched ? "isLoadingWatchedList" : "isLoadingQueue" });
 
       // API fetch
+      media.watched = watched;
       const { res, data } = await updateMedia(media);
 
       if (res.ok) {

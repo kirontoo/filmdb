@@ -2,7 +2,6 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import {
   createStyles,
   Button,
-  Container,
   Avatar,
   UnstyledButton,
   Group,

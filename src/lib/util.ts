@@ -26,7 +26,7 @@ export async function updateMedia(media: Media): Promise<{
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        watched: !media.watched,
+        watched: media.watched,
       }),
     }
   );
