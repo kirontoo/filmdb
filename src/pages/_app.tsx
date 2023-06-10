@@ -15,7 +15,6 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { Layout, MediaModal } from "@/components";
 import { useLocalStorage } from "@mantine/hooks";
 import { ModalsProvider } from "@mantine/modals";
-import { CommunityFormModal } from "@/components";
 import { CommunityProvider } from "@/context/CommunityProvider";
 import { LoadingProvider } from "@/context/LoadingProvider";
 import { ReactElement, ReactNode } from "react";
@@ -44,7 +43,6 @@ export default function App(props: AppPropsWithLayout) {
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
 
   const modals = {
-    communityForm: CommunityFormModal,
     media: MediaModal,
   };
 
