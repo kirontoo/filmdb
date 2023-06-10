@@ -14,6 +14,7 @@ import {
 } from "@/lib/errors";
 
 import { apiHandler } from "@/lib/apiHandler";
+import { ObjectId } from "bson";
 
 export default apiHandler({
   get: getComments,
@@ -69,7 +70,7 @@ async function createComment(
     const { communityId, mediaId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
     const { body, parentId } = req.body;
-    const cId: string = Array.isArray(communityId)
+    let cId: string | null = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
 
@@ -77,10 +78,20 @@ async function createComment(
       throw new APIError("missing text value", ValidationError);
     }
 
+    let slug = null;
+    // if it's not a valid object id, then it's a slug
+    if (!ObjectId.isValid(cId)) {
+      slug = cId;
+      cId = null;
+    }
+
     const community = await prisma.community
       .findFirst({
         where: {
-          AND: [{ id: cId }, { members: { some: { id: session!.user!.id } } }],
+          AND: [
+            { OR: [{ id: cId || undefined }, { slug: slug || undefined }] },
+            { members: { some: { id: session!.user!.id } } },
+          ],
         },
       })
       .catch(() => {

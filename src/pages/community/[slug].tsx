@@ -113,7 +113,7 @@ function CommunityDashboard() {
       modal: "media",
       title: `${media.title}`,
       size: "xl",
-      innerProps: { media },
+      innerProps: { media, communityId: currentCommunity.id },
     });
   };
 
@@ -125,9 +125,8 @@ function CommunityDashboard() {
           <Group>
             <Text fz="xl">{currentCommunity!.inviteCode}</Text>
             <CopyButton
-              value={`${origin}/community/join?code=${
-                currentCommunity!.inviteCode
-              }`}
+              value={`${origin}/community/join?code=${currentCommunity!.inviteCode
+                }`}
               timeout={2000}
             >
               {({ copied, copy }) => (
@@ -184,9 +183,8 @@ function CommunityDashboard() {
               <UnstyledButton onClick={() => openMediaModal(m)}>
                 <Image
                   radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
-                    isDesktop ? "342" : "185"
-                  }/${m.posterPath}`}
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
+                    }/${m.posterPath}`}
                   alt={m.title}
                 />
               </UnstyledButton>
@@ -224,9 +222,8 @@ function CommunityDashboard() {
               <UnstyledButton onClick={() => openMediaModal(upcomingMedia)}>
                 <Image
                   radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
-                    isDesktop ? "342" : "185"
-                  }/${upcomingMedia.posterPath}`}
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
+                    }/${upcomingMedia.posterPath}`}
                   alt={upcomingMedia.title}
                 />
               </UnstyledButton>
@@ -261,4 +258,3 @@ CommunityDashboard.auth = {
   unauthorized: "/auth/signin",
 };
 export default CommunityDashboard;
-
