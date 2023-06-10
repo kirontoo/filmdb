@@ -19,7 +19,7 @@ interface CommentState {
   comments: CommentWithUser[];
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
-  createComment: (t: string) => Promise<void>;
+  createComment: (t: string, i?: string) => Promise<void>;
   deleteComment: (t: string) => Promise<void>;
   editComment: (t: string, _: string) => Promise<void>;
 }
