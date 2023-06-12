@@ -32,12 +32,34 @@ async function getComments(
     const comments = await prisma.comment.findMany({
       where: {
         mediaId: mId,
+        OR: [
+          {
+            parentId: null,
+          },
+          {
+            parentId: {
+              isSet: false,
+            },
+          },
+        ],
       },
       include: {
         user: {
           select: {
             name: true,
             image: true,
+          },
+        },
+        likes: true,
+        children: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+            likes: true,
           },
         },
       },
