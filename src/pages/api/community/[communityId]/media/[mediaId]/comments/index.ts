@@ -50,16 +50,10 @@ async function getComments(
             image: true,
           },
         },
-        likes: true,
-        children: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
+        _count: {
+          select: {
             likes: true,
+            children: true,
           },
         },
       },
