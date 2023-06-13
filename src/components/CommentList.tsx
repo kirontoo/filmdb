@@ -57,6 +57,7 @@ function CommentList({ children }: CommentListProps) {
           {comments.map((c) => (
             <Comment
               key={c.id}
+              {...c}
               id={c.id}
               date={dayjs().to(dayjs(c.updatedAt))}
               body={c.body}

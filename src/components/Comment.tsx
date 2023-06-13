@@ -15,9 +15,17 @@ import {
   ActionIcon,
   Menu,
   Skeleton,
+  Box,
+  Space,
 } from "@mantine/core";
 import { useDisclosure, useHover } from "@mantine/hooks";
-import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
+  IconChevronDown,
+  IconChevronUp,
+} from "@tabler/icons-react";
 import { useState } from "react";
 import CommentTextEditor from "./CommentTextEditor";
 
@@ -56,18 +64,29 @@ interface CommentProps {
     image: string;
   };
   isOwner?: boolean;
+  _count: {
+    likes: number;
+    children: number;
+  };
 }
 
-function Comment({ id, date, body, author, isOwner }: CommentProps) {
+function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const { classes } = useStyles();
   const [openReply, replyControl] = useDisclosure(false);
+  const [openShowReplies, repliesControl] = useDisclosure(false);
+
   const { hovered, ref } = useHover();
   isOwner = isOwner ?? false;
-  const { deleteComment, editComment } = useCommentContext();
+
+  const { deleteComment, editComment, createComment } = useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
   const [content, setContent] = useState<string>(body);
+  const [replyContent, setReplyContent] = useState<string>(body);
+
+  // loading states
   const [updatingComment, setUpdatingComment] = useState<boolean>(false);
   const [deletingComment, setDeletingComment] = useState<boolean>(false);
+  const [replyingComment, setReplyingComment] = useState<boolean>(false);
 
   const updateComment = async () => {
     try {
@@ -78,6 +97,33 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
       Notify.error("request failed");
     } finally {
       setUpdatingComment(false);
+    }
+  };
+
+  const replyToComment = async () => {
+    try {
+      setReplyingComment(true);
+      await createComment(replyContent, id);
+    } catch (e) {
+    } finally {
+      setReplyContent("");
+      setReplyingComment(false);
+      replyControl.close();
+    }
+  };
+
+  const showReplies = async () => {
+    if (openShowReplies) {
+      repliesControl.close();
+    } else {
+      repliesControl.open();
+    }
+    try {
+      // TODO: needs loading state
+      // TODO: childComments state
+      // TODO: fetch child comments
+    } catch (e) {
+    } finally {
     }
   };
 
@@ -140,18 +186,23 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
             </TypographyStylesProvider>
           </Spoiler>
         )}
-        <Group>
-          <Button
-            color="gray"
-            compact
-            variant="subtle"
-            onClick={replyControl.open}
-          >
-            Reply
-          </Button>
+        <Box>
+          <Group>
+            <Button
+              color="gray"
+              compact
+              variant="subtle"
+              onClick={replyControl.open}
+            >
+              Reply
+            </Button>
+          </Group>
           <Collapse in={openReply}>
             <Stack>
-              <CommentTextEditor />
+              <CommentTextEditor
+                content={replyContent}
+                setContent={setReplyContent}
+              />
               <Group position="right">
                 <Button
                   variant="subtle"
@@ -160,37 +211,62 @@ function Comment({ id, date, body, author, isOwner }: CommentProps) {
                 >
                   Cancel
                 </Button>
-                <Button variant="light">Comment</Button>
+                <Button
+                  variant="light"
+                  onClick={replyToComment}
+                  loading={replyingComment}
+                >
+                  Comment
+                </Button>
               </Group>
             </Stack>
           </Collapse>
-        </Group>
+
+          {_count.children > 0 && (
+            <Button
+              onClick={showReplies}
+              leftIcon={
+                openShowReplies ? (
+                  <IconChevronUp size="1rem" />
+                ) : (
+                  <IconChevronDown size="1rem" />
+                )
+              }
+              variant="subtle"
+            >
+              {_count.children} {_count.children === 1 ? "reply" : "replies"}
+            </Button>
+          )}
+        </Box>
       </Stack>
-      {hovered && isOwner && !toggleEditComment && (
-        <Menu shadow="md" width={200}>
-          <Menu.Target>
+
+      <Menu shadow="md" width={200}>
+        <Menu.Target>
+          {hovered && isOwner && !toggleEditComment  ? (
             <ActionIcon>
               <IconDotsVertical />
             </ActionIcon>
-          </Menu.Target>
+          ) : (
+            <Space w="1.7rem"/>
+          )}
+        </Menu.Target>
 
-          <Menu.Dropdown>
-            <Menu.Item
-              icon={<IconEdit size={14} />}
-              onClick={editCommentControl.open}
-            >
-              Edit
-            </Menu.Item>
-            <Menu.Item
-              color="red"
-              icon={<IconTrash size={14} />}
-              onClick={handleDeleteComment}
-            >
-              Delete
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-      )}
+        <Menu.Dropdown>
+          <Menu.Item
+            icon={<IconEdit size={14} />}
+            onClick={editCommentControl.open}
+          >
+            Edit
+          </Menu.Item>
+          <Menu.Item
+            color="red"
+            icon={<IconTrash size={14} />}
+            onClick={handleDeleteComment}
+          >
+            Delete
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </Flex>
   );
 }
