@@ -21,24 +21,27 @@ export default apiHandler({
   post: createComment,
 });
 
+// api: /community/:communityId/media/:mediaId/comments?parentId={parentId}
+// add a parentId to request replies
 async function getComments(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<void> {
   try {
-    const { mediaId } = req.query;
+    const { mediaId, parentId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
+    const pId: string = Array.isArray(parentId) ? parentId[0] : parentId!;
 
     const comments = await prisma.comment.findMany({
       where: {
         mediaId: mId,
         OR: [
           {
-            parentId: null,
+            parentId: pId ? pId : null,
           },
           {
             parentId: {
-              isSet: false,
+              isSet: pId ? true : false,
             },
           },
         ],
