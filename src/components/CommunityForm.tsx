@@ -81,7 +81,6 @@ export default function CommunityFormModal({
           `${values.name} information was updated!`
         );
 
-        context.closeContextModal(id);
       } else if (res.status === 400) {
         setError("unauthorized");
       } else {
