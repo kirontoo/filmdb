@@ -16,7 +16,7 @@ export type CommentWithUser = {
   _count: {
     likes: number;
     children: number;
-  }
+  };
 } & Comment;
 
 interface CommentState {
@@ -25,7 +25,8 @@ interface CommentState {
   addNewComment: (c: CommentWithUser) => void;
   createComment: (t: string, i?: string) => Promise<void>;
   deleteComment: (t: string) => Promise<void>;
-  editComment: (t: string, _: string) => Promise<void>;
+  editComment: (_: string, _b: string) => Promise<void>;
+  fetchReplies: (_: string) => Promise<CommentWithUser[]>;
 }
 
 export const CommentContext = createContext<CommentState>({
@@ -42,9 +43,14 @@ export const CommentContext = createContext<CommentState>({
       resolve();
     });
   },
-  editComment: async (t: string, _: string) => {
+  editComment: async (_: string, _b: string) => {
     return new Promise((resolve) => {
       resolve();
+    });
+  },
+  fetchReplies: async (_: string) => {
+    return new Promise((resolve) => {
+      resolve([]);
     });
   },
 });
@@ -77,11 +83,27 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
       if (res.ok) {
         const { data } = await res.json();
         setComments(data.comments);
-        console.log(data)
+        console.log(data);
       }
     } catch (e) {
     } finally {
       setLoadingComments(false);
+    }
+  };
+
+  const fetchReplies = async (parentId: string) => {
+    try {
+      const res = await fetch(
+        `/api/community/${communityId}/media/${mediaId}/comments?parentId=${parentId}`
+      );
+
+      if (res.ok) {
+        const { data } = await res.json();
+        return data.comments;
+      }
+      return [];
+    } catch (e) {
+      throw new Error("could not fetch replies");
     }
   };
 
@@ -179,6 +201,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
     createComment,
     deleteComment,
     editComment,
+    fetchReplies
   };
 };
 

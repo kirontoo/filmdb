@@ -1,4 +1,4 @@
-import { useCommentContext } from "@/context/CommentProvider";
+import { CommentWithUser, useCommentContext } from "@/context/CommentProvider";
 import Notify from "@/lib/notify";
 import {
   createStyles,
@@ -26,6 +26,8 @@ import {
   IconChevronDown,
   IconChevronUp,
 } from "@tabler/icons-react";
+import dayjs from "dayjs";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import CommentTextEditor from "./CommentTextEditor";
 
@@ -78,7 +80,8 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const { hovered, ref } = useHover();
   isOwner = isOwner ?? false;
 
-  const { deleteComment, editComment, createComment } = useCommentContext();
+  const { deleteComment, editComment, createComment, fetchReplies } =
+    useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
   const [content, setContent] = useState<string>(body);
   const [replyContent, setReplyContent] = useState<string>(body);
@@ -87,6 +90,9 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const [updatingComment, setUpdatingComment] = useState<boolean>(false);
   const [deletingComment, setDeletingComment] = useState<boolean>(false);
   const [replyingComment, setReplyingComment] = useState<boolean>(false);
+  const [loadingReplies, setLoadingReplies] = useState<boolean>(false);
+  const [childComments, setChildComments] = useState<CommentWithUser[]>([]);
+  const { data: session } = useSession();
 
   const updateComment = async () => {
     try {
@@ -115,15 +121,22 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const showReplies = async () => {
     if (openShowReplies) {
       repliesControl.close();
+      return;
     } else {
       repliesControl.open();
     }
-    try {
-      // TODO: needs loading state
-      // TODO: childComments state
-      // TODO: fetch child comments
-    } catch (e) {
-    } finally {
+
+    // only fetch comments if they haven't been fetched yet
+    if (childComments.length == 0) {
+      try {
+        setLoadingReplies(true);
+        const comments = await fetchReplies(id);
+        setChildComments(comments);
+      } catch (e) {
+        console.log("fetching replies", e);
+      } finally {
+        setLoadingReplies(false);
+      }
     }
   };
 
@@ -232,22 +245,37 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
                   <IconChevronDown size="1rem" />
                 )
               }
+              loading={loadingReplies}
               variant="subtle"
             >
               {_count.children} {_count.children === 1 ? "reply" : "replies"}
             </Button>
           )}
+
+          {_count.children > 0 &&
+            openShowReplies &&
+            childComments.map((c) => (
+              <Comment
+                key={c.id}
+                {...c}
+                id={c.id}
+                date={dayjs().to(dayjs(c.updatedAt))}
+                body={c.body}
+                author={c.user}
+                isOwner={session ? c.userId === session!.user!.id : false}
+              />
+            ))}
         </Box>
       </Stack>
 
       <Menu shadow="md" width={200}>
         <Menu.Target>
-          {hovered && isOwner && !toggleEditComment  ? (
+          {hovered && isOwner && !toggleEditComment ? (
             <ActionIcon>
               <IconDotsVertical />
             </ActionIcon>
           ) : (
-            <Space w="1.7rem"/>
+            <Space w="1.7rem" />
           )}
         </Menu.Target>
 
