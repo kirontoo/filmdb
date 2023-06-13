@@ -13,6 +13,10 @@ export type CommentWithUser = {
     name: string;
     image: string;
   };
+  _count: {
+    likes: number;
+    children: number;
+  }
 } & Comment;
 
 interface CommentState {
@@ -73,6 +77,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
       if (res.ok) {
         const { data } = await res.json();
         setComments(data.comments);
+        console.log(data)
       }
     } catch (e) {
     } finally {
