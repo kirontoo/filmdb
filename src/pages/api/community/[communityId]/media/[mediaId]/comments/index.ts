@@ -133,9 +133,14 @@ async function createComment(
           ...data,
         },
         include: {
-          media: true,
           user: { select: { name: true, image: true } },
           parent: true,
+          _count: {
+            select: {
+              likes: true,
+              children: true,
+            },
+          },
         },
       });
 
