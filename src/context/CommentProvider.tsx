@@ -23,7 +23,7 @@ interface CommentState {
   comments: CommentWithUser[];
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
-  createComment: (t: string, i?: string) => Promise<void>;
+  createComment: (t: string, i?: string) => Promise<CommentWithUser>;
   deleteComment: (t: string) => Promise<void>;
   editComment: (_: string, _b: string) => Promise<void>;
   fetchReplies: (_: string) => Promise<CommentWithUser[]>;
@@ -35,7 +35,7 @@ export const CommentContext = createContext<CommentState>({
   addNewComment: (_: CommentWithUser) => null,
   createComment: async (_: string) => {
     return new Promise((resolve) => {
-      resolve();
+      resolve({});
     });
   },
   deleteComment: async (_: string) => {
@@ -126,9 +126,32 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
         }
       );
 
-      if (res.ok) {
+      if (res.ok && !parentId) {
         const { data } = await res.json();
         setComments((s) => [data.comment, ...s]);
+        return data.comment;
+      } else if (res.ok && parentId) {
+        const { data } = await res.json();
+        const index = comments.findIndex((c) => c.id === parentId);
+        const foundComment = comments[index];
+        const updatedComment = {
+          ...foundComment,
+          _count: {
+            ...foundComment._count,
+            children: ++foundComment._count.children,
+          },
+        };
+
+        const newCommentItems = comments.filter((c) => c.id !== parentId);
+
+        // merge comment data
+        setComments([
+          ...newCommentItems.slice(0, index),
+          { ...foundComment, ...updatedComment },
+          ...newCommentItems.slice(index),
+        ]);
+
+        return data.comment;
       }
     } catch (e) {
       Notify.error("Sorry! Something went wrong!", "Please try again.");
@@ -201,7 +224,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
     createComment,
     deleteComment,
     editComment,
-    fetchReplies
+    fetchReplies,
   };
 };
 

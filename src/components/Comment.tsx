@@ -84,7 +84,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
     useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
   const [content, setContent] = useState<string>(body);
-  const [replyContent, setReplyContent] = useState<string>(body);
+  const [replyContent, setReplyContent] = useState<string>("");
 
   // loading states
   const [updatingComment, setUpdatingComment] = useState<boolean>(false);
@@ -109,7 +109,10 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const replyToComment = async () => {
     try {
       setReplyingComment(true);
-      await createComment(replyContent, id);
+      const comment = await createComment(replyContent, id);
+      if (childComments.length > 0) {
+        setChildComments((prev) => [...prev, comment]);
+      }
     } catch (e) {
     } finally {
       setReplyContent("");
@@ -126,17 +129,14 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
       repliesControl.open();
     }
 
-    // only fetch comments if they haven't been fetched yet
-    if (childComments.length == 0) {
-      try {
-        setLoadingReplies(true);
-        const comments = await fetchReplies(id);
-        setChildComments(comments);
-      } catch (e) {
-        console.log("fetching replies", e);
-      } finally {
-        setLoadingReplies(false);
-      }
+    try {
+      setLoadingReplies(true);
+      const comments = await fetchReplies(id);
+      setChildComments(comments);
+    } catch (e) {
+      console.log("fetching replies", e);
+    } finally {
+      setLoadingReplies(false);
     }
   };
 
