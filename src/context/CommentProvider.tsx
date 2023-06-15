@@ -35,7 +35,7 @@ export const CommentContext = createContext<CommentState>({
   addNewComment: (_: CommentWithUser) => null,
   createComment: async (_: string) => {
     return new Promise((resolve) => {
-      resolve({});
+      resolve();
     });
   },
   deleteComment: async (_: string) => {
@@ -63,12 +63,12 @@ export const useCommentContext = () => {
   return context;
 };
 
-export const useCommentProvider = (communityId: string, mediaId: string) => {
+export const useCommentProvider = (cId: string, mId: string) => {
   const [comments, setComments] = useState<CommentWithUser[]>([]);
   const [loadingComments, setLoadingComments] = useState<boolean>(false);
 
   useEffect(() => {
-    if (communityId !== undefined && mediaId !== undefined) {
+    if (cId !== undefined && mId !== undefined) {
       loadComments();
     }
   }, []);
@@ -77,13 +77,12 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
     try {
       setLoadingComments(true);
       const res = await fetch(
-        `/api/community/${communityId}/media/${mediaId}/comments`
+        `/api/community/${cId}/media/${mId}/comments`
       );
 
       if (res.ok) {
         const { data } = await res.json();
         setComments(data.comments);
-        console.log(data);
       }
     } catch (e) {
     } finally {
@@ -94,7 +93,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
   const fetchReplies = async (parentId: string) => {
     try {
       const res = await fetch(
-        `/api/community/${communityId}/media/${mediaId}/comments?parentId=${parentId}`
+        `/api/community/${cId}/media/${mId}/comments?parentId=${parentId}`
       );
 
       if (res.ok) {
@@ -112,7 +111,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
   const createComment = async (text: string, parentId?: string) => {
     try {
       const res = await fetch(
-        `/api/community/${communityId}/media/${mediaId}/comments`,
+        `/api/community/${cId}/media/${mId}/comments`,
         {
           method: "POST",
           headers: {
@@ -120,7 +119,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
           },
           body: JSON.stringify({
             body: text,
-            mediaId,
+            mediaId: mId,
             parentId: parentId ? parentId : null,
           }),
         }
@@ -161,7 +160,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
   const deleteComment = async (commentId: string) => {
     try {
       const res = await fetch(
-        `/api/community/${communityId}/media/${mediaId}/comments/${commentId}`,
+        `/api/community/${cId}/media/${mId}/comments/${commentId}`,
         { method: "DELETE" }
       );
 
@@ -178,7 +177,7 @@ export const useCommentProvider = (communityId: string, mediaId: string) => {
   const editComment = async (commentId: string, body: string) => {
     try {
       const res = await fetch(
-        `/api/community/${communityId}/media/${mediaId}/comments/${commentId}`,
+        `/api/community/${cId}/media/${mId}/comments/${commentId}`,
         {
           method: "PATCH",
           headers: {
