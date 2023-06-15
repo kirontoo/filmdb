@@ -89,7 +89,7 @@ export async function updateComment({
       }
     );
 
-    const { data } = await res.json();
+    const data = await res.json();
     if (res.ok) {
       return data.data.comment;
     } else {
