@@ -8,6 +8,8 @@ import { Stack, useMantineTheme, Button, Group } from "@mantine/core";
 import { useState } from "react";
 import { CommentTextEditor } from ".";
 import { useSession } from "next-auth/react";
+import { createComment } from "@/services/comments";
+
 
 interface CommentListProps {
   children?: React.ReactNode;
@@ -18,13 +20,14 @@ function CommentList({ children }: CommentListProps) {
   const theme = useMantineTheme();
   const [commentContent, setCommentContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { comments, createComment, loadingComments } = useCommentContext();
+  const { comments, loadingComments, context, addNewComment } = useCommentContext();
   const { data: session } = useSession();
 
   const createNewComment = async () => {
     setIsLoading(true);
     if (commentContent != "") {
-      await createComment(commentContent);
+      const comment = await createComment({...context, text: commentContent });
+      addNewComment(comment);
     }
     setIsLoading(false);
   };

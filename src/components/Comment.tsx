@@ -31,7 +31,11 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import CommentTextEditor from "./CommentTextEditor";
 
-import { updateComment, deleteComment } from "@/services/comments";
+import {
+  createComment,
+  updateComment,
+  deleteComment,
+} from "@/services/comments";
 
 const useStyles = createStyles((theme) => ({
   body: {
@@ -84,9 +88,9 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
 
   const {
     updateComments,
-    createComment,
     removeComment,
     fetchReplies,
+    addNewComment,
     context,
   } = useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
@@ -109,10 +113,10 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
         commentId: id,
         text: content,
       });
-      updateComments(updatedComment);
+      updateComments(id, updatedComment);
       editCommentControl.close();
     } catch (e) {
-      Notify.error("request failed");
+      Notify.error("could not edit comment");
     } finally {
       setUpdatingComment(false);
     }
@@ -121,11 +125,16 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const onReplyToComment = async () => {
     try {
       setReplyingComment(true);
-      const comment = await createComment(replyContent, id);
+      const comment = await createComment({
+        text: replyContent,
+        ...context,
+        parentId: id,
+      });
       if (childComments.length > 0) {
         setChildComments((prev) => [...prev, comment]);
       }
     } catch (e) {
+      Notify.error("could not create a reply");
     } finally {
       setReplyContent("");
       setReplyingComment(false);
@@ -146,7 +155,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
       const comments = await fetchReplies(id);
       setChildComments(comments);
     } catch (e) {
-      console.log("fetching replies", e);
+      Notify.error("could not load replies");
     } finally {
       setLoadingReplies(false);
     }

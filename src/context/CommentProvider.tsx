@@ -1,4 +1,5 @@
 import Notify from "@/lib/notify";
+import { updateComment } from "@/services/comments";
 import { Comment } from "@prisma/client";
 import {
   useState,
@@ -27,9 +28,8 @@ interface CommentState {
   };
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
-  createComment: (t: string, i?: string) => Promise<CommentWithUser>;
   removeComment: (t: string) => void;
-  updateComments: (_: CommentWithUser) => void;
+  updateComments: (_id: string, _: CommentWithUser) => void;
   fetchReplies: (_: string) => Promise<CommentWithUser[]>;
 }
 
@@ -41,13 +41,8 @@ export const CommentContext = createContext<CommentState>({
   },
   loadingComments: false,
   addNewComment: (_: CommentWithUser) => null,
-  createComment: async (_: string) => {
-    return new Promise((resolve) => {
-      resolve();
-    });
-  },
   removeComment: async (_: string) => null,
-  updateComments: async (_: CommentWithUser) => null,
+  updateComments: async (_id: string, _: CommentWithUser) => null,
   fetchReplies: async (_: string) => {
     return new Promise((resolve) => {
       resolve([]);
@@ -104,51 +99,17 @@ export const useCommentProvider = (cId: string, mId: string) => {
     }
   };
 
-  const addNewComment = (c: CommentWithUser) => null;
-
-  const createComment = async (text: string, parentId?: string) => {
-    try {
-      const res = await fetch(`/api/community/${cId}/media/${mId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+  const addNewComment = async (c: CommentWithUser) => {
+    if (!c.parentId) {
+      setComments((s) => [c, ...s]);
+    } else {
+      const index = comments.findIndex((c) => c.id === c.parentId);
+      updateComments(comments[index].id, {
+        _count: {
+          ...comments[index]._count,
+          children: ++comments[index]._count.children,
         },
-        body: JSON.stringify({
-          body: text,
-          mediaId: mId,
-          parentId: parentId ? parentId : null,
-        }),
       });
-
-      if (res.ok && !parentId) {
-        const { data } = await res.json();
-        setComments((s) => [data.comment, ...s]);
-        return data.comment;
-      } else if (res.ok && parentId) {
-        const { data } = await res.json();
-        const index = comments.findIndex((c) => c.id === parentId);
-        const foundComment = comments[index];
-        const updatedComment = {
-          ...foundComment,
-          _count: {
-            ...foundComment._count,
-            children: ++foundComment._count.children,
-          },
-        };
-
-        const newCommentItems = comments.filter((c) => c.id !== parentId);
-
-        // merge comment data
-        setComments([
-          ...newCommentItems.slice(0, index),
-          { ...foundComment, ...updatedComment },
-          ...newCommentItems.slice(index),
-        ]);
-
-        return data.comment;
-      }
-    } catch (e) {
-      Notify.error("Sorry! Something went wrong!", "Please try again.");
     }
   };
 
@@ -157,14 +118,17 @@ export const useCommentProvider = (cId: string, mId: string) => {
     setComments([...newCommentItems]);
   };
 
-  const updateComments = async (updatedComment: CommentWithUser) => {
-    const index = comments.findIndex((m) => m.id === updatedComment.id);
+  const updateComments = async (
+    id: string,
+    updatedComment: Partial<CommentWithUser>
+  ) => {
+    const index = comments.findIndex((m) => m.id === id);
     if (index === -1) {
       // don't update anything if it doesn't exist
       return;
     }
     let foundComment = comments[index];
-    const newCommentItems = comments.filter((m) => m.id !== updatedComment.id);
+    const newCommentItems = comments.filter((m) => m.id !== id);
 
     // merge comment data
     setComments([
@@ -178,7 +142,6 @@ export const useCommentProvider = (cId: string, mId: string) => {
     comments,
     loadingComments,
     addNewComment,
-    createComment,
     removeComment,
     updateComments,
     fetchReplies,
