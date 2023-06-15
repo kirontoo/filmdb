@@ -31,6 +31,8 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import CommentTextEditor from "./CommentTextEditor";
 
+import { updateComment } from "@/services/comments";
+
 const useStyles = createStyles((theme) => ({
   body: {
     paddingLeft: rem(54),
@@ -80,8 +82,13 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const { hovered, ref } = useHover();
   isOwner = isOwner ?? false;
 
-  const { deleteComment, editComment, createComment, fetchReplies } =
-    useCommentContext();
+  const {
+    deleteComment,
+    updateComments,
+    createComment,
+    fetchReplies,
+    context,
+  } = useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
   const [content, setContent] = useState<string>(body);
   const [replyContent, setReplyContent] = useState<string>("");
@@ -97,7 +104,12 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const onUpdateComment = async () => {
     try {
       setUpdatingComment(true);
-      await editComment(id, content);
+      const updatedComment = await updateComment({
+        ...context,
+        commentId: id,
+        text: content,
+      });
+      updateComments(updatedComment);
       editCommentControl.close();
     } catch (e) {
       Notify.error("request failed");

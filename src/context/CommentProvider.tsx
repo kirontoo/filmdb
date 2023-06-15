@@ -21,16 +21,24 @@ export type CommentWithUser = {
 
 interface CommentState {
   comments: CommentWithUser[];
+  context: {
+    communityId: string;
+    mediaId: string;
+  };
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
   createComment: (t: string, i?: string) => Promise<CommentWithUser>;
   deleteComment: (t: string) => Promise<void>;
-  editComment: (_: string, _b: string) => Promise<void>;
+  updateComments: (_: CommentWithUser) => void;
   fetchReplies: (_: string) => Promise<CommentWithUser[]>;
 }
 
 export const CommentContext = createContext<CommentState>({
   comments: [],
+  context: {
+    communityId: "",
+    mediaId: "",
+  },
   loadingComments: false,
   addNewComment: (_: CommentWithUser) => null,
   createComment: async (_: string) => {
@@ -43,11 +51,7 @@ export const CommentContext = createContext<CommentState>({
       resolve();
     });
   },
-  editComment: async (_: string, _b: string) => {
-    return new Promise((resolve) => {
-      resolve();
-    });
-  },
+  updateComments: async (_: CommentWithUser) => null,
   fetchReplies: async (_: string) => {
     return new Promise((resolve) => {
       resolve([]);
@@ -76,9 +80,7 @@ export const useCommentProvider = (cId: string, mId: string) => {
   const loadComments = async () => {
     try {
       setLoadingComments(true);
-      const res = await fetch(
-        `/api/community/${cId}/media/${mId}/comments`
-      );
+      const res = await fetch(`/api/community/${cId}/media/${mId}/comments`);
 
       if (res.ok) {
         const { data } = await res.json();
@@ -110,20 +112,17 @@ export const useCommentProvider = (cId: string, mId: string) => {
 
   const createComment = async (text: string, parentId?: string) => {
     try {
-      const res = await fetch(
-        `/api/community/${cId}/media/${mId}/comments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            body: text,
-            mediaId: mId,
-            parentId: parentId ? parentId : null,
-          }),
-        }
-      );
+      const res = await fetch(`/api/community/${cId}/media/${mId}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          body: text,
+          mediaId: mId,
+          parentId: parentId ? parentId : null,
+        }),
+      });
 
       if (res.ok && !parentId) {
         const { data } = await res.json();
@@ -174,46 +173,21 @@ export const useCommentProvider = (cId: string, mId: string) => {
     }
   };
 
-  const editComment = async (commentId: string, body: string) => {
-    try {
-      const res = await fetch(
-        `/api/community/${cId}/media/${mId}/comments/${commentId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            body: body,
-          }),
-        }
-      );
-
-      if (res.ok) {
-        // update comment
-
-        const { data } = await res.json();
-
-        const index = comments.findIndex((m) => m.id === commentId);
-        if (index === -1) {
-          // don't update anything if it doesn't exist
-          return;
-        }
-        let foundComment = comments[index];
-        const newCommentItems = comments.filter((m) => m.id !== commentId);
-
-        // merge comment data
-        setComments([
-          ...newCommentItems.slice(0, index),
-          { ...foundComment, ...data.comment },
-          ...newCommentItems.slice(index),
-        ]);
-      } else {
-        throw new Error("request failed");
-      }
-    } catch (e) {
-      throw e;
+  const updateComments = async (updatedComment: CommentWithUser) => {
+    const index = comments.findIndex((m) => m.id === updatedComment.id);
+    if (index === -1) {
+      // don't update anything if it doesn't exist
+      return;
     }
+    let foundComment = comments[index];
+    const newCommentItems = comments.filter((m) => m.id !== updatedComment.id);
+
+    // merge comment data
+    setComments([
+      ...newCommentItems.slice(0, index),
+      { ...foundComment, ...updatedComment },
+      ...newCommentItems.slice(index),
+    ]);
   };
 
   return {
@@ -222,8 +196,12 @@ export const useCommentProvider = (cId: string, mId: string) => {
     addNewComment,
     createComment,
     deleteComment,
-    editComment,
+    updateComments,
     fetchReplies,
+    context: {
+      communityId: cId,
+      mediaId: mId,
+    },
   };
 };
 
