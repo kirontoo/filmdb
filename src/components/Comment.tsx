@@ -35,6 +35,7 @@ import {
   createComment,
   updateComment,
   deleteComment,
+  fetchComments,
 } from "@/services/comments";
 
 const useStyles = createStyles((theme) => ({
@@ -89,8 +90,6 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const {
     updateComments,
     removeComment,
-    fetchReplies,
-    addNewComment,
     context,
   } = useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
@@ -152,7 +151,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
 
     try {
       setLoadingReplies(true);
-      const comments = await fetchReplies(id);
+      const comments = await fetchComments({...context, parentId: id});
       setChildComments(comments);
     } catch (e) {
       Notify.error("could not load replies");

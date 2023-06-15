@@ -30,7 +30,6 @@ interface CommentState {
   addNewComment: (c: CommentWithUser) => void;
   removeComment: (t: string) => void;
   updateComments: (_id: string, _: CommentWithUser) => void;
-  fetchReplies: (_: string) => Promise<CommentWithUser[]>;
 }
 
 export const CommentContext = createContext<CommentState>({
@@ -43,11 +42,6 @@ export const CommentContext = createContext<CommentState>({
   addNewComment: (_: CommentWithUser) => null,
   removeComment: async (_: string) => null,
   updateComments: async (_id: string, _: CommentWithUser) => null,
-  fetchReplies: async (_: string) => {
-    return new Promise((resolve) => {
-      resolve([]);
-    });
-  },
 });
 
 export const useCommentContext = () => {
@@ -80,22 +74,6 @@ export const useCommentProvider = (cId: string, mId: string) => {
     } catch (e) {
     } finally {
       setLoadingComments(false);
-    }
-  };
-
-  const fetchReplies = async (parentId: string) => {
-    try {
-      const res = await fetch(
-        `/api/community/${cId}/media/${mId}/comments?parentId=${parentId}`
-      );
-
-      if (res.ok) {
-        const { data } = await res.json();
-        return data.comments;
-      }
-      return [];
-    } catch (e) {
-      throw new Error("could not fetch replies");
     }
   };
 
@@ -144,7 +122,6 @@ export const useCommentProvider = (cId: string, mId: string) => {
     addNewComment,
     removeComment,
     updateComments,
-    fetchReplies,
     context: {
       communityId: cId,
       mediaId: mId,
