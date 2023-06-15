@@ -94,7 +94,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const [childComments, setChildComments] = useState<CommentWithUser[]>([]);
   const { data: session } = useSession();
 
-  const updateComment = async () => {
+  const onUpdateComment = async () => {
     try {
       setUpdatingComment(true);
       await editComment(id, content);
@@ -106,7 +106,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
     }
   };
 
-  const replyToComment = async () => {
+  const onReplyToComment = async () => {
     try {
       setReplyingComment(true);
       const comment = await createComment(replyContent, id);
@@ -140,7 +140,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
     }
   };
 
-  const handleDeleteComment = async () => {
+  const onDeleteComment = async () => {
     try {
       setDeletingComment(true);
       await deleteComment(id);
@@ -174,7 +174,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
                 compact
                 variant="filled"
                 disabled={content == body}
-                onClick={updateComment}
+                onClick={onUpdateComment}
                 loading={updatingComment}
               >
                 Save
@@ -226,7 +226,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
                 </Button>
                 <Button
                   variant="light"
-                  onClick={replyToComment}
+                  onClick={onReplyToComment}
                   loading={replyingComment}
                 >
                   Comment
@@ -289,7 +289,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
           <Menu.Item
             color="red"
             icon={<IconTrash size={14} />}
-            onClick={handleDeleteComment}
+            onClick={onDeleteComment}
           >
             Delete
           </Menu.Item>
