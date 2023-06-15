@@ -31,7 +31,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import CommentTextEditor from "./CommentTextEditor";
 
-import { updateComment } from "@/services/comments";
+import { updateComment, deleteComment } from "@/services/comments";
 
 const useStyles = createStyles((theme) => ({
   body: {
@@ -83,9 +83,9 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   isOwner = isOwner ?? false;
 
   const {
-    deleteComment,
     updateComments,
     createComment,
+    removeComment,
     fetchReplies,
     context,
   } = useCommentContext();
@@ -101,7 +101,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const [childComments, setChildComments] = useState<CommentWithUser[]>([]);
   const { data: session } = useSession();
 
-  const onUpdateComment = async () => {
+  const onEditComment = async () => {
     try {
       setUpdatingComment(true);
       const updatedComment = await updateComment({
@@ -155,7 +155,11 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const onDeleteComment = async () => {
     try {
       setDeletingComment(true);
-      await deleteComment(id);
+      await deleteComment({
+        ...context,
+        commentId: id,
+      });
+      removeComment(id);
     } catch (e) {
     } finally {
       setDeletingComment(false);
@@ -186,7 +190,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
                 compact
                 variant="filled"
                 disabled={content == body}
-                onClick={onUpdateComment}
+                onClick={onEditComment}
                 loading={updatingComment}
               >
                 Save

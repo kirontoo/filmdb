@@ -28,7 +28,7 @@ interface CommentState {
   loadingComments: boolean;
   addNewComment: (c: CommentWithUser) => void;
   createComment: (t: string, i?: string) => Promise<CommentWithUser>;
-  deleteComment: (t: string) => Promise<void>;
+  removeComment: (t: string) => void;
   updateComments: (_: CommentWithUser) => void;
   fetchReplies: (_: string) => Promise<CommentWithUser[]>;
 }
@@ -46,11 +46,7 @@ export const CommentContext = createContext<CommentState>({
       resolve();
     });
   },
-  deleteComment: async (_: string) => {
-    return new Promise((resolve) => {
-      resolve();
-    });
-  },
+  removeComment: async (_: string) => null,
   updateComments: async (_: CommentWithUser) => null,
   fetchReplies: async (_: string) => {
     return new Promise((resolve) => {
@@ -156,21 +152,9 @@ export const useCommentProvider = (cId: string, mId: string) => {
     }
   };
 
-  const deleteComment = async (commentId: string) => {
-    try {
-      const res = await fetch(
-        `/api/community/${cId}/media/${mId}/comments/${commentId}`,
-        { method: "DELETE" }
-      );
-
-      if (res.ok) {
-        // filter out the comment
-        const newCommentItems = comments.filter((c) => c.id !== commentId);
-        setComments([...newCommentItems]);
-      }
-    } catch (e) {
-      throw e;
-    }
+  const removeComment = async (commentId: string) => {
+    const newCommentItems = comments.filter((c) => c.id !== commentId);
+    setComments([...newCommentItems]);
   };
 
   const updateComments = async (updatedComment: CommentWithUser) => {
@@ -195,7 +179,7 @@ export const useCommentProvider = (cId: string, mId: string) => {
     loadingComments,
     addNewComment,
     createComment,
-    deleteComment,
+    removeComment,
     updateComments,
     fetchReplies,
     context: {
