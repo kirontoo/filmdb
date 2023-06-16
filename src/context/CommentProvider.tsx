@@ -1,5 +1,3 @@
-import Notify from "@/lib/notify";
-import { updateComment } from "@/services/comments";
 import { Comment } from "@prisma/client";
 import {
   useState,
