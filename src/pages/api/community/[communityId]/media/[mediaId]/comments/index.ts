@@ -31,11 +31,11 @@ async function getComments(
     const { mediaId, parentId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
     const pId: string = Array.isArray(parentId) ? parentId[0] : parentId!;
-
+   
     const comments = await prisma.comment.findMany({
       where: {
         mediaId: mId,
-        OR: [
+        [parentId ? "AND" : "OR"]: [
           {
             parentId: pId ? pId : null,
           },
