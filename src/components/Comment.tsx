@@ -87,11 +87,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
   const { hovered, ref } = useHover();
   isOwner = isOwner ?? false;
 
-  const {
-    updateComments,
-    removeComment,
-    context,
-  } = useCommentContext();
+  const { updateComments, removeComment, context } = useCommentContext();
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
   const [content, setContent] = useState<string>(body);
   const [replyContent, setReplyContent] = useState<string>("");
@@ -129,9 +125,12 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
         ...context,
         parentId: id,
       });
-      if (childComments.length > 0) {
-        setChildComments((prev) => [...prev, comment]);
-      }
+      const updateCount = {
+        _count: { ..._count, children: ++_count.children },
+      } as CommentWithUser;
+
+      setChildComments((prev) => [...prev, comment]);
+      updateComments(id, updateCount);
     } catch (e) {
       Notify.error("could not create a reply");
     } finally {
@@ -151,7 +150,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
 
     try {
       setLoadingReplies(true);
-      const comments = await fetchComments({...context, parentId: id});
+      const comments = await fetchComments({ ...context, parentId: id });
       setChildComments(comments);
     } catch (e) {
       Notify.error("could not load replies");
