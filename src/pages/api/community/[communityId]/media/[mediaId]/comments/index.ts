@@ -46,6 +46,9 @@ async function getComments(
           },
         ],
       },
+      orderBy: {
+        updatedAt: "desc"
+      },
       include: {
         user: {
           select: {
@@ -131,6 +134,7 @@ async function createComment(
       const comment = await prisma.comment.create({
         data: {
           ...data,
+          textBackup: String(body) || null
         },
         include: {
           user: { select: { name: true, image: true } },
