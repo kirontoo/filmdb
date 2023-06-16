@@ -43,6 +43,7 @@ async function updateComment(
       },
       data: {
         body: body,
+        textBackup: body,
       },
     });
 
@@ -102,12 +103,17 @@ async function deleteComment(
           comment.userId == session!.user!.id ||
           community.createdBy == session!.user!.id
         ) {
-          const deleted = await prisma.comment.delete({
+          const deleted = await prisma.comment.update({
             where: {
               userId_id: {
                 id: cmId,
                 userId: session!.user!.id,
               },
+            },
+            data: {
+              body: "[deleted]",
+              deleted: true,
+              deletedAt: new Date()
             },
           });
           return { comment: deleted };
