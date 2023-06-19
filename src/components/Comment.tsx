@@ -38,6 +38,8 @@ import {
   fetchComments,
 } from "@/services/comments";
 
+import useAsyncFn from "@/lib/hooks/useAsyncFn";
+
 const useStyles = createStyles((theme) => ({
   body: {
     paddingLeft: rem(54),
@@ -80,67 +82,66 @@ interface CommentProps {
 }
 
 function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
-  const { classes } = useStyles();
-  const [openReply, replyControl] = useDisclosure(false);
-  const [openShowReplies, repliesControl] = useDisclosure(false);
-
-  const { hovered, ref } = useHover();
   isOwner = isOwner ?? false;
 
-  const { updateComments, removeComment, context } = useCommentContext();
+  const { classes } = useStyles();
+
+  const [openReply, replyControl] = useDisclosure(false);
+  const [openShowReplies, repliesControl] = useDisclosure(false);
   const [toggleEditComment, editCommentControl] = useDisclosure(false);
+
+  const { hovered, ref } = useHover();
+  const { updateComments, removeComment, context } = useCommentContext();
+
   const [content, setContent] = useState<string>(body);
   const [replyContent, setReplyContent] = useState<string>("");
-
-  // loading states
-  const [updatingComment, setUpdatingComment] = useState<boolean>(false);
-  const [deletingComment, setDeletingComment] = useState<boolean>(false);
-  const [replyingComment, setReplyingComment] = useState<boolean>(false);
-  const [loadingReplies, setLoadingReplies] = useState<boolean>(false);
   const [childComments, setChildComments] = useState<CommentWithUser[]>([]);
+
   const { data: session } = useSession();
 
-  const onEditComment = async () => {
+  const updateCommentFn = useAsyncFn(updateComment);
+  const createCommentFn = useAsyncFn(createComment);
+  const deleteCommentFn = useAsyncFn(deleteComment);
+  const fetchCommentsFn = useAsyncFn(fetchComments);
+
+  const onCommentUpdate = async () => {
     try {
-      setUpdatingComment(true);
-      const updatedComment = await updateComment({
+      const data = await updateCommentFn.execute({
         ...context,
         commentId: id,
         text: content,
       });
-      updateComments(id, updatedComment);
+      updateComments(id, data);
       editCommentControl.close();
     } catch (e) {
-      Notify.error("could not edit comment");
-    } finally {
-      setUpdatingComment(false);
+      return Notify.error("could not edit comment");
     }
   };
 
-  const onReplyToComment = async () => {
+  const onCommentReply = async () => {
     try {
-      setReplyingComment(true);
-      const comment = await createComment({
-        text: replyContent,
-        ...context,
-        parentId: id,
-      });
-      const updateCount = {
-        _count: { ..._count, children: ++_count.children },
-      } as CommentWithUser;
+      try {
+        const comment = await createCommentFn.execute({
+          text: replyContent,
+          ...context,
+          parentId: id,
+        });
+        const updateCount = {
+          _count: { ..._count, children: ++_count.children },
+        } as CommentWithUser;
 
-      setChildComments((prev) => [...prev, comment]);
-      updateComments(id, updateCount);
-    } catch (e) {
-      Notify.error("could not create a reply");
+        setChildComments((prev) => [comment, ...prev]);
+        updateComments(id, updateCount);
+      } catch (e) {
+        return Notify.error("could not create a reply");
+      }
     } finally {
       setReplyContent("");
-      setReplyingComment(false);
       replyControl.close();
     }
   };
 
-  const showReplies = async () => {
+  const onShowReplies = async () => {
     if (openShowReplies) {
       repliesControl.close();
       return;
@@ -148,29 +149,22 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
       repliesControl.open();
     }
 
-    try {
-      setLoadingReplies(true);
-      const comments = await fetchComments({ ...context, parentId: id });
-      setChildComments(comments);
-    } catch (e) {
-      Notify.error("could not load replies");
-    } finally {
-      setLoadingReplies(false);
-    }
+    return fetchCommentsFn
+      .execute({ ...context, parentId: id })
+      .then((comments) => {
+        setChildComments(comments);
+      })
+      .catch(() => Notify.error("could not load replies"));
   };
 
   const onDeleteComment = async () => {
     try {
-      setDeletingComment(true);
-      await deleteComment({
+      await deleteCommentFn.execute({
         ...context,
         commentId: id,
       });
       removeComment(id);
-    } catch (e) {
-    } finally {
-      setDeletingComment(false);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -197,8 +191,8 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
                 compact
                 variant="filled"
                 disabled={content == body}
-                onClick={onEditComment}
-                loading={updatingComment}
+                onClick={onCommentUpdate}
+                loading={updateCommentFn.loading}
               >
                 Save
               </Button>
@@ -207,7 +201,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
         ) : (
           <Spoiler maxHeight={100} showLabel="Read more" hideLabel="Show less">
             <TypographyStylesProvider>
-              {deletingComment ? (
+              {deleteCommentFn.loading ? (
                 <div>
                   <Skeleton height={8} radius="xl" />
                   <Skeleton height={8} mt={6} radius="xl" />
@@ -249,8 +243,8 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
                 </Button>
                 <Button
                   variant="light"
-                  onClick={onReplyToComment}
-                  loading={replyingComment}
+                  onClick={onCommentReply}
+                  loading={createCommentFn.loading}
                 >
                   Comment
                 </Button>
@@ -260,15 +254,15 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
 
           {_count.children > 0 && (
             <Button
-              onClick={showReplies}
+              onClick={onShowReplies}
               leftIcon={
-                openShowReplies ? (
+                fetchCommentsFn.loading ? (
                   <IconChevronUp size="1rem" />
                 ) : (
                   <IconChevronDown size="1rem" />
                 )
               }
-              loading={loadingReplies}
+              loading={fetchCommentsFn.loading}
               variant="subtle"
             >
               {_count.children} {_count.children === 1 ? "reply" : "replies"}
