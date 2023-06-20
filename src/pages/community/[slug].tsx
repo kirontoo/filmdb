@@ -55,20 +55,22 @@ function CommunityDashboard() {
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
   const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
+    const communitySlug = Array.isArray(slug) ? slug[0] : slug;
 
   useEffect(() => {
-    if (currentCommunity) {
-      router.push(`/community/${currentCommunity.slug}`);
+    if (currentCommunity && communitySlug) {
+      if (currentCommunity.slug !== communitySlug) {
+        router.push(`/community/${currentCommunity.slug}`);
+      }
     }
   }, [currentCommunity]);
 
   useEffect(() => {
     if (session && !isFetching) {
-      const community = Array.isArray(slug) ? slug[0] : slug;
-      if (community) {
-        setCurrentCommunity(community);
+      if (communitySlug) {
+        setCurrentCommunity(communitySlug);
       }
-      if (currentCommunity!.slug == community) {
+      if (currentCommunity!.slug == communitySlug) {
         loadData();
       }
     }
@@ -77,9 +79,8 @@ function CommunityDashboard() {
   async function loadData() {
     setLoading(true);
     try {
-      const community = Array.isArray(slug) ? slug[0] : slug;
-      if (community) {
-        const res = await fetch(`/api/community/${community}/media`);
+      if (communitySlug) {
+        const res = await fetch(`/api/community/${communitySlug}/media`);
         if (res.ok) {
           const { data } = await res.json();
           const upcoming = data.medias.find((m: Media) => m.queue === 1);
@@ -113,7 +114,7 @@ function CommunityDashboard() {
       modal: "media",
       title: `${media.title}`,
       size: "xl",
-      innerProps: { media, communityId: currentCommunity.id },
+      innerProps: { media, communityId: currentCommunity!.id },
     });
   };
 
@@ -125,8 +126,9 @@ function CommunityDashboard() {
           <Group>
             <Text fz="xl">{currentCommunity!.inviteCode}</Text>
             <CopyButton
-              value={`${origin}/community/join?code=${currentCommunity!.inviteCode
-                }`}
+              value={`${origin}/community/join?code=${
+                currentCommunity!.inviteCode
+              }`}
               timeout={2000}
             >
               {({ copied, copy }) => (
@@ -183,8 +185,9 @@ function CommunityDashboard() {
               <UnstyledButton onClick={() => openMediaModal(m)}>
                 <Image
                   radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                    }/${m.posterPath}`}
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                    isDesktop ? "342" : "185"
+                  }/${m.posterPath}`}
                   alt={m.title}
                 />
               </UnstyledButton>
@@ -222,8 +225,9 @@ function CommunityDashboard() {
               <UnstyledButton onClick={() => openMediaModal(upcomingMedia)}>
                 <Image
                   radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                    }/${upcomingMedia.posterPath}`}
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                    isDesktop ? "342" : "185"
+                  }/${upcomingMedia.posterPath}`}
                   alt={upcomingMedia.title}
                 />
               </UnstyledButton>
