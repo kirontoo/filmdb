@@ -9,7 +9,7 @@ import { useState } from "react";
 import { CommentTextEditor } from ".";
 import { useSession } from "next-auth/react";
 import { createComment } from "@/services/comments";
-
+import useAsyncFn from "@/lib/hooks/useAsyncFn";
 
 interface CommentListProps {
   children?: React.ReactNode;
@@ -19,17 +19,20 @@ interface CommentListProps {
 function CommentList({ children }: CommentListProps) {
   const theme = useMantineTheme();
   const [commentContent, setCommentContent] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { comments, loadingComments, context, addNewComment } = useCommentContext();
+  const { comments, loadingComments, context, addNewComment } =
+    useCommentContext();
   const { data: session } = useSession();
 
-  const createNewComment = async () => {
-    setIsLoading(true);
+  const createCommentFn = useAsyncFn(createComment);
+
+  const onCommentCreate = async () => {
     if (commentContent != "") {
-      const comment = await createComment({...context, text: commentContent });
+      const comment = await createCommentFn.execute({
+        ...context,
+        text: commentContent,
+      });
       addNewComment(comment);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -42,8 +45,8 @@ function CommentList({ children }: CommentListProps) {
         <Button
           variant="light"
           size="sm"
-          loading={isLoading}
-          onClick={createNewComment}
+          loading={createCommentFn.loading}
+          onClick={onCommentCreate}
         >
           Comment
         </Button>
