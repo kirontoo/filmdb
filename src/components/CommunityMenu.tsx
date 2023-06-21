@@ -11,12 +11,14 @@ interface CommunityMenuProps {
   menuAction: (data: CommunityMenuActionProps) => void;
   children: ReactNode;
   menuProps?: MenuProps;
+  title?: string;
 }
 
 const CommunityMenu = ({
   children,
   menuAction,
   menuProps,
+  title,
 }: CommunityMenuProps) => {
   const { communities } = useCommunityContext();
 
@@ -26,7 +28,7 @@ const CommunityMenu = ({
 
       <Menu.Dropdown>
         <Menu.Label fw="bold" fz="md" sx={{ color: "white" }}>
-          Add to Community Watch List
+          {title ?? "Communities"}
         </Menu.Label>
         {communities.map((c) => (
           <Menu.Item
