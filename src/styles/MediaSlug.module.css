@@ -1,0 +1,16 @@
+.inlineList {
+  display: inline;
+  inlineList-style: none;
+}
+
+.inlineList li {
+  display: inline;
+}
+
+.inlineList li:after {
+  content: " • ";
+}
+
+.inlineList li:last-child:after {
+    content: "";
+}

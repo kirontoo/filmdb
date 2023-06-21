@@ -1,3 +1,5 @@
+import styles from "@/styles/MediaSlug.module.css";
+
 import {
   Anchor,
   Stack,
@@ -12,21 +14,26 @@ import {
   Badge,
   rem,
   Space,
+  Divider,
 } from "@mantine/core";
 import format from "date-format";
 import Link from "next/link";
 import { buildTMDBQuery, getTMDBShowcaseImageUrl } from "@/lib/tmdb";
-import { TMDBMedia } from "@/lib/types";
+import { TMDBCast, TMDBCrew, TMDBMedia } from "@/lib/types";
 import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
-import { AddMediaButton, CommunityMenu, NothingFoundBackground } from "@/components";
+import {
+  AddMediaButton,
+  CommunityMenu,
+  NothingFoundBackground,
+} from "@/components";
 import { useSession } from "next-auth/react";
 import { CommunityMenuActionProps } from "@/components/CommunityMenu";
 import Notify from "@/lib/notify";
 import { useState } from "react";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { formatDuration } from "@/lib/util";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPointFilled } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   mediaContainer: {
@@ -56,6 +63,14 @@ const useStyles = createStyles((theme) => ({
       height: "50%",
     },
     backgroundColor: theme.black,
+  },
+
+  list: {
+    display: "flex",
+    flexFlow: "wrap",
+    ["list.li + li::before"]: {
+      content: '" | "',
+    },
   },
 
   overlay: {
@@ -103,9 +118,16 @@ interface MediaWithCertifications extends TMDBMedia {
       rating: string;
     }>;
   };
+  credits: {
+    cast: Array<TMDBCast>;
+    crew: Array<TMDBCrew>;
+  };
 }
 
 const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
+  const director = media.credits.crew.find(
+    (p) => p.known_for_department === "Directing"
+  );
   const { classes } = useStyles();
   const { status } = useSession();
   const [loadingQueueBtn, setLoadingQueueBtn] = useState<boolean>(false);
@@ -209,36 +231,62 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
             </div>
             <Container className={classes.mediaContainer}>
               <Stack spacing="sm" p="1rem">
-                <Title order={1}>{media.title ?? media.name}</Title>
+                <Group position="apart">
+                  <Title order={1}>{media.title ?? media.name}</Title>
+                  <AddMediaButton
+                    media={media}
+                    menuProps={{ position: "top-end" }}
+                  />
+                </Group>
                 <div>
-                  <Group position="apart">
-                    <Group>
-                      <Badge
-                        variant="outline"
-                        radius="xs"
-                        className={classes.certification}
-                      >
-                        {certification}
-                      </Badge>
-                      <Text>
-                        {media.release_date || media.first_air_date
-                          ? format(
-                              "yyyy",
-                              new Date(
-                                media.release_date ?? media.first_air_date
-                              )
-                            )
-                          : "Release Date: N/A"}
-                      </Text>
-                      <Text>{isMovie && formatDuration(media.runtime!)}</Text>
-                    </Group>
-
-                    <AddMediaButton media={media} menuProps={{position: "top-end"}}/>
+                  <Group spacing="sm">
+                    <Badge
+                      variant="outline"
+                      radius="xs"
+                      className={classes.certification}
+                    >
+                      {certification}
+                    </Badge>
+                    <IconPointFilled size="0.6rem" role="separator" />
+                    <Text>
+                      {media.release_date || media.first_air_date
+                        ? format(
+                            "yyyy",
+                            new Date(media.release_date ?? media.first_air_date)
+                          )
+                        : "Release Date: N/A"}
+                    </Text>
+                    <IconPointFilled size="0.6rem" role="separator" />
+                    <Text>{isMovie && formatDuration(media.runtime!)}</Text>
                   </Group>
+
                   <Space h="xs" />
                   <Text>{media.genres.map((g) => g.name).join(", ")}</Text>
                 </div>
+                <Title order={2} fz="lg">
+                  Overview
+                </Title>
                 <Text component="p">{media.overview}</Text>
+
+                <Divider />
+
+                <Title order={2} fz="lg">
+                  Cast
+                </Title>
+
+                <ul className={styles.inlineList}>
+                  {media.credits.cast.map((p) => {
+                    return <li>{p.name}</li>;
+                  })}
+                </ul>
+
+                <Divider />
+
+                <Title order={2} fz="lg">
+                  Director
+                </Title>
+                <Text>{director?.name || "unknown"}</Text>
+
                 <Flex gap="sm">
                   {status !== "authenticated" && (
                     <Anchor component={Link} href="/api/auth/signin">
@@ -290,7 +338,7 @@ export async function getServerSideProps({ query }: GetServerSidePropsContext) {
   const slug = query.slug;
   const queryStr = `append_to_response=${
     slug![0] === "movie" ? "release_dates" : "content_ratings"
-  }`;
+  },credits`;
   const url = buildTMDBQuery(`${slug![0]}/${slug![1]}`, queryStr);
   const dataRes = await fetch(url);
   const data = await dataRes.json();
