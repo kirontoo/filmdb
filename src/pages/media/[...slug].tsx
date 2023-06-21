@@ -12,9 +12,10 @@ import {
   Container,
   Flex,
   Badge,
-  rem,
   Space,
   Divider,
+  Menu,
+  ActionIcon,
 } from "@mantine/core";
 import format from "date-format";
 import Link from "next/link";
@@ -33,7 +34,12 @@ import Notify from "@/lib/notify";
 import { useState } from "react";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { formatDuration } from "@/lib/util";
-import { IconPointFilled } from "@tabler/icons-react";
+import {
+  IconCalendarPlus,
+  IconDotsVertical,
+  IconHistory,
+  IconPointFilled,
+} from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   mediaContainer: {
@@ -233,10 +239,30 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
               <Stack spacing="sm" p="1rem">
                 <Group position="apart">
                   <Title order={1}>{media.title ?? media.name}</Title>
-                  <AddMediaButton
-                    media={media}
-                    menuProps={{ position: "top-end" }}
-                  />
+                  <Group>
+                    <AddMediaButton
+                      media={media}
+                      menuProps={{ position: "top-end" }}
+                    />
+
+                    {status == "authenticated" && (
+                      <Menu position="top-end">
+                        <Menu.Target>
+                          <ActionIcon variant="outline" radius="xl">
+                            <IconDotsVertical />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item icon={<IconHistory />}>
+                            Add to watched list
+                          </Menu.Item>
+                          <Menu.Item icon={<IconCalendarPlus />}>
+                            Schedule watch party
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    )}
+                  </Group>
                 </Group>
                 <div>
                   <Group spacing="sm">
@@ -256,8 +282,12 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                           )
                         : "Release Date: N/A"}
                     </Text>
-                    <IconPointFilled size="0.6rem" role="separator" />
-                    <Text>{isMovie && formatDuration(media.runtime!)}</Text>
+                    {isMovie && (
+                      <>
+                        <IconPointFilled size="0.6rem" role="separator" />
+                        <Text>{formatDuration(media.runtime!)}</Text>
+                      </>
+                    )}
                   </Group>
 
                   <Space h="xs" />

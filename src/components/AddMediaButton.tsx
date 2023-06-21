@@ -4,7 +4,6 @@ import { useState } from "react";
 import CommunityMenu, { CommunityMenuActionProps } from "./CommunityMenu";
 import { TMDBMedia } from "@/lib/types";
 import Notify from "@/lib/notify";
-import { useCommunityContext } from "@/context/CommunityProvider";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
