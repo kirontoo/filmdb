@@ -50,9 +50,7 @@ export default function AddMediaButton({
   const [opened, setOpened] = useState(false);
   const [loading, setLoading] = useState(false);
   const { classes } = useStyles();
-  const { currentCommunity } = useCommunityContext();
   const { data: session } = useSession();
-  const userId: string | null = session ? session!.user!.id : null;
 
   const addToList = async (
     media: TMDBMedia,
@@ -112,6 +110,7 @@ export default function AddMediaButton({
           transitionProps: { transition: "scale", duration: 200 },
           ...menuProps,
         }}
+        title="Add to Community Queue:"
         menuAction={(c: CommunityMenuActionProps) => addToList(media, c, false)}
       >
         <Button
