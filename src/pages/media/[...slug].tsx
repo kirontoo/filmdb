@@ -71,14 +71,6 @@ const useStyles = createStyles((theme) => ({
     backgroundColor: theme.black,
   },
 
-  list: {
-    display: "flex",
-    flexFlow: "wrap",
-    ["list.li + li::before"]: {
-      content: '" | "',
-    },
-  },
-
   overlay: {
     position: "absolute",
     left: 0,
@@ -304,7 +296,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
 
                 <ul className={styles.inlineList}>
                   {media.credits.cast.map((p) => {
-                    return <li>{p.name}</li>;
+                    return <li key={p.id}>{p.name}</li>;
                   })}
                 </ul>
 
