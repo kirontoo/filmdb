@@ -1,7 +1,6 @@
 import Head from "next/head";
 
 import useSwr from "swr";
-import format from "date-format";
 import { useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -29,6 +28,7 @@ import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { Carousel } from "@mantine/carousel";
 import { useSession } from "next-auth/react";
 import { AddMediaButton } from "@/components";
+import dayjs from "dayjs";
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -199,7 +199,7 @@ export default function Home() {
                   </div>
                   <Group>
                     <Text>
-                      {format("yyyy", new Date(showcasedMedia!.release_date))}
+                      {dayjs(showcasedMedia!.release_date).format("YYYY")}
                     </Text>
                     <Button
                       size="sm"

@@ -73,9 +73,6 @@ dependencies:
   bson:
     specifier: ^5.3.0
     version: 5.3.0
-  date-format:
-    specifier: ^4.0.14
-    version: 4.0.14
   dayjs:
     specifier: ^1.11.7
     version: 1.11.7
@@ -1920,11 +1917,6 @@ packages:
 
   /dash-get@1.0.2:
     resolution: {integrity: sha512-4FbVrHDwfOASx7uQVxeiCTo7ggSdYZbqs8lH+WU6ViypPlDbe9y6IP5VVUDQBv9DcnyaiPT5XT0UWHgJ64zLeQ==}
-    dev: false
-
-  /date-format@4.0.14:
-    resolution: {integrity: sha512-39BOQLs9ZjKh0/patS9nrT8wc3ioX3/eA/zgbKNopnF2wCqJEoxywwwElATYvRsXdnOxA/OQeQoFZ3rFjVajhg==}
-    engines: {node: '>=4.0'}
     dev: false
 
   /dayjs@1.11.7:

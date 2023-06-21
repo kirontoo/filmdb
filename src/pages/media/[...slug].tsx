@@ -17,7 +17,6 @@ import {
   Menu,
   ActionIcon,
 } from "@mantine/core";
-import format from "date-format";
 import Link from "next/link";
 import { buildTMDBQuery, getTMDBShowcaseImageUrl } from "@/lib/tmdb";
 import { TMDBCast, TMDBCrew, TMDBMedia } from "@/lib/types";
@@ -40,6 +39,7 @@ import {
   IconHistory,
   IconPointFilled,
 } from "@tabler/icons-react";
+import dayjs from "dayjs";
 
 const useStyles = createStyles((theme) => ({
   mediaContainer: {
@@ -275,10 +275,9 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                   <IconPointFilled size="0.6rem" role="separator" />
                   <Text>
                     {media.release_date || media.first_air_date
-                      ? format(
-                          "yyyy",
-                          new Date(media.release_date ?? media.first_air_date)
-                        )
+                      ? dayjs(
+                          media.release_date ?? media.first_air_date
+                        ).format("YYYY")
                       : "Release Date: N/A"}
                   </Text>
                   {isMovie && (
