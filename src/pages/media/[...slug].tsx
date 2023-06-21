@@ -216,7 +216,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
   return (
     <>
       <Head>
-        <title>FilmDB | {`${media.name ?? media.title}`}</title>
+        <title>{`${media.name ?? media.title}`} | FilmDB </title>
       </Head>
       <>
         {media ? (
@@ -264,35 +264,34 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                     )}
                   </Group>
                 </Group>
-                <div>
-                  <Group spacing="sm">
-                    <Badge
-                      variant="outline"
-                      radius="xs"
-                      className={classes.certification}
-                    >
-                      {certification}
-                    </Badge>
-                    <IconPointFilled size="0.6rem" role="separator" />
-                    <Text>
-                      {media.release_date || media.first_air_date
-                        ? format(
-                            "yyyy",
-                            new Date(media.release_date ?? media.first_air_date)
-                          )
-                        : "Release Date: N/A"}
-                    </Text>
-                    {isMovie && (
-                      <>
-                        <IconPointFilled size="0.6rem" role="separator" />
-                        <Text>{formatDuration(media.runtime!)}</Text>
-                      </>
-                    )}
-                  </Group>
+                <Group spacing="sm">
+                  <Badge
+                    variant="outline"
+                    radius="xs"
+                    className={classes.certification}
+                  >
+                    {certification}
+                  </Badge>
+                  <IconPointFilled size="0.6rem" role="separator" />
+                  <Text>
+                    {media.release_date || media.first_air_date
+                      ? format(
+                          "yyyy",
+                          new Date(media.release_date ?? media.first_air_date)
+                        )
+                      : "Release Date: N/A"}
+                  </Text>
+                  {isMovie && (
+                    <>
+                      <IconPointFilled size="0.6rem" role="separator" />
+                      <Text>{formatDuration(media.runtime!)}</Text>
+                    </>
+                  )}
+                </Group>
 
-                  <Space h="xs" />
-                  <Text>{media.genres.map((g) => g.name).join(", ")}</Text>
-                </div>
+                <Text>{media.genres.map((g) => g.name).join(", ")}</Text>
+                <Space h="xs" />
+
                 <Title order={2} fz="lg">
                   Overview
                 </Title>
