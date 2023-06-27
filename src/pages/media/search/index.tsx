@@ -121,7 +121,6 @@ function SearchMedia() {
         const results = data.results.filter(
           (m: TMDBMedia) => m.media_type !== "person"
         );
-        console.log(results[0])
         if (results.length == 0) {
           setMedias(null);
           setTotalResults(0);
@@ -129,6 +128,7 @@ function SearchMedia() {
           setTotalPages(data.total_pages);
           setTotalResults(data.total_results);
           setMedias(results);
+          setNextPage(data.page + 1);
         }
       }
     } catch (e) {
@@ -141,10 +141,13 @@ function SearchMedia() {
     if (isLoading) {
       return;
     }
+    if (nextPage > totalPages) {
+      return;
+    }
     try {
       setIsLoading(true);
       const apiQuery = encodeURI(
-        `query=${searchInput}&page=${nextPage + 1}&include_adult=false`
+        `query=${searchInput}&page=${nextPage}&include_adult=false`
       );
       const url = buildTMDBQuery("search/multi", apiQuery);
       const res = await fetch(url);
@@ -154,12 +157,8 @@ function SearchMedia() {
         const results = data.results.filter(
           (m: TMDBMedia) => m.media_type !== "person"
         );
-        if (results.length == 0) {
-          setMedias(null);
-        } else {
-          if (nextPage < totalPages) {
-            setNextPage((prev: number) => prev + 1);
-          }
+        if (results.length > 0) {
+          setNextPage(data.page + 1);
           setMedias((prev: TMDBMedia[] | null) => {
             if (prev) {
               return [...prev, ...results];
@@ -225,9 +224,13 @@ function SearchMedia() {
                   key={m.id}
                   component={Link}
                   href={`/media/${m.media_type}/${m.id}`}
-                  image={m.poster_path ? `${TMDB_IMAGE_API_BASE_URL}/w${
-                    isDesktop ? "342" : "185"
-                  }/${m.poster_path}` : null}
+                  image={
+                    m.poster_path
+                      ? `${TMDB_IMAGE_API_BASE_URL}/w${
+                          isDesktop ? "342" : "185"
+                        }/${m.poster_path}`
+                      : null
+                  }
                 >
                   <MediaImageCardHeader>
                     <>
