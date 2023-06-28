@@ -85,6 +85,10 @@ const useStyles = createStyles((theme) => ({
     },
   },
 
+  menuDropdown: {
+    backgroundColor: theme.colors.gray[9],
+  },
+
   certification: {
     color: theme.colorScheme === "dark" ? theme.white : theme.black,
     borderColor: theme.colorScheme === "dark" ? theme.white : theme.black,
@@ -244,7 +248,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                             <IconDotsVertical />
                           </ActionIcon>
                         </Menu.Target>
-                        <Menu.Dropdown>
+                        <Menu.Dropdown className={classes.menuDropdown}>
                           <Menu.Item icon={<IconHistory />}>
                             Add to watched list
                           </Menu.Item>
