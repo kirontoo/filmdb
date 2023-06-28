@@ -34,7 +34,6 @@ import { useState } from "react";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { formatDuration } from "@/lib/util";
 import {
-  IconCalendarPlus,
   IconDotsVertical,
   IconHistory,
   IconPointFilled,
@@ -209,150 +208,147 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
     }
   };
 
+  if (!media) {
+    return <NothingFoundBackground />;
+  }
+
   return (
     <>
       <Head>
         <title>{`${media.name ?? media.title}`} | FilmDB </title>
       </Head>
       <>
-        {media ? (
-          <>
-            <div className={classes.imgContainer}>
-              <Container>
-                <Image
-                  src={getTMDBShowcaseImageUrl(
-                    isDesktop
-                      ? (media.backdrop_path as string)
-                      : (media.poster_path as string),
-                    isDesktop
-                  )}
-                  alt={`${media.title ?? media.name} poster`}
-                />
-                <div className={classes.overlay} />
-              </Container>
-            </div>
-            <Container className={classes.mediaContainer}>
-              <Stack spacing="sm" p="1rem">
-                <Group position="apart">
-                  <Title order={1}>{media.title ?? media.name}</Title>
-                  <Group>
-                    <AddMediaButton
-                      media={media}
-                      menuProps={{ position: "top-end" }}
-                    />
-
-                    {status == "authenticated" && (
-                      <Menu position="top-end">
-                        <Menu.Target>
-                          <ActionIcon variant="outline" radius="xl">
-                            <IconDotsVertical />
-                          </ActionIcon>
-                        </Menu.Target>
-                        <Menu.Dropdown className={classes.menuDropdown}>
-                          <Menu.Item icon={<IconHistory />}>
-                            Add to watched list
-                          </Menu.Item>
-                          <Menu.Item icon={<IconCalendarPlus />}>
-                            Schedule watch party
-                          </Menu.Item>
-                        </Menu.Dropdown>
-                      </Menu>
-                    )}
-                  </Group>
-                </Group>
-                <Group spacing="sm">
-                  <Badge
-                    variant="outline"
-                    radius="xs"
-                    className={classes.certification}
-                  >
-                    {certification}
-                  </Badge>
-                  <IconPointFilled size="0.6rem" role="separator" />
-                  <Text>
-                    {media.release_date || media.first_air_date
-                      ? dayjs(
-                          media.release_date ?? media.first_air_date
-                        ).format("YYYY")
-                      : "Release Date: N/A"}
-                  </Text>
-                  {isMovie && (
-                    <>
-                      <IconPointFilled size="0.6rem" role="separator" />
-                      <Text>{formatDuration(media.runtime!)}</Text>
-                    </>
-                  )}
-                </Group>
-
-                <Text>{media.genres.map((g) => g.name).join(", ")}</Text>
-                <Space h="xs" />
-
-                <Title order={2} fz="lg">
-                  Overview
-                </Title>
-                <Text component="p">{media.overview}</Text>
-
-                <Divider />
-
-                <Title order={2} fz="lg">
-                  Cast
-                </Title>
-
-                <ul className={styles.inlineList}>
-                  {media.credits.cast.map((p) => {
-                    return <li key={p.id}>{p.name}</li>;
-                  })}
-                </ul>
-
-                <Divider />
-
-                <Title order={2} fz="lg">
-                  Director
-                </Title>
-                <Text>{director?.name || "unknown"}</Text>
-
-                <Flex gap="sm">
-                  {status !== "authenticated" && (
-                    <Anchor component={Link} href="/api/auth/signin">
-                      Log in to add {!isMovie ? "tv show" : media.media_type} to
-                      list
-                    </Anchor>
-                  )}
-                  {status == "authenticated" && (
-                    <>
-                      <CommunityMenu
-                        menuAction={(c: CommunityMenuActionProps) =>
-                          addToList(media, c, false)
-                        }
-                      >
-                        <Button
-                          className={classes.addBtn}
-                          loading={loadingQueueBtn}
-                        >
-                          Add to queue
-                        </Button>
-                      </CommunityMenu>
-                      <CommunityMenu
-                        menuAction={(c: CommunityMenuActionProps) =>
-                          addToList(media, c, true)
-                        }
-                      >
-                        <Button
-                          className={classes.addBtn}
-                          loading={loadingWatchedBtn}
-                        >
-                          Add to watchedlist
-                        </Button>
-                      </CommunityMenu>
-                    </>
-                  )}
-                </Flex>
-              </Stack>
+        <>
+          <div className={classes.imgContainer}>
+            <Container>
+              <Image
+                src={getTMDBShowcaseImageUrl(
+                  isDesktop
+                    ? (media.backdrop_path as string)
+                    : (media.poster_path as string),
+                  isDesktop
+                )}
+                alt={`${media.title ?? media.name} poster`}
+              />
+              <div className={classes.overlay} />
             </Container>
-          </>
-        ) : (
-          <NothingFoundBackground />
-        )}
+          </div>
+          <Container className={classes.mediaContainer}>
+            <Stack spacing="sm" p="1rem">
+              <Group position="apart">
+                <Title order={1}>{media.title ?? media.name}</Title>
+                <Group>
+                  <AddMediaButton
+                    media={media}
+                    menuProps={{ position: "top-end" }}
+                  />
+
+                  {status == "authenticated" && (
+                    <Menu position="top-end">
+                      <Menu.Target>
+                        <ActionIcon variant="outline" radius="xl">
+                          <IconDotsVertical />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown className={classes.menuDropdown}>
+                        <Menu.Item icon={<IconHistory />}>
+                          Add to watched list
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  )}
+                </Group>
+              </Group>
+              <Group spacing="sm">
+                <Badge
+                  variant="outline"
+                  radius="xs"
+                  className={classes.certification}
+                >
+                  {certification}
+                </Badge>
+                <IconPointFilled size="0.6rem" role="separator" />
+                <Text>
+                  {media.release_date || media.first_air_date
+                    ? dayjs(media.release_date ?? media.first_air_date).format(
+                        "YYYY"
+                      )
+                    : "Release Date: N/A"}
+                </Text>
+                {isMovie && (
+                  <>
+                    <IconPointFilled size="0.6rem" role="separator" />
+                    <Text>{formatDuration(media.runtime!)}</Text>
+                  </>
+                )}
+              </Group>
+
+              <Text>{media.genres.map((g) => g.name).join(", ")}</Text>
+              <Space h="xs" />
+
+              <Title order={2} fz="lg">
+                Overview
+              </Title>
+              <Text component="p">{media.overview}</Text>
+
+              <Divider />
+
+              <Title order={2} fz="lg">
+                Cast
+              </Title>
+
+              <ul className={styles.inlineList}>
+                {media.credits.cast.map((p) => {
+                  return <li key={p.id}>{p.name}</li>;
+                })}
+              </ul>
+
+              <Divider />
+
+              <Title order={2} fz="lg">
+                Director
+              </Title>
+              <Text>{director?.name || "unknown"}</Text>
+
+              <Flex gap="sm">
+                {status !== "authenticated" && (
+                  <Anchor component={Link} href="/api/auth/signin">
+                    Log in to add {!isMovie ? "tv show" : media.media_type} to
+                    list
+                  </Anchor>
+                )}
+                {status == "authenticated" && (
+                  <>
+                    <CommunityMenu
+                      menuAction={(c: CommunityMenuActionProps) =>
+                        addToList(media, c, false)
+                      }
+                    >
+                      <Button
+                        className={classes.addBtn}
+                        loading={loadingQueueBtn}
+                      >
+                        Add to queue
+                      </Button>
+                    </CommunityMenu>
+                    <CommunityMenu
+                      menuAction={(c: CommunityMenuActionProps) =>
+                        addToList(media, c, true)
+                      }
+                    >
+                      <Button
+                        className={classes.addBtn}
+                        loading={loadingWatchedBtn}
+                      >
+                        Add to watchedlist
+                      </Button>
+                    </CommunityMenu>
+                  </>
+                )}
+              </Flex>
+            </Stack>
+          </Container>
+        </>
       </>
     </>
   );
