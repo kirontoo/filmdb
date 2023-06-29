@@ -308,7 +308,7 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
               <Title order={2} fz="lg">
                 Director
               </Title>
-              <Text>{director?.name || "unknown"}</Text>
+              <Text>{director?.name || "N/A"}</Text>
 
               <Flex gap="sm">
                 {status !== "authenticated" && (
