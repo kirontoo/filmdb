@@ -19,6 +19,7 @@ export default function Layout({ links, children }: LayoutProps) {
       <main className="main">
         <LoadingOverlay visible={isLoading} overlayBlur={2} />
         {children}
+        <div className="violet-fade" />
       </main>
       <footer>
         <Footer />
