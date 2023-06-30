@@ -28,6 +28,7 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { useDebouncedValue, useInputState } from "@mantine/hooks";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
+import useAsyncFn from "@/lib/hooks/useAsyncFn";
 
 const useStyles = createStyles((theme) => ({
   mediaTitle: {
@@ -60,6 +61,36 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+async function searchMedia({
+  query,
+  page = 1,
+}: {
+  query: string;
+  page: number;
+}): Promise<{
+  results: TMDBMedia[];
+  total_pages: number;
+  total_results: number;
+  page: number;
+}> {
+  try {
+    const apiQuery = encodeURI(
+      `query=${query}&page=${page}&include_adult=false`
+    );
+    const url = buildTMDBQuery("search/multi", apiQuery);
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (res.ok) {
+      return data;
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    return await Promise.reject(error ?? "Error");
+  }
+}
+
 function SearchMedia() {
   const router = useRouter();
   const { query } = router;
@@ -67,7 +98,6 @@ function SearchMedia() {
   const [medias, setMedias] = useState<TMDBMedia[] | null>([]);
   const [searchInput, setSearchInput] = useInputState("");
   const [debouncedSearchInput, cancel] = useDebouncedValue(searchInput, 300);
-  const [isLoading, setIsLoading] = useState(false);
   const isDesktop = useIsDesktopDevice();
   const theme = useMantineTheme();
   const [mounted, setMounted] = useState(false);
@@ -76,13 +106,15 @@ function SearchMedia() {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [totalResults, setTotalResults] = useState<number>(0);
 
+  const searchMediaFn = useAsyncFn(searchMedia);
+
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const { media } = query;
     const input = Array.isArray(media) ? media[0] : media;
     if (input) {
-      searchMedias(input);
+      onSearchMedias(input);
 
       // update search input to match url query
       if (input !== searchInput) {
@@ -106,73 +138,60 @@ function SearchMedia() {
     }
   }, [debouncedSearchInput]);
 
-  const searchMedias = async (input: string) => {
-    if (isLoading) {
+
+  const onSearchMedias = async (input: string) => {
+    if (searchMediaFn.loading) {
       return;
     }
     try {
-      setIsLoading(true);
-      const apiQuery = encodeURI(`query=${input}&page=1&include_adult=false`);
-      const url = buildTMDBQuery("search/multi", apiQuery);
-      const res = await fetch(url);
-
-      if (res.ok) {
-        const data = await res.json();
-        const results = data.results.filter(
-          (m: TMDBMedia) => m.media_type !== "person"
-        );
-        if (results.length == 0) {
-          setMedias(null);
-          setTotalResults(0);
-        } else {
-          setTotalPages(data.total_pages);
-          setTotalResults(data.total_results);
-          setMedias(results);
-          setNextPage(data.page + 1);
-        }
+      const data = await searchMediaFn.execute({ query: input });
+      const results = data.results.filter(
+        (m: TMDBMedia) => m.media_type !== "person"
+      );
+      if (results.length == 0) {
+        // no results, clear data
+        setMedias(null);
+        setTotalResults(0);
+      } else {
+        setTotalPages(data.total_pages);
+        setTotalResults(data.total_results);
+        setMedias(results);
+        setNextPage(data.page + 1);
       }
-    } catch (e) {
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (error) {}
   };
 
-  const loadMoreMedia = useCallback(async () => {
-    if (isLoading) {
+  const onLoadMoreMedia = useCallback(async () => {
+    if (searchMediaFn.loading) {
       return;
     }
+
     if (nextPage > totalPages) {
       return;
     }
-    try {
-      setIsLoading(true);
-      const apiQuery = encodeURI(
-        `query=${searchInput}&page=${nextPage}&include_adult=false`
-      );
-      const url = buildTMDBQuery("search/multi", apiQuery);
-      const res = await fetch(url);
 
-      if (res.ok) {
-        const data = await res.json();
-        const results = data.results.filter(
-          (m: TMDBMedia) => m.media_type !== "person"
-        );
-        if (results.length > 0) {
-          setNextPage(data.page + 1);
-          setMedias((prev: TMDBMedia[] | null) => {
-            if (prev) {
-              return [...prev, ...results];
-            } else {
-              return results;
-            }
-          });
-        }
+    try {
+      const data = await searchMediaFn.execute({
+        query: searchInput,
+        page: nextPage,
+      });
+
+      const results = data.results.filter(
+        (m: TMDBMedia) => m.media_type !== "person"
+      );
+
+      if (results.length > 0) {
+        setNextPage(data.page + 1);
+        setMedias((prev: TMDBMedia[] | null) => {
+          if (prev) {
+            return [...prev, ...results];
+          } else {
+            return results;
+          }
+        });
       }
-    } catch (e) {
-    } finally {
-      setIsLoading(false);
-    }
-  }, [medias, isLoading, nextPage]);
+    } catch (e) {}
+  }, [medias, searchMediaFn.loading, nextPage]);
 
   const SkeletonLoader = () => {
     return (
@@ -206,7 +225,7 @@ function SearchMedia() {
       medias && (
         <InfiniteScroll
           pageStart={1}
-          loadMore={loadMoreMedia}
+          loadMore={onLoadMoreMedia}
           hasMore={nextPage <= totalPages}
           initialLoad={false}
           loader={<SkeletonLoader />}
@@ -274,7 +293,7 @@ function SearchMedia() {
                 onChange={setSearchInput}
                 icon={<IconSearch size="1.1rem" stroke={1.5} />}
                 placeholder="Search for movies and shows"
-                rightSection={isLoading && <Loader size="xs" />}
+                rightSection={searchMediaFn.loading && <Loader size="xs" />}
                 autoFocus
               />
             )}
