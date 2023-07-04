@@ -25,7 +25,6 @@ import { Carousel } from "@mantine/carousel";
 import { modals } from "@mantine/modals";
 import { useCommunityContext } from "@/context/CommunityProvider";
 import { useRouter } from "next/router";
-import { useMediaContext } from "@/context/MediaProvider";
 import { useSession } from "next-auth/react";
 
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
@@ -52,7 +51,6 @@ function CommunityDashboard() {
   const { classes } = useStyles();
   const { setCurrentCommunity, currentCommunity, isFetching } =
     useCommunityContext();
-  const { setMedias, medias } = useMediaContext();
   const { slug } = router.query;
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
@@ -81,7 +79,18 @@ function CommunityDashboard() {
       const res = await fetch(`/api/community/${slug}/media`);
       const data = await res.json();
       if (res.ok) {
-        return data.data.medias;
+        const media = data.data.medias.sort((a: Media, b: Media) => {
+          const qA = a.queue ?? 0;
+          const qB = b.queue ?? 0;
+          if (qA < qB) {
+            return -1;
+          }
+          if (qA > qB) {
+            return 1;
+          }
+          return 0;
+        });
+        return media;
       } else {
         throw new Error(data.message);
       }
@@ -100,23 +109,10 @@ function CommunityDashboard() {
     try {
       const cSlug = Array.isArray(slug) ? slug[0] : slug;
       const medias = await fetchMediasFn.execute({ slug: cSlug });
-      let sorted = medias.sort((a: Media, b: Media) => {
-        const qA = a.queue ?? 0;
-        const qB = b.queue ?? 0;
-        if (qA < qB) {
-          return -1;
-        }
-        if (qA > qB) {
-          return 1;
-        }
-        return 0;
-      });
-      const upcoming = sorted.find((m: Media) => m.queue ?? 0 > 0) ?? null;
+
+      const upcoming = medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
       setUpcomingMedia(upcoming);
-      setMedias(sorted);
-    } catch (error) {
-      router.push("/404");
-    }
+    } catch (error) {}
   };
 
   const openMediaModal = (media: Media) => {
@@ -188,21 +184,22 @@ function CommunityDashboard() {
           },
         ]}
       >
-        {medias
-          .filter((m) => m.watched === watched)
-          .map((m) => (
-            <Carousel.Slide key={m.id}>
-              <UnstyledButton onClick={() => openMediaModal(m)}>
-                <Image
-                  radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
-                    isDesktop ? "342" : "185"
-                  }/${m.posterPath}`}
-                  alt={m.title}
-                />
-              </UnstyledButton>
-            </Carousel.Slide>
-          ))}
+        {fetchMediasFn.value &&
+          fetchMediasFn.value
+            .filter((m) => m.watched === watched)
+            .map((m) => (
+              <Carousel.Slide key={m.id}>
+                <UnstyledButton onClick={() => openMediaModal(m)}>
+                  <Image
+                    radius="sm"
+                    src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                      isDesktop ? "342" : "185"
+                    }/${m.posterPath}`}
+                    alt={m.title}
+                  />
+                </UnstyledButton>
+              </Carousel.Slide>
+            ))}
       </Carousel>
     );
   };
