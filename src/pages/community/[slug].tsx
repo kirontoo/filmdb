@@ -11,6 +11,9 @@ import {
   createStyles,
   Button,
   UnstyledButton,
+  LoadingOverlay,
+  Card,
+  Center,
 } from "@mantine/core";
 import Head from "next/head";
 import { AvatarMemberList } from "@/components";
@@ -23,11 +26,11 @@ import { modals } from "@mantine/modals";
 import { useCommunityContext } from "@/context/CommunityProvider";
 import { useRouter } from "next/router";
 import { useMediaContext } from "@/context/MediaProvider";
-import { useLoadingContext } from "@/context/LoadingProvider";
 import { useSession } from "next-auth/react";
 
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
+import useAsyncFn from "@/lib/hooks/useAsyncFn";
 
 const useStyles = createStyles((theme) => ({
   container: {
@@ -47,7 +50,6 @@ const useStyles = createStyles((theme) => ({
 function CommunityDashboard() {
   const router = useRouter();
   const { classes } = useStyles();
-  const { setLoading } = useLoadingContext();
   const { setCurrentCommunity, currentCommunity, isFetching } =
     useCommunityContext();
   const { setMedias, medias } = useMediaContext();
@@ -55,7 +57,7 @@ function CommunityDashboard() {
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
   const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
-    const communitySlug = Array.isArray(slug) ? slug[0] : slug;
+  const communitySlug = Array.isArray(slug) ? slug[0] : slug;
 
   useEffect(() => {
     if (currentCommunity && communitySlug) {
@@ -70,44 +72,52 @@ function CommunityDashboard() {
       if (communitySlug) {
         setCurrentCommunity(communitySlug);
       }
-      if (currentCommunity!.slug == communitySlug) {
-        loadData();
-      }
+      onLoadData();
     }
   }, [slug, session, isFetching]);
 
-  async function loadData() {
-    setLoading(true);
+  const fetchMedias = async ({ slug }: { slug: string }): Promise<Media[]> => {
     try {
-      if (communitySlug) {
-        const res = await fetch(`/api/community/${communitySlug}/media`);
-        if (res.ok) {
-          const { data } = await res.json();
-          const upcoming = data.medias.find((m: Media) => m.queue === 1);
-          setUpcomingMedia(upcoming);
-          setMedias(
-            data.medias.sort((a: Media, b: Media) => {
-              const qA = a.queue ?? 0;
-              const qB = b.queue ?? 0;
-              if (qA < qB) {
-                return -1;
-              }
-              if (qA > qB) {
-                return 1;
-              }
-              return 0;
-            })
-          );
-        } else {
-          throw new Error("community does not exist");
-        }
+      const res = await fetch(`/api/community/${slug}/media`);
+      const data = await res.json();
+      if (res.ok) {
+        return data.data.medias;
+      } else {
+        throw new Error(data.message);
       }
-    } catch (e) {
-      router.push("/404");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      return await Promise.reject(error ?? "Error");
     }
-  }
+  };
+
+  const fetchMediasFn = useAsyncFn(fetchMedias);
+
+  const onLoadData = async () => {
+    if (fetchMediasFn.loading) {
+      return;
+    }
+
+    try {
+      const cSlug = Array.isArray(slug) ? slug[0] : slug;
+      const medias = await fetchMediasFn.execute({ slug: cSlug });
+      let sorted = medias.sort((a: Media, b: Media) => {
+        const qA = a.queue ?? 0;
+        const qB = b.queue ?? 0;
+        if (qA < qB) {
+          return -1;
+        }
+        if (qA > qB) {
+          return 1;
+        }
+        return 0;
+      });
+      const upcoming = sorted.find((m: Media) => m.queue ?? 0 > 0) ?? null;
+      setUpcomingMedia(upcoming);
+      setMedias(sorted);
+    } catch (error) {
+      router.push("/404");
+    }
+  };
 
   const openMediaModal = (media: Media) => {
     modals.openContextModal({
@@ -201,6 +211,10 @@ function CommunityDashboard() {
     return <Text>Community does not exist</Text>;
   }
 
+  if (fetchMediasFn.loading) {
+    return <LoadingOverlay visible={fetchMediasFn.loading} overlayBlur={2} />;
+  }
+
   return (
     <>
       <Head>
@@ -220,7 +234,7 @@ function CommunityDashboard() {
               Upcoming
             </Title>
           </Group>
-          {upcomingMedia && (
+          {upcomingMedia ? (
             <div className={classes.mediaCard}>
               <UnstyledButton onClick={() => openMediaModal(upcomingMedia)}>
                 <Image
@@ -232,6 +246,12 @@ function CommunityDashboard() {
                 />
               </UnstyledButton>
             </div>
+          ) : (
+            <Card className={classes.mediaCard}>
+              <Center>
+                <Text>Add a movie to your queue!</Text>
+              </Center>
+            </Card>
           )}
 
           <Group position="apart">
