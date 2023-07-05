@@ -100,8 +100,14 @@ async function createRating(
 
     if (user) {
       const data = await prisma.$transaction(async () => {
-        const rating = await prisma.rating.create({
-          data: {
+        const rating = await prisma.rating.upsert({
+          where: {
+            userId_mediaId: {
+              userId: session!.user!.id,
+              mediaId: mId,
+            },
+          },
+          create: {
             value: rateValue,
             user: {
               connect: { id: session!.user!.id },
@@ -110,8 +116,11 @@ async function createRating(
               connect: { id: mId },
             },
           },
+          update: {
+            value: rateValue
+          }
         });
-
+       
         const avg = await prisma.rating.aggregate({
           where: {
             mediaId: mId,
