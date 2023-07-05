@@ -309,43 +309,6 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
                 Director
               </Title>
               <Text>{director?.name || "N/A"}</Text>
-
-              <Flex gap="sm">
-                {status !== "authenticated" && (
-                  <Anchor component={Link} href="/api/auth/signin">
-                    Log in to add {!isMovie ? "tv show" : media.media_type} to
-                    list
-                  </Anchor>
-                )}
-                {status == "authenticated" && (
-                  <>
-                    <CommunityMenu
-                      menuAction={(c: CommunityMenuActionProps) =>
-                        addToList(media, c, false)
-                      }
-                    >
-                      <Button
-                        className={classes.addBtn}
-                        loading={loadingQueueBtn}
-                      >
-                        Add to queue
-                      </Button>
-                    </CommunityMenu>
-                    <CommunityMenu
-                      menuAction={(c: CommunityMenuActionProps) =>
-                        addToList(media, c, true)
-                      }
-                    >
-                      <Button
-                        className={classes.addBtn}
-                        loading={loadingWatchedBtn}
-                      >
-                        Add to watchedlist
-                      </Button>
-                    </CommunityMenu>
-                  </>
-                )}
-              </Flex>
             </Stack>
           </Container>
         </>
