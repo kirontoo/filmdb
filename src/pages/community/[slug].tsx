@@ -30,6 +30,7 @@ import { useSession } from "next-auth/react";
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
+import { fetchMedias } from "@/services/medias";
 
 const useStyles = createStyles((theme) => ({
   container: {
@@ -74,31 +75,6 @@ function CommunityDashboard() {
     }
   }, [slug, session, isFetching]);
 
-  const fetchMedias = async ({ slug }: { slug: string }): Promise<Media[]> => {
-    try {
-      const res = await fetch(`/api/community/${slug}/media`);
-      const data = await res.json();
-      if (res.ok) {
-        const media = data.data.medias.sort((a: Media, b: Media) => {
-          const qA = a.queue ?? 0;
-          const qB = b.queue ?? 0;
-          if (qA < qB) {
-            return -1;
-          }
-          if (qA > qB) {
-            return 1;
-          }
-          return 0;
-        });
-        return media;
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (error) {
-      return await Promise.reject(error ?? "Error");
-    }
-  };
-
   const fetchMediasFn = useAsyncFn(fetchMedias);
 
   const onLoadData = async () => {
@@ -109,7 +85,6 @@ function CommunityDashboard() {
     try {
       const cSlug = Array.isArray(slug) ? slug[0] : slug;
       const medias = await fetchMediasFn.execute({ slug: cSlug });
-
       const upcoming = medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
       setUpcomingMedia(upcoming);
     } catch (error) {}
