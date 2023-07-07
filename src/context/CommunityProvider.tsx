@@ -20,8 +20,7 @@ interface CommunityState {
   communities: CommunityWithMembers[];
   currentCommunity: CommunityWithMembers | null;
   currentCommunityIndex: number;
-  isFetching: boolean;
-
+  getCommunity: (slug: string) => CommunityWithMembers | null;
   setCommunities: Dispatch<SetStateAction<CommunityWithMembers[]>>;
   setCurrentCommunityIndex: Dispatch<SetStateAction<number>>;
   setCurrentCommunity: (slug: string) => void;
@@ -37,7 +36,7 @@ export const CommunityContext = createContext<CommunityState>({
   communities: [],
   currentCommunity: null,
   currentCommunityIndex: -1,
-  isFetching: false,
+  getCommunity: (_: string) => null,
   setCommunities: () => null,
   addCommunity: () => null,
   setCurrentCommunityIndex: () => null,
@@ -62,7 +61,6 @@ export const useCommunityProvider = (): CommunityState => {
     useState<number>(-1);
   const { status } = useSession();
   const { setLoading } = useLoadingContext();
-  const [isFetching, setIsFetching] = useState<boolean>(true);
 
   useEffect(() => {
     setLoading(true);
@@ -80,7 +78,6 @@ export const useCommunityProvider = (): CommunityState => {
           resetCommunityContext();
         } finally {
           setLoading(false);
-          setIsFetching(false);
         }
       })();
     } else {
@@ -108,6 +105,19 @@ export const useCommunityProvider = (): CommunityState => {
 
     return communities[currentCommunityIndex];
   }, [currentCommunityIndex, communities]);
+
+  const getCommunity = (slug: string): CommunityWithMembers | null => {
+    if (communities.length === 0) {
+      return null;
+    }
+
+    const index = communities.findIndex((c) => c.slug == slug);
+    if (index === -1) {
+      return null;
+    }
+
+    return communities[index];
+  };
 
   const updateCommunityInfo = (
     id: string,
@@ -142,11 +152,11 @@ export const useCommunityProvider = (): CommunityState => {
     communities,
     currentCommunity,
     currentCommunityIndex,
+    getCommunity,
     setCommunities,
     setCurrentCommunityIndex,
     setCurrentCommunity,
     resetCommunityContext,
-    isFetching,
     updateCommunityInfo,
     addCommunity,
   };
