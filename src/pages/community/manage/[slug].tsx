@@ -17,10 +17,17 @@ import { useListState, useDisclosure } from "@mantine/hooks";
 import { Media, User } from "@prisma/client";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Notify from "@/lib/notify";
-import { useCommunityContext } from "@/context/CommunityProvider";
+import {
+  CommunityWithMembers,
+  useCommunityContext,
+} from "@/context/CommunityProvider";
 import Head from "next/head";
 import { CommunityForm } from "@/components";
 import { IconEdit } from "@tabler/icons-react";
+import { useSession } from "next-auth/react";
+import useAsyncFn from "@/lib/hooks/useAsyncFn";
+import { fetchMedias } from "@/services/medias";
+import { useLoadingContext } from "@/context/LoadingProvider";
 
 type MediaWithRequester = {
   requestedBy: User;
@@ -36,8 +43,9 @@ const useStyles = createStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     borderRadius: theme.radius.md,
-    border: `${rem(1)} solid ${theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.colors.gray[2]
-      }`,
+    border: `${rem(1)} solid ${
+      theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.colors.gray[2]
+    }`,
     padding: `${theme.spacing.sm} ${theme.spacing.xl}`,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.white,
@@ -60,9 +68,8 @@ const useStyles = createStyles((theme) => ({
 function ManageCommunitySlug() {
   const router = useRouter();
   const { slug } = router.query;
-  const [isLoading, setLoading] = useState<boolean>(false);
   const [savingQueue, setSavingQueue] = useState<boolean>(false);
-  const { currentCommunity } = useCommunityContext();
+  const { getCommunity } = useCommunityContext();
   const { classes, cx } = useStyles();
   const [queuedMedia, handlers] = useListState<MediaWithRequester>([]);
   const [openedQueueForm, { toggle: toggleQueueForm }] = useDisclosure(false);
@@ -70,35 +77,34 @@ function ManageCommunitySlug() {
     openedCommunityForm,
     { close: closeCommunityForm, toggle: toggleCommunityForm },
   ] = useDisclosure(false);
+  const { data: session } = useSession();
+  const fetchMediasFn = useAsyncFn(fetchMedias);
+  const { isLoading } = useLoadingContext();
+
+  const communitySlug = Array.isArray(slug) ? slug[0] : slug;
+  const [community, setCommunity] = useState<CommunityWithMembers | null>(
+    getCommunity(communitySlug!)
+  );
 
   useEffect(() => {
-    if (currentCommunity) {
-      router.push(`/community/manage/${currentCommunity.slug}`);
+    if (session && !isLoading) {
+      onLoadData();
     }
-  }, [currentCommunity]);
+  }, [slug, session, isLoading]);
 
-  useEffect(() => {
-    loadData();
-  }, [slug]);
-
-  async function loadData() {
-    setLoading(true);
+  async function onLoadData() {
     try {
-      const communitySlug = Array.isArray(slug) ? slug[0] : slug;
-      if (communitySlug) {
-        const res = await fetch(`/api/community/${communitySlug}/media`);
-        if (res.ok) {
-          const { data } = await res.json();
-          const media = data.medias.filter((m: Media) => !m.watched);
-          handlers.setState(media);
-        } else {
-          throw new Error("community does not exist");
-        }
+      const cSlug = Array.isArray(slug) ? slug[0] : slug;
+      if (cSlug) {
+        setCommunity(getCommunity(cSlug));
+        const medias = await fetchMediasFn.execute({ slug: cSlug });
+        const filteredMedia = medias.filter(
+          (m: Media) => !m.watched
+        ) as MediaWithRequester[];
+        handlers.setState(filteredMedia);
       }
     } catch (e) {
-      router.push("/404");
-    } finally {
-      setLoading(false);
+      console.log(e);
     }
   }
 
@@ -169,18 +175,18 @@ function ManageCommunitySlug() {
     );
   }
 
-  if (!currentCommunity) {
+  if (!community) {
     return <Text>Community does not exist</Text>;
   }
 
   return (
     <>
       <Head>
-        <title>{`${currentCommunity && currentCommunity.name}`} | FilmDB</title>
+        <title>{`${community && community.name}`} | FilmDB</title>
       </Head>
       <Container className={classes.container}>
         <Stack>
-          <Title tt="capitalize">{currentCommunity.name}</Title>
+          <Title tt="capitalize">{community.name}</Title>
           <Divider />
           <Group position="apart">
             <Title order={2} size="h3">
@@ -198,9 +204,9 @@ function ManageCommunitySlug() {
           <Box>
             <Collapse in={openedCommunityForm}>
               <CommunityForm
-                communityId={currentCommunity.id}
-                name={currentCommunity.name ?? ""}
-                description={currentCommunity.description ?? ""}
+                communityId={community.id}
+                name={community.name ?? ""}
+                description={community.description ?? ""}
                 onCancel={closeCommunityForm}
               />
             </Collapse>
@@ -221,8 +227,7 @@ function ManageCommunitySlug() {
             </Group>
 
             <Collapse in={openedQueueForm}>
-              <Divider mb="md" />
-              {!isLoading && (
+              {!fetchMediasFn.loading && (
                 <Container size="xs">
                   <DndList>{items}</DndList>
 

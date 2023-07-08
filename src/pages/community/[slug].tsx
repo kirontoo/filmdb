@@ -23,7 +23,10 @@ import { Media } from "@prisma/client";
 
 import { Carousel } from "@mantine/carousel";
 import { modals } from "@mantine/modals";
-import { useCommunityContext } from "@/context/CommunityProvider";
+import {
+  CommunityWithMembers,
+  useCommunityContext,
+} from "@/context/CommunityProvider";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 
@@ -31,6 +34,7 @@ import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
 import { fetchMedias } from "@/services/medias";
+import { useLoadingContext } from "@/context/LoadingProvider";
 
 const useStyles = createStyles((theme) => ({
   container: {
@@ -41,39 +45,36 @@ const useStyles = createStyles((theme) => ({
     [`@media (min-width:${theme.breakpoints.md})`]: {
       width: "27%",
     },
-    [`@media (max-width:${theme.breakpoints.md})`]: {
-      width: "29%",
-    },
   },
 }));
 
 function CommunityDashboard() {
   const router = useRouter();
   const { classes } = useStyles();
-  const { setCurrentCommunity, currentCommunity, isFetching } =
-    useCommunityContext();
+  const { getCommunity } = useCommunityContext();
+  const { isLoading } = useLoadingContext();
   const { slug } = router.query;
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
   const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
   const communitySlug = Array.isArray(slug) ? slug[0] : slug;
+  const [community, setCommunity] = useState<CommunityWithMembers | null>(
+    getCommunity(communitySlug!)
+  );
 
   useEffect(() => {
-    if (currentCommunity && communitySlug) {
-      if (currentCommunity.slug !== communitySlug) {
-        router.push(`/community/${currentCommunity.slug}`);
+    if (community && communitySlug) {
+      if (community.slug !== communitySlug) {
+        setCommunity(getCommunity(communitySlug));
       }
     }
-  }, [currentCommunity]);
+  }, [slug]);
 
   useEffect(() => {
-    if (session && !isFetching) {
-      if (communitySlug) {
-        setCurrentCommunity(communitySlug);
-      }
+    if (session && !isLoading) {
       onLoadData();
     }
-  }, [slug, session, isFetching]);
+  }, [slug, session, isLoading]);
 
   const fetchMediasFn = useAsyncFn(fetchMedias);
 
@@ -84,6 +85,7 @@ function CommunityDashboard() {
 
     try {
       const cSlug = Array.isArray(slug) ? slug[0] : slug;
+      setCommunity(getCommunity(cSlug!));
       const medias = await fetchMediasFn.execute({ slug: cSlug });
       const upcoming = medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
       setUpcomingMedia(upcoming);
@@ -95,7 +97,7 @@ function CommunityDashboard() {
       modal: "media",
       title: `${media.title}`,
       size: "xl",
-      innerProps: { media, communityId: currentCommunity!.id },
+      innerProps: { media, communityId: community!.id },
     });
   };
 
@@ -105,11 +107,9 @@ function CommunityDashboard() {
       children: (
         <>
           <Group>
-            <Text fz="xl">{currentCommunity!.inviteCode}</Text>
+            <Text fz="xl">{community!.inviteCode}</Text>
             <CopyButton
-              value={`${origin}/community/join?code=${
-                currentCommunity!.inviteCode
-              }`}
+              value={`${origin}/community/join?code=${community!.inviteCode}`}
               timeout={2000}
             >
               {({ copied, copy }) => (
@@ -179,24 +179,24 @@ function CommunityDashboard() {
     );
   };
 
-  if (!currentCommunity) {
+  if (!community) {
     return <Text>Community does not exist</Text>;
   }
 
-  if (fetchMediasFn.loading) {
+  if (fetchMediasFn.loading || isLoading) {
     return <LoadingOverlay visible={fetchMediasFn.loading} overlayBlur={2} />;
   }
 
   return (
     <>
       <Head>
-        <title>{`${currentCommunity && currentCommunity.name}`} | FilmDB</title>
+        <title>{`${community && community.name}`} | FilmDB</title>
       </Head>
       <Container>
         <Stack className={classes.container}>
-          <Title tt="capitalize">{currentCommunity.name}</Title>
+          <Title tt="capitalize">{community.name}</Title>
           <Group position="apart">
-            <AvatarMemberList members={currentCommunity.members} />
+            <AvatarMemberList members={community.members} />
             <Button compact onClick={openInviteModal}>
               Invite
             </Button>
