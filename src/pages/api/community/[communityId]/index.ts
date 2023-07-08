@@ -16,6 +16,7 @@ import {
 import { apiHandler } from "@/lib/apiHandler";
 import slugify from "slugify";
 import { getQueueCount } from "@/lib/apiUtil";
+import { ObjectId } from "bson";
 
 export default apiHandler({
   get: getCommunityById,
@@ -25,21 +26,37 @@ export default apiHandler({
 
 async function getCommunityById(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { id } = req.query;
+    const { communityId } = req.query;
     const session = await getServerSession(req, res, authOptions);
-    const communityId: string = Array.isArray(id) ? id[0] : id!;
+
+    let cId: string | null = Array.isArray(communityId)
+      ? communityId[0]
+      : communityId!;
+
+    let slug = null;
+    // if it's not a valid object id, then it's a slug
+    if (!ObjectId.isValid(cId)) {
+      slug = cId;
+      cId = null;
+    }
+
     const community = await prisma.community
       .findFirstOrThrow({
         where: {
-          id: communityId,
-          members: {
-            some: {
-              id: session!.user!.id,
-            },
-          },
+          AND: [
+            { OR: [{ id: cId || undefined }, { slug: slug || undefined }] },
+            { members: { some: { id: session!.user!.id } } },
+          ],
         },
         include: {
-          medias: true,
+          medias: {
+            orderBy: {
+              title: "asc",
+            },
+            include: {
+              requestedBy: true,
+            },
+          },
           members: {
             select: {
               name: true,
@@ -207,22 +224,22 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
       },
     });
   } catch (e) {
-  if (e instanceof PrismaClientKnownRequestError) {
-    const target = e.meta!["target"];
-    if (target == "medias_tmdbId_communityId_key") {
-      throw new APIError(`${title} has already been added`, QueryError);
+    if (e instanceof PrismaClientKnownRequestError) {
+      const target = e.meta!["target"];
+      if (target == "medias_tmdbId_communityId_key") {
+        throw new APIError(`${title} has already been added`, QueryError);
+      }
+
+      throw new APIError(`${title} could not be added`);
     }
 
-    throw new APIError(`${title} could not be added`);
-  }
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
 
-  if (e instanceof PrismaClientValidationError) {
-    throw new APIError(e.message, ValidationError);
+    return res.status(500).send({
+      status: "error",
+      message: "could not add media to community",
+    });
   }
-
-  return res.status(500).send({
-    status: "error",
-    message: "could not add media to community",
-  });
-}
 }
