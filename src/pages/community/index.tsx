@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { NothingFoundBackground } from "@/components";
 import { useCommunityContext } from "@/context/CommunityProvider";
+import { useLoadingContext } from "@/context/LoadingProvider";
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -50,9 +51,10 @@ function pickRandColor() {
 
 function CommunityPage() {
   const { classes } = useStyles();
-  const { communities, isFetching } = useCommunityContext();
+  const { communities } = useCommunityContext();
+  const { isLoading } = useLoadingContext();
 
-  if (isFetching) {
+  if (isLoading) {
     return null;
   }
 
