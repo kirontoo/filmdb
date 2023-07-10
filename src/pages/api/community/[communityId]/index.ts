@@ -195,7 +195,7 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
         },
         update: {
           watched: (watched as boolean) ?? undefined,
-          dateWatched: watchedPropExists ? new Date() : undefined,
+          watchedAt: watchedPropExists ? new Date() : undefined,
           queue: watchedPropExists && !req.body.watched ? queueCount + 1 : null,
         },
         create: {

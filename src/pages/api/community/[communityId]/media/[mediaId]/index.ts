@@ -113,7 +113,7 @@ async function updateMedia(req: NextApiRequest, res: NextApiResponse) {
         },
         data: {
           watched: body.watched,
-          dateWatched: watchedPropExists ? new Date() : undefined,
+          watchedAt: watchedPropExists ? new Date() : undefined,
           queue: watchedPropExists && !body.watched ? queueCount + 1 : null,
         },
       });
