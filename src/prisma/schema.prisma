@@ -79,7 +79,8 @@ model Media {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   tmdbId        String
   imdbId        String?
-  dateWatched   DateTime? @map("date_watched")
+  scheduledAt   DateTime? @map("schedulted_at")
+  watchedAt     DateTime? @map("watched_at")
   mediaType     MediaType @map("media_type")
   title         String
   posterPath    String?   @map("poster_path")
