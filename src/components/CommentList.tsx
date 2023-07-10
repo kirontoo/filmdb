@@ -73,12 +73,6 @@ function CommentList({ children }: CommentListProps) {
           ))}
         </>
       )}
-
-      <Group position="center">
-        <Button color={theme.primaryColor} tt="capitalize" variant="subtle">
-          View More Comments
-        </Button>
-      </Group>
     </Stack>
   );
 }

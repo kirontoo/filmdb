@@ -33,7 +33,7 @@ import {
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
-interface ProfileDrawerProps extends DrawerProps {}
+interface ProfileDrawerProps extends DrawerProps { }
 interface ProfileBtns {
   icon: Icon;
   label: string;
@@ -75,12 +75,6 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
       default: true,
     },
     {
-      icon: IconUser,
-      label: "Profile",
-      onClick: () => {},
-      default: false,
-    },
-    {
       icon: IconPencilPlus,
       label: "Create a Community",
       onClick: () => {
@@ -110,7 +104,7 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
     {
       icon: IconSettings,
       label: "Settings",
-      onClick: () => {},
+      onClick: () => { },
       default: false,
     },
     {
