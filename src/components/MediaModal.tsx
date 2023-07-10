@@ -30,15 +30,15 @@ import {
 import { TMDBMedia } from "@/lib/types";
 import { updateMedia } from "@/lib/util";
 import {
-  MediaWithRatingAndComments,
   useMediaContext,
 } from "@/context/MediaProvider";
 import { useDisclosure } from "@mantine/hooks";
 import { CommentList } from ".";
 import { CommentProvider } from "@/context/CommentProvider";
+import { Media } from "@prisma/client";
 
 interface MediaModalProps {
-  media: MediaWithRatingAndComments;
+  media: Media;
   communityId: string;
 }
 
@@ -213,17 +213,10 @@ export default function MediaModal({
 
     // api call
     try {
-      const alreadyRated = media.ratings.find((r) => r.mediaId == media.id);
-
-      let method = "POST";
-      if (alreadyRated) {
-        method = "PATCH";
-      }
-
       const res = await fetch(
         `/api/community/${media.communityId}/media/${media.id}/rating`,
         {
-          method,
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
