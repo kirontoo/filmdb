@@ -75,7 +75,6 @@ export default function AddMediaButton({
           "Content-Type": "application/json",
         },
       });
-      const { message } = await res.json();
 
       if (res.ok) {
         Notify.success(
@@ -85,7 +84,7 @@ export default function AddMediaButton({
           }`
         );
       } else {
-        Notify.error(`${community.name}`, `${message}`);
+        throw new Error('could not add to list')
       }
     } catch (e) {
       Notify.error(
