@@ -13,11 +13,6 @@ import {
   useMantineTheme,
   ActionIcon,
   rem,
-  Avatar,
-  UnstyledButton,
-  Collapse,
-  CloseButton,
-  Stack,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -27,7 +22,7 @@ import {
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
-import { LoginBtn, ProfileDrawer } from ".";
+import { LoginBtn, NavigationDrawer } from ".";
 import { useSession } from "next-auth/react";
 import { useCommunityContext } from "@/context/CommunityProvider";
 
@@ -107,20 +102,16 @@ interface HeaderSimpleProps {
 
 export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
-  const [opened, { close, toggle }] = useDisclosure(false);
-  const [
-    openedCommunityMenu,
-    { close: closeCommunityMenu, toggle: toggleCommunityMenu },
-  ] = useDisclosure(false);
+  const [openedNavDrawer, navDrawerController] = useDisclosure(false);
+  const [openedProfileDrawer, profileDrawerController] = useDisclosure(false);
+
   const [active, setActive] = useState(
     links !== undefined ? links[0].link : ""
   );
   const { classes, cx } = useStyles();
   const router = useRouter();
   const { data: session } = useSession();
-  // const [communities, setCommunities] = useState<CommunityLink[]>([]);
-  const { communities, currentCommunity, setCurrentCommunity } =
-    useCommunityContext();
+  const { communities } = useCommunityContext();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -151,8 +142,8 @@ export default function Navbar({ links }: HeaderSimpleProps) {
       <Container className={classes.header} size="xl">
         <Group>
           <Burger
-            opened={opened}
-            onClick={toggle}
+            opened={openedNavDrawer}
+            onClick={navDrawerController.toggle}
             className={classes.burger}
             size="sm"
           />
@@ -216,82 +207,19 @@ export default function Navbar({ links }: HeaderSimpleProps) {
             rightSectionWidth={42}
           />
 
-          <LoginBtn />
-
           <ActionIcon component={Link} href="/media/search">
             <IconSearch size="1.1rem" stroke={1.5} />
           </ActionIcon>
-          {session && (
-            <UnstyledButton onClick={toggleCommunityMenu}>
-              <Avatar radius="xl" color="violet.3">
-                {currentCommunity
-                  ? currentCommunity!.name[0].toUpperCase()
-                  : ""}
-              </Avatar>
-            </UnstyledButton>
-          )}
+
+          <LoginBtn />
         </Group>
       </Container>
 
-      <ProfileDrawer
-        opened={opened}
-        onClose={() => {
-          close();
-        }}
+      <NavigationDrawer
+        opened={openedNavDrawer}
+        onClose={navDrawerController.close}
         zIndex={1005}
       />
-
-      {session && (
-        <Collapse
-          in={openedCommunityMenu}
-          sx={{
-            background: "black",
-            zIndex: 200,
-            position: "relative",
-            padding: "1rem",
-          }}
-        >
-          <Stack spacing="sm">
-            <CloseButton
-              title="Close popover"
-              size="xl"
-              iconSize={30}
-              sx={{ alignSelf: "flex-end" }}
-              onClick={closeCommunityMenu}
-            />
-            {communities.map((c) => (
-              <UnstyledButton
-                key={c.id}
-                onClick={() => {
-                  setCurrentCommunity(c.slug);
-                  closeCommunityMenu();
-                }}
-              >
-                <Group>
-                  <Avatar
-                    color={
-                      c.name === currentCommunity!.name ? "violet.4" : "gray.5"
-                    }
-                    radius="xl"
-                  >
-                    {c.name[0].toUpperCase()}
-                  </Avatar>
-                  <Text
-                    color={
-                      c.name === currentCommunity!.name
-                        ? "violet.4"
-                        : theme.white
-                    }
-                    tt="capitalize"
-                  >
-                    {c.name}
-                  </Text>
-                </Group>
-              </UnstyledButton>
-            ))}
-          </Stack>
-        </Collapse>
-      )}
     </Header>
   );
 }

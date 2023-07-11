@@ -7,119 +7,33 @@ import {
   NavLink,
   Box,
   Flex,
-  Text,
-  rem,
   Avatar,
   Drawer,
   DrawerProps,
   Stack,
   Title,
-  UnstyledButton,
   createStyles,
   Divider,
 } from "@mantine/core";
-import {
-  Icon,
-  IconChevronDown,
-  IconGlobe,
-  IconInfoCircle,
-  IconLogin,
-  IconLogout,
-  IconMoodPlus,
-  IconPencilPlus,
-  IconSettings,
-  IconUser,
-  IconUsers,
-} from "@tabler/icons-react";
+import { IconLogin, IconLogout, IconMoodPlus } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
-interface ProfileDrawerProps extends DrawerProps { }
-interface ProfileBtns {
-  icon: Icon;
-  label: string;
-  onClick: () => void;
-  default: boolean;
-}
+interface ProfileDrawerProps extends DrawerProps {}
 
-const useStyles = createStyles((theme) => ({
-  communityButton: {
-    display: "flex",
-    alignItems: "center",
-    gap: rem(8),
-  },
+const useStyles = createStyles(() => ({
   drawer: {
     backgroundColor: "black",
     color: "white",
-  },
-
-  root: {
-    backgroundColor: "black",
   },
 }));
 
 function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
   const { data: session } = useSession();
   const { classes } = useStyles();
-  const { communities, currentCommunity, setCurrentCommunity } =
-    useCommunityContext();
+  const { communities, currentCommunity } = useCommunityContext();
   const router = useRouter();
 
-  const btns: ProfileBtns[] = [
-    {
-      icon: IconGlobe,
-      label: "Discover",
-      onClick: () => {
-        router.push("/");
-        onClose();
-      },
-      default: true,
-    },
-    {
-      icon: IconPencilPlus,
-      label: "Create a Community",
-      onClick: () => {
-        router.push("/community/new");
-        onClose();
-      },
-      default: true,
-    },
-    {
-      icon: IconUsers,
-      label: "Manage Communities",
-      onClick: () => {
-        router.push("/community");
-        onClose();
-      },
-      default: false,
-    },
-    {
-      icon: IconMoodPlus,
-      label: "Join a Community",
-      onClick: () => {
-        router.push("/community/join");
-        onClose();
-      },
-      default: true,
-    },
-    {
-      icon: IconSettings,
-      label: "Settings",
-      onClick: () => { },
-      default: false,
-    },
-    {
-      icon: IconLogout,
-      label: "Log Out",
-      onClick: () => {
-        signOut({ callbackUrl: "/auth/signin" });
-        onClose();
-      },
-      default: false,
-    },
-  ];
-
   const DrawerTitle = ({
-    communityName: community,
     name,
     image,
   }: {
@@ -143,15 +57,9 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         <Box>
           {session && (
             <>
-              <Title>Welcome {name.split(" ")[0]}</Title>
+              <Title>{name}</Title>
             </>
           )}
-          <UnstyledButton className={classes.communityButton}>
-            <Text size="xs" tt="capitalize">
-              {community && community.name}&apos;s Watch Party
-            </Text>
-            <IconChevronDown size="1.1rem" />
-          </UnstyledButton>
         </Box>
       </Flex>
     );
@@ -182,32 +90,46 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
         closeButtonProps={{ "aria-label": "Close profile modal", iconSize: 32 }}
       >
         <Stack justify="space-between">
-          {btns.map((b) => {
-            if (b.default == true) {
-              return (
-                <NavLink
-                  sx={{ color: "white" }}
-                  key={b.label}
-                  label={b.label}
-                  icon={<b.icon />}
-                  onClick={b.onClick}
-                />
-              );
-            } else {
-              if (session) {
-                return (
-                  <NavLink
-                    sx={{ color: "white" }}
-                    key={b.label}
-                    label={b.label}
-                    icon={<b.icon />}
-                    onClick={b.onClick}
-                  />
-                );
+          <Divider />
+          <Title order={2} fz="md">
+            My Groups
+          </Title>
+          {communities.map((c) => (
+            <NavLink
+              key={c.id}
+              icon={
+                <Avatar color="gray" radius="xl" size="sm" variant="outline">
+                  {c.name[0].toUpperCase()}
+                </Avatar>
               }
-            }
-          })}
-          {!session && (
+              label={c.name}
+              onClick={() => {
+                router.push(`/community/${c.slug}`);
+                onClose();
+              }}
+            />
+          ))}
+          <NavLink
+            icon={<IconMoodPlus />}
+            label="Join a Community"
+            onClick={() => {
+              router.push("/community/join");
+              onClose();
+            }}
+          />
+          <Divider />
+
+          {session ? (
+            <NavLink
+              sx={{ color: "white" }}
+              label="Logout"
+              icon={<IconLogout />}
+              onClick={() => {
+                signOut({ callbackUrl: "/auth/signin" });
+                onClose();
+              }}
+            />
+          ) : (
             <NavLink
               sx={{ color: "white" }}
               label="Login"
@@ -218,12 +140,6 @@ function ProfileDrawer({ opened, onClose, ...rest }: ProfileDrawerProps) {
               }}
             />
           )}
-          <Divider />
-          <NavLink
-            sx={{ color: "white" }}
-            label="About us"
-            icon={<IconInfoCircle />}
-          />
         </Stack>
       </Drawer>
     </>

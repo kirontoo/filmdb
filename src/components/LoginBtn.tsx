@@ -11,6 +11,8 @@ import {
 } from "@mantine/core";
 import { IconLogout, IconChevronDown } from "@tabler/icons-react";
 import { useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import ProfileDrawer from "./ProfileDrawer";
 
 const useStyles = createStyles((theme) => ({
   user: {
@@ -43,52 +45,25 @@ export default function LoginBtn() {
   const { data: session } = useSession();
   const { classes, cx } = useStyles();
 
-  const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const [openedProfileDrawer, profileDrawerController] = useDisclosure(false);
 
   if (session) {
     return (
       <>
-        <Menu
-          width={260}
-          position="bottom-end"
-          transitionProps={{ transition: "pop-top-right" }}
-          onClose={() => setUserMenuOpened(false)}
-          onOpen={() => setUserMenuOpened(true)}
-        >
-          <Menu.Target>
-            <UnstyledButton
-              className={cx(classes.user, {
-                [classes.userActive]: userMenuOpened,
-              })}
-            >
-              <Group spacing={7}>
-                <Avatar
-                  src={session.user?.image}
-                  alt={session.user?.name ?? ""}
-                  radius="xl"
-                  size={30}
-                />
-                <Text weight={500} size="sm" sx={{ lineHeight: 1 }} mr={3}>
-                  {session.user?.name}
-                </Text>
-                <IconChevronDown size={rem(12)} stroke={1.5} />
-              </Group>
-            </UnstyledButton>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item
-              icon={<IconLogout size="0.9rem" stroke={1.5} />}
-              onClick={() =>
-                signOut({ callbackUrl: `${origin}`})
-              }
-            >
-              Logout
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+        <UnstyledButton onClick={profileDrawerController.toggle}>
+          <Avatar src={session!.user?.image} size="sm" />
+        </UnstyledButton>
+
+        <ProfileDrawer
+          opened={openedProfileDrawer}
+          onClose={profileDrawerController.close}
+          zIndex={1005}
+          position="right"
+        />
       </>
     );
   }
+
   return (
     <>
       <Button className={classes.button} onClick={() => signIn()}>
