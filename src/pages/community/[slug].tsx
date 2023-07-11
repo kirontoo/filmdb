@@ -226,23 +226,13 @@ function CommunityDashboard() {
             </Card>
           )}
 
-          <Group position="apart">
-            <Title order={2} size="h3">
-              Watching Next
-            </Title>
-            <Button compact variant="subtle" color="gray">
-              see more
-            </Button>
-          </Group>
+          <Title order={2} size="h3">
+            Watching Next
+          </Title>
           {mediaCarousel(false)}
-          <Group position="apart">
-            <Title order={2} size="h3">
-              Previously Watched
-            </Title>
-            <Button compact variant="subtle" color="gray">
-              see more
-            </Button>
-          </Group>
+          <Title order={2} size="h3">
+            Previously Watched
+          </Title>
           {mediaCarousel(true)}
         </Stack>
       </Container>
