@@ -23,17 +23,13 @@ import { Media } from "@prisma/client";
 
 import { Carousel } from "@mantine/carousel";
 import { modals } from "@mantine/modals";
-import {
-  CommunityWithMembers,
-  useCommunityContext,
-} from "@/context/CommunityProvider";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
-import { fetchMedias } from "@/services/medias";
+import { fetchCommunityWithMedia } from "@/services/medias";
 import { useLoadingContext } from "@/context/LoadingProvider";
 
 const useStyles = createStyles((theme) => ({
@@ -51,24 +47,11 @@ const useStyles = createStyles((theme) => ({
 function CommunityDashboard() {
   const router = useRouter();
   const { classes } = useStyles();
-  const { getCommunity } = useCommunityContext();
   const { isLoading } = useLoadingContext();
   const { slug } = router.query;
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
   const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
-  const communitySlug = Array.isArray(slug) ? slug[0] : slug;
-  const [community, setCommunity] = useState<CommunityWithMembers | null>(
-    getCommunity(communitySlug!)
-  );
-
-  useEffect(() => {
-    if (community && communitySlug) {
-      if (community.slug !== communitySlug) {
-        setCommunity(getCommunity(communitySlug));
-      }
-    }
-  }, [slug]);
 
   useEffect(() => {
     if (session && !isLoading) {
@@ -76,18 +59,20 @@ function CommunityDashboard() {
     }
   }, [slug, session, isLoading]);
 
-  const fetchMediasFn = useAsyncFn(fetchMedias);
+  const fetchCommunityWithMediaFn = useAsyncFn(fetchCommunityWithMedia);
 
   const onLoadData = async () => {
-    if (fetchMediasFn.loading) {
+    if (fetchCommunityWithMediaFn.loading) {
       return;
     }
 
     try {
       const cSlug = Array.isArray(slug) ? slug[0] : slug;
-      setCommunity(getCommunity(cSlug!));
-      const medias = await fetchMediasFn.execute({ slug: cSlug });
-      const upcoming = medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
+      const community = await fetchCommunityWithMediaFn.execute({
+        slug: cSlug,
+      });
+      const upcoming =
+        community.medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
       setUpcomingMedia(upcoming);
     } catch (error) {}
   };
@@ -97,7 +82,7 @@ function CommunityDashboard() {
       modal: "media",
       title: `${media.title}`,
       size: "xl",
-      innerProps: { media, communityId: community!.id },
+      innerProps: { media, communityId: fetchCommunityWithMediaFn.value!.id },
     });
   };
 
@@ -107,9 +92,11 @@ function CommunityDashboard() {
       children: (
         <>
           <Group>
-            <Text fz="xl">{community!.inviteCode}</Text>
+            <Text fz="xl">{fetchCommunityWithMediaFn.value!.inviteCode}</Text>
             <CopyButton
-              value={`${origin}/community/join?code=${community!.inviteCode}`}
+              value={`${origin}/community/join?code=${
+                fetchCommunityWithMediaFn.value!.inviteCode
+              }`}
               timeout={2000}
             >
               {({ copied, copy }) => (
@@ -159,8 +146,8 @@ function CommunityDashboard() {
           },
         ]}
       >
-        {fetchMediasFn.value &&
-          fetchMediasFn.value
+        {fetchCommunityWithMediaFn.value &&
+          fetchCommunityWithMediaFn.value.medias
             .filter((m) => m.watched === watched)
             .map((m) => (
               <Carousel.Slide key={m.id}>
@@ -179,24 +166,37 @@ function CommunityDashboard() {
     );
   };
 
-  if (!community) {
-    return <Text>Community does not exist</Text>;
+  if (fetchCommunityWithMediaFn.loading || isLoading) {
+    return (
+      <LoadingOverlay
+        visible={fetchCommunityWithMediaFn.loading}
+        overlayBlur={2}
+      />
+    );
   }
 
-  if (fetchMediasFn.loading || isLoading) {
-    return <LoadingOverlay visible={fetchMediasFn.loading} overlayBlur={2} />;
+  if (!fetchCommunityWithMediaFn.value) {
+    return <Text>Community does not exist</Text>;
   }
 
   return (
     <>
       <Head>
-        <title>{`${community && community.name}`} | FilmDB</title>
+        <title>
+          {`${
+            fetchCommunityWithMediaFn.value &&
+            fetchCommunityWithMediaFn.value.name
+          }`}{" "}
+          | FilmDB
+        </title>
       </Head>
       <Container>
         <Stack className={classes.container}>
-          <Title tt="capitalize">{community.name}</Title>
+          <Title tt="capitalize">{fetchCommunityWithMediaFn.value.name}</Title>
           <Group position="apart">
-            <AvatarMemberList members={community.members} />
+            <AvatarMemberList
+              members={fetchCommunityWithMediaFn.value.members}
+            />
             <Button compact onClick={openInviteModal}>
               Invite
             </Button>
