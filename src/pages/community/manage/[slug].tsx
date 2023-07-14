@@ -10,6 +10,7 @@ import {
   Collapse,
   Box,
   Divider,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -17,16 +18,12 @@ import { useListState, useDisclosure } from "@mantine/hooks";
 import { Media, User } from "@prisma/client";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Notify from "@/lib/notify";
-import {
-  CommunityWithMembers,
-  useCommunityContext,
-} from "@/context/CommunityProvider";
 import Head from "next/head";
 import { CommunityForm } from "@/components";
 import { IconEdit } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
-import { fetchMedias } from "@/services/medias";
+import { fetchCommunityWithMedia } from "@/services/medias";
 import { useLoadingContext } from "@/context/LoadingProvider";
 
 type MediaWithRequester = {
@@ -69,7 +66,6 @@ function ManageCommunitySlug() {
   const router = useRouter();
   const { slug } = router.query;
   const [savingQueue, setSavingQueue] = useState<boolean>(false);
-  const { getCommunity } = useCommunityContext();
   const { classes, cx } = useStyles();
   const [queuedMedia, handlers] = useListState<MediaWithRequester>([]);
   const [openedQueueForm, { toggle: toggleQueueForm }] = useDisclosure(false);
@@ -78,13 +74,8 @@ function ManageCommunitySlug() {
     { close: closeCommunityForm, toggle: toggleCommunityForm },
   ] = useDisclosure(false);
   const { data: session } = useSession();
-  const fetchMediasFn = useAsyncFn(fetchMedias);
+  const fetchCommunityWithMediaFn = useAsyncFn(fetchCommunityWithMedia);
   const { isLoading } = useLoadingContext();
-
-  const communitySlug = Array.isArray(slug) ? slug[0] : slug;
-  const [community, setCommunity] = useState<CommunityWithMembers | null>(
-    getCommunity(communitySlug!)
-  );
 
   useEffect(() => {
     if (session && !isLoading) {
@@ -96,9 +87,10 @@ function ManageCommunitySlug() {
     try {
       const cSlug = Array.isArray(slug) ? slug[0] : slug;
       if (cSlug) {
-        setCommunity(getCommunity(cSlug));
-        const medias = await fetchMediasFn.execute({ slug: cSlug });
-        const filteredMedia = medias.filter(
+        const community = await fetchCommunityWithMediaFn.execute({
+          slug: cSlug,
+        });
+        const filteredMedia = community.medias.filter(
           (m: Media) => !m.watched
         ) as MediaWithRequester[];
         handlers.setState(filteredMedia);
@@ -175,18 +167,33 @@ function ManageCommunitySlug() {
     );
   }
 
-  if (!community) {
+  if (fetchCommunityWithMediaFn.loading || isLoading) {
+    return (
+      <LoadingOverlay
+        visible={fetchCommunityWithMediaFn.loading}
+        overlayBlur={2}
+      />
+    );
+  }
+
+  if (!fetchCommunityWithMediaFn.value) {
     return <Text>Community does not exist</Text>;
   }
 
   return (
     <>
       <Head>
-        <title>{`${community && community.name}`} | FilmDB</title>
+        <title>
+          {`${
+            fetchCommunityWithMediaFn.value &&
+            fetchCommunityWithMediaFn.value.name
+          }`}{" "}
+          | FilmDB
+        </title>
       </Head>
       <Container className={classes.container}>
         <Stack>
-          <Title tt="capitalize">{community.name}</Title>
+          <Title tt="capitalize">{fetchCommunityWithMediaFn.value.name}</Title>
           <Divider />
           <Group position="apart">
             <Title order={2} size="h3">
@@ -204,9 +211,9 @@ function ManageCommunitySlug() {
           <Box>
             <Collapse in={openedCommunityForm}>
               <CommunityForm
-                communityId={community.id}
-                name={community.name ?? ""}
-                description={community.description ?? ""}
+                communityId={fetchCommunityWithMediaFn.value.id}
+                name={fetchCommunityWithMediaFn.value.name ?? ""}
+                description={fetchCommunityWithMediaFn.value.description ?? ""}
                 onCancel={closeCommunityForm}
               />
             </Collapse>
@@ -227,7 +234,7 @@ function ManageCommunitySlug() {
             </Group>
 
             <Collapse in={openedQueueForm}>
-              {!fetchMediasFn.loading && (
+              {!fetchCommunityWithMediaFn.loading && (
                 <Container size="xs">
                   <DndList>{items}</DndList>
 
