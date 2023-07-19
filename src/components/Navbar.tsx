@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useRouter } from "next/router";
 import {
   Center,
   Menu,
@@ -9,18 +8,10 @@ import {
   Container,
   Group,
   Burger,
-  Autocomplete,
-  useMantineTheme,
   ActionIcon,
   rem,
 } from "@mantine/core";
-import {
-  IconSearch,
-  IconArrowRight,
-  IconArrowLeft,
-  IconChevronDown,
-} from "@tabler/icons-react";
-import { useDisclosure } from "@mantine/hooks";
+import { IconSearch, IconChevronDown } from "@tabler/icons-react";
 import Link from "next/link";
 import { LoginBtn } from ".";
 import { useSession } from "next-auth/react";
@@ -102,27 +93,14 @@ interface HeaderSimpleProps {
 }
 
 export default function Navbar({ links }: HeaderSimpleProps) {
-  const theme = useMantineTheme();
-  const [openedNavDrawer, navDrawerController] = useDisclosure(false);
-  const [openedProfileDrawer, profileDrawerController] = useDisclosure(false);
-  const { navSidebarControls } = useNavContext();
+  const { openedNavSidebar, navSidebarControls } = useNavContext();
 
   const [active, setActive] = useState(
-    links !== undefined ? links[0].link : ""
+    links !== undefined && links.length > 0 ? links[0].link : ""
   );
   const { classes, cx } = useStyles();
-  const router = useRouter();
   const { data: session } = useSession();
   const { communities } = useCommunityContext();
-
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const searchMedia = (value: string) => {
-    if (value !== "") {
-      setSearchQuery(value);
-      router.push(`/media/search?media=${encodeURI(value)}`);
-    }
-  };
 
   const items = links?.map((link) => (
     <Link
@@ -144,7 +122,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
       <Container className={classes.header} size="xl">
         <Group>
           <Burger
-            opened={openedNavDrawer}
+            opened={openedNavSidebar}
             onClick={navSidebarControls.toggle}
             className={classes.burger}
             size="sm"
@@ -156,6 +134,18 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           </Link>
           <Group spacing={5} className={classes.links}>
             {items}
+            <Link
+              href="/"
+              className={cx(classes.link, {
+                [classes.linkActive]: active === "/",
+              })}
+              onClick={() => {
+                setActive("/");
+              }}
+            >
+              Trending
+            </Link>
+
             {session && (
               <Menu trigger="hover" transitionProps={{ exitDuration: 0 }}>
                 <Menu.Target>
@@ -183,32 +173,6 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           </Group>
         </Group>
         <Group>
-          <Autocomplete
-            className={classes.search}
-            placeholder="Search Media"
-            data={[]}
-            onChange={setSearchQuery}
-            value={searchQuery}
-            icon={<IconSearch size="1.1rem" stroke={1.5} />}
-            onKeyDown={({ key }) =>
-              key === "Enter" ? searchMedia(searchQuery) : null
-            }
-            rightSection={
-              <ActionIcon
-                size={32}
-                color={theme.primaryColor}
-                onClick={() => searchMedia(searchQuery)}
-              >
-                {theme.dir === "ltr" ? (
-                  <IconArrowRight size="1.1rem" stroke={1.5} />
-                ) : (
-                  <IconArrowLeft size="1.1rem" stroke={1.5} />
-                )}
-              </ActionIcon>
-            }
-            rightSectionWidth={42}
-          />
-
           <ActionIcon component={Link} href="/media/search">
             <IconSearch size="1.1rem" stroke={1.5} />
           </ActionIcon>

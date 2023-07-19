@@ -11,24 +11,22 @@ import {
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { ReactNode } from "react";
-import { NavLinkProp } from "./Navbar";
 
 interface LayoutProps {
   children: ReactNode;
-  links?: NavLinkProp[];
 }
 
 const useStyles = createStyles((theme) => ({
   aside: {
     display: "none",
-    background: "green"
+    background: "green",
   },
 }));
 
-export default function Layout({ links, children }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   const { isLoading } = useLoadingContext();
   const { openedNavSidebar, openedAsideSidebar } = useNavContext();
-  const { classes, cx } = useStyles();
+  const { classes } = useStyles();
   return (
     <AppShell
       styles={{
@@ -63,7 +61,7 @@ export default function Layout({ links, children }: LayoutProps) {
           <ProfileAside />
         </Aside>
       }
-      header={<Navbar links={links} />}
+      header={<Navbar />}
       footer={<Footer />}
     >
       <Notifications limit={5} position="top-right" zIndex={1500} />
