@@ -22,7 +22,7 @@ import {
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
-import { LoginBtn, NavigationDrawer } from ".";
+import { LoginBtn } from ".";
 import { useSession } from "next-auth/react";
 import { useCommunityContext } from "@/context/CommunityProvider";
 import { useNavContext } from "@/context/NavProvider";
@@ -216,12 +216,6 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           <LoginBtn />
         </Group>
       </Container>
-
-      <NavigationDrawer
-        opened={openedNavDrawer}
-        onClose={navDrawerController.close}
-        zIndex={1005}
-      />
     </Header>
   );
 }

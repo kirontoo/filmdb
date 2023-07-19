@@ -11,7 +11,6 @@ import { IconHome, IconPlus, IconUser, IconUsers } from "@tabler/icons-react";
 import { useDisclosure, useToggle } from "@mantine/hooks";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import ProfileDrawer from "./ProfileDrawer";
 
 const useStyles = createStyles((theme) => ({
   nav: {
@@ -156,14 +155,6 @@ function MobileNav() {
           </UnstyledButton>
         </Flex>
       </header>
-      <ProfileDrawer
-        opened={opened}
-        onClose={() => {
-          toggle("none");
-          close();
-        }}
-        zIndex={300}
-      />
     </>
   );
 }
