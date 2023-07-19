@@ -4,15 +4,8 @@ import {
   Button,
   Avatar,
   UnstyledButton,
-  Group,
-  Text,
-  Menu,
-  rem,
 } from "@mantine/core";
-import { IconLogout, IconChevronDown } from "@tabler/icons-react";
-import { useState } from "react";
-import { useDisclosure } from "@mantine/hooks";
-import ProfileDrawer from "./ProfileDrawer";
+import { useNavContext } from "@/context/NavProvider";
 
 const useStyles = createStyles((theme) => ({
   user: {
@@ -45,21 +38,14 @@ export default function LoginBtn() {
   const { data: session } = useSession();
   const { classes, cx } = useStyles();
 
-  const [openedProfileDrawer, profileDrawerController] = useDisclosure(false);
+  const { asideSidebarControls } = useNavContext();
 
   if (session) {
     return (
       <>
-        <UnstyledButton onClick={profileDrawerController.toggle}>
+        <UnstyledButton onClick={asideSidebarControls.toggle}>
           <Avatar src={session!.user?.image} size="sm" />
         </UnstyledButton>
-
-        <ProfileDrawer
-          opened={openedProfileDrawer}
-          onClose={profileDrawerController.close}
-          zIndex={1005}
-          position="right"
-        />
       </>
     );
   }

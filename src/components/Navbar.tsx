@@ -25,6 +25,7 @@ import Link from "next/link";
 import { LoginBtn, NavigationDrawer } from ".";
 import { useSession } from "next-auth/react";
 import { useCommunityContext } from "@/context/CommunityProvider";
+import { useNavContext } from "@/context/NavProvider";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -35,13 +36,13 @@ const useStyles = createStyles((theme) => ({
   },
 
   links: {
-    [theme.fn.smallerThan("xs")]: {
+    [theme.fn.smallerThan("lg")]: {
       display: "none",
     },
   },
 
   burger: {
-    [theme.fn.largerThan("xs")]: {
+    [theme.fn.largerThan("lg")]: {
       display: "none",
     },
   },
@@ -82,7 +83,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   search: {
-    [theme.fn.smallerThan("xs")]: {
+    [theme.fn.smallerThan("lg")]: {
       display: "none",
     },
     "&:focus": {
@@ -104,6 +105,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
   const theme = useMantineTheme();
   const [openedNavDrawer, navDrawerController] = useDisclosure(false);
   const [openedProfileDrawer, profileDrawerController] = useDisclosure(false);
+  const { navSidebarControls } = useNavContext();
 
   const [active, setActive] = useState(
     links !== undefined ? links[0].link : ""
@@ -143,7 +145,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
         <Group>
           <Burger
             opened={openedNavDrawer}
-            onClick={navDrawerController.toggle}
+            onClick={navSidebarControls.toggle}
             className={classes.burger}
             size="sm"
           />

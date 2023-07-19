@@ -20,6 +20,7 @@ import { LoadingProvider } from "@/context/LoadingProvider";
 import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next/types";
 import { useRouter } from "next/router";
+import { NavProvider } from "@/context/NavProvider";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -83,7 +84,9 @@ export default function App(props: AppPropsWithLayout) {
             theme={{
               colorScheme,
               globalStyles: (theme: MantineTheme) => ({
-                colors: { ...theme.colors },
+                colors: {
+                  ...theme.colors,
+                },
                 body: {
                   ...theme.fn.fontStyles(),
                   color:
@@ -99,9 +102,11 @@ export default function App(props: AppPropsWithLayout) {
             }}
           >
             <LoadingProvider>
-              <CommunityProvider>
-                <MediaProvider>{layout}</MediaProvider>
-              </CommunityProvider>
+              <NavProvider>
+                <CommunityProvider>
+                  <MediaProvider>{layout}</MediaProvider>
+                </CommunityProvider>
+              </NavProvider>
             </LoadingProvider>
           </MantineProvider>
         </ColorSchemeProvider>
