@@ -102,7 +102,7 @@ function JoinCommunity() {
     <Container size={460} py="md">
       <Stack justify="center" spacing="sm">
         <div>
-          <Title order={1}  align="center">
+          <Title order={1} align="center">
             Join a community
           </Title>
           <Text c="dimmed" fz="sm" ta="center">
