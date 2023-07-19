@@ -85,7 +85,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   visibleContent: {
-    zIndex: 100,
+    zIndex: 70,
     color: theme.colorScheme === "dark" ? theme.white : theme.black,
     position: "relative",
   },
