@@ -3,11 +3,9 @@ import {
   NavLink,
   Box,
   Flex,
-  rem,
   Avatar,
   Stack,
   Title,
-  createStyles,
   Divider,
 } from "@mantine/core";
 import {
@@ -30,25 +28,8 @@ interface ProfileBtns {
   default: boolean;
 }
 
-const useStyles = createStyles(() => ({
-  communityButton: {
-    display: "flex",
-    alignItems: "center",
-    gap: rem(8),
-  },
-  drawer: {
-    backgroundColor: "black",
-    color: "white",
-  },
-
-  root: {
-    backgroundColor: "black",
-  },
-}));
-
 function NavigationDrawer() {
   const { data: session } = useSession();
-  const { classes } = useStyles();
   const router = useRouter();
   const { navSidebarControls } = useNavContext();
 
