@@ -22,7 +22,7 @@ function ProfileAside() {
   const { asideSidebarControls } = useNavContext();
   const router = useRouter();
 
-  const DrawerTitle = ({
+  const SidebarTitle = ({
     name,
     image,
   }: {
@@ -34,7 +34,7 @@ function ProfileAside() {
       <Flex gap="sm" align="center">
         {session && (
           <Avatar
-            size="lg"
+            size="md"
             src={
               image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`
             }
@@ -46,7 +46,7 @@ function ProfileAside() {
         <Box>
           {session && (
             <>
-              <Title>{name}</Title>
+              <Title order={1} fz="lg">{name}</Title>
             </>
           )}
         </Box>
@@ -57,7 +57,7 @@ function ProfileAside() {
   return (
     <Stack justify="space-between" p={16}>
       {session ? (
-        <DrawerTitle
+        <SidebarTitle
           name={session!.user!.name}
           image={session!.user!.image}
           communityName={currentCommunity}
