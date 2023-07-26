@@ -11,12 +11,13 @@ import {
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { ReactNode } from "react";
+import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-const useStyles = createStyles((theme) => ({
+const useStyles = createStyles(() => ({
   aside: {
     display: "none",
     background: "green",
@@ -25,8 +26,13 @@ const useStyles = createStyles((theme) => ({
 
 export default function Layout({ children }: LayoutProps) {
   const { isLoading } = useLoadingContext();
-  const { openedNavSidebar, openedAsideSidebar } = useNavContext();
+  const {
+    openedNavSidebar,
+    openedAsideSidebar,
+  } = useNavContext();
   const { classes } = useStyles();
+  const isDesktop = useIsDesktopDevice();
+
   return (
     <AppShell
       styles={{
@@ -52,14 +58,18 @@ export default function Layout({ children }: LayoutProps) {
         </MediaQuery>
       }
       aside={
-        <Aside
-          classNames={classes.aside}
-          hidden={!openedAsideSidebar}
-          width={{ sm: 300, lg: 300 }}
-          zIndex={900}
-        >
-          <ProfileAside />
-        </Aside>
+        isDesktop && !openedAsideSidebar ? (
+          <></>
+        ) : (
+          <Aside
+            classNames={classes.aside}
+            hidden={!openedAsideSidebar}
+            width={{ sm: 300, lg: 300 }}
+            zIndex={900}
+          >
+            <ProfileAside />
+          </Aside>
+        )
       }
       header={<Navbar />}
       footer={<Footer />}
