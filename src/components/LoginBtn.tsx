@@ -1,10 +1,5 @@
-import { useSession, signIn, signOut } from "next-auth/react";
-import {
-  createStyles,
-  Button,
-  Avatar,
-  UnstyledButton,
-} from "@mantine/core";
+import { useSession, signIn } from "next-auth/react";
+import { createStyles, Button, Avatar, UnstyledButton } from "@mantine/core";
 import { useNavContext } from "@/context/NavProvider";
 
 const useStyles = createStyles((theme) => ({
@@ -36,7 +31,7 @@ const useStyles = createStyles((theme) => ({
 
 export default function LoginBtn() {
   const { data: session } = useSession();
-  const { classes, cx } = useStyles();
+  const { classes } = useStyles();
 
   const { asideSidebarControls } = useNavContext();
 

@@ -96,7 +96,6 @@ function ManageCommunitySlug() {
         handlers.setState(filteredMedia);
       }
     } catch (e) {
-      console.log(e);
     }
   }
 
