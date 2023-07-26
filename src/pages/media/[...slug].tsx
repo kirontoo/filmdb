@@ -87,7 +87,7 @@ const useStyles = createStyles((theme) => ({
       "radial-gradient(circle, rgba(0,0,0,0) 80%, rgba(0,0,0,0.7) 94%, rgba(0,0,0,1) 98%)",
     [`@media(min-width:${theme.breakpoints.md})`]: {
       backgroundImage:
-        "radial-gradient(circle, rgba(0,0,0,0) 31%, rgba(0,0,0,0.6) 42%, rgba(0,0,0,1) 48%)",
+        "radial-gradient(circle, rgba(0,0,0,0) 25%, rgba(0,0,0,0.6) 38%, rgba(0,0,0,1) 48%)",
     },
   },
 
