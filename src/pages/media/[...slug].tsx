@@ -1,16 +1,13 @@
 import styles from "@/styles/MediaSlug.module.css";
 
 import {
-  Anchor,
   Stack,
   Text,
-  Button,
   Title,
   Group,
   createStyles,
   Image,
   Container,
-  Flex,
   Badge,
   Space,
   Divider,
@@ -22,16 +19,11 @@ import {
   Loader,
   Center,
 } from "@mantine/core";
-import Link from "next/link";
 import { buildTMDBQuery, getTMDBShowcaseImageUrl } from "@/lib/tmdb";
 import { TMDBCast, TMDBCrew, TMDBMedia } from "@/lib/types";
 import Head from "next/head";
 import { GetServerSidePropsContext, NextPage } from "next";
-import {
-  AddMediaButton,
-  CommunityMenu,
-  NothingFoundBackground,
-} from "@/components";
+import { AddMediaButton, NothingFoundBackground } from "@/components";
 import { useSession } from "next-auth/react";
 import { CommunityMenuActionProps } from "@/components/CommunityMenu";
 import Notify from "@/lib/notify";
@@ -55,7 +47,7 @@ const useStyles = createStyles((theme) => ({
       paddingRight: "1rem",
     },
     [`@media (max-width: ${theme.breakpoints.md})`]: {
-      marginBottom: "7rem",
+      marginBottom: "4rem",
     },
   },
   addBtn: {
@@ -70,10 +62,6 @@ const useStyles = createStyles((theme) => ({
   imgContainer: {
     width: "100%",
     position: "relative",
-    height: "60%",
-    [`@media(min-width:${theme.breakpoints.md})`]: {
-      height: "50%",
-    },
     backgroundColor: theme.black,
   },
 
@@ -83,6 +71,7 @@ const useStyles = createStyles((theme) => ({
     right: 0,
     top: 0,
     bottom: 0,
+    height: "100%",
     backgroundImage:
       "radial-gradient(circle, rgba(0,0,0,0) 80%, rgba(0,0,0,0.7) 94%, rgba(0,0,0,1) 98%)",
     [`@media(min-width:${theme.breakpoints.md})`]: {
@@ -158,9 +147,9 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
     if (media) {
       let cert = isMovie
         ? media.release_dates!.results.find((d) => d.iso_3166_1 == "US")
-          ?.release_dates[0].certification
+            ?.release_dates[0].certification
         : media.content_ratings!.results.find((d) => d.iso_3166_1 == "US")
-          ?.rating;
+            ?.rating;
       if (cert && cert !== "") {
         return cert;
       }
@@ -196,7 +185,8 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
       if (res.ok) {
         Notify.success(
           `${community.name}`,
-          `${body.title} was added to ${watched ? "watched list" : "queued list"
+          `${body.title} was added to ${
+            watched ? "watched list" : "queued list"
           }`
         );
       } else {
@@ -204,7 +194,8 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
       }
     } catch (e) {
       Notify.error(
-        `${media.title ?? media.name ?? media.original_title
+        `${
+          media.title ?? media.name ?? media.original_title
         } could not be added to ${community.name}`,
         "Please try again"
       );
@@ -279,8 +270,8 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
               <Text>
                 {media.release_date || media.first_air_date
                   ? dayjs(media.release_date ?? media.first_air_date).format(
-                    "YYYY"
-                  )
+                      "YYYY"
+                    )
                   : "Release Date: N/A"}
               </Text>
               {isMovie && (
@@ -356,8 +347,9 @@ const Media: NextPage<MediaProps> = ({ media }: MediaProps) => {
 
 export async function getServerSideProps({ query }: GetServerSidePropsContext) {
   const slug = query.slug;
-  const queryStr = `append_to_response=${slug![0] === "movie" ? "release_dates" : "content_ratings"
-    },credits`;
+  const queryStr = `append_to_response=${
+    slug![0] === "movie" ? "release_dates" : "content_ratings"
+  },credits`;
   const url = buildTMDBQuery(`${slug![0]}/${slug![1]}`, queryStr);
   const dataRes = await fetch(url);
   const data = await dataRes.json();
