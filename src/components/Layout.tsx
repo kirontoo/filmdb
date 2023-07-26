@@ -19,17 +19,13 @@ interface LayoutProps {
 
 const useStyles = createStyles(() => ({
   aside: {
-    display: "none",
-    background: "green",
+    backgroundColor: "black",
   },
 }));
 
 export default function Layout({ children }: LayoutProps) {
   const { isLoading } = useLoadingContext();
-  const {
-    openedNavSidebar,
-    openedAsideSidebar,
-  } = useNavContext();
+  const { openedNavSidebar, openedAsideSidebar } = useNavContext();
   const { classes } = useStyles();
   const isDesktop = useIsDesktopDevice();
 
@@ -62,12 +58,13 @@ export default function Layout({ children }: LayoutProps) {
           <></>
         ) : (
           <Aside
-            classNames={classes.aside}
+            className={classes.aside}
             hidden={!openedAsideSidebar}
             width={{ sm: 300, lg: 300 }}
             zIndex={900}
           >
             <ProfileAside />
+            <div className="violet-fade" />
           </Aside>
         )
       }
