@@ -100,7 +100,7 @@ function JoinCommunity() {
 
   return (
     <Container size={460} py="md">
-      <Stack justify="center" spacing="sm">
+      <Stack justify="center" spacing="sm" mt="xl">
         <div>
           <Title order={1} align="center">
             Join a community

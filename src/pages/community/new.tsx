@@ -101,7 +101,7 @@ function NewCommunity() {
 
   return (
     <Container size={460} py="md">
-      <Stack justify="center" spacing="sm">
+      <Stack justify="center" spacing="sm" mt="xl">
         <Title className={classes.title} align="center">
           Starting a new community?
         </Title>
