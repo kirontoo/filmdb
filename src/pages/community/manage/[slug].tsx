@@ -95,8 +95,7 @@ function ManageCommunitySlug() {
         ) as MediaWithRequester[];
         handlers.setState(filteredMedia);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   const saveQueue = async () => {
@@ -118,8 +117,9 @@ function ManageCommunitySlug() {
         // const { data } = await res.json();
         throw new Error("could not update queue");
       }
+      Notify.success("Queue updated!");
     } catch (error) {
-      Notify.error("could not update queue");
+      Notify.error("Could not update queue");
     } finally {
       setSavingQueue(false);
     }
