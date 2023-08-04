@@ -105,7 +105,7 @@ function JoinCommunity() {
           <Title order={1} align="center">
             Join a community
           </Title>
-          <Text c="dimmed" fz="sm" ta="center">
+          <Text c="gray.4" fz="sm" ta="center">
             Enter your invite code
           </Text>
         </div>
@@ -127,7 +127,7 @@ function JoinCommunity() {
           />
           <Group position="apart" mt="lg" className={classes.controls}>
             <Anchor
-              color="dimmed"
+              color="gray.4"
               size="sm"
               className={classes.control}
               href="/community/new"
@@ -135,7 +135,7 @@ function JoinCommunity() {
             >
               <Center inline>
                 <IconArrowLeft size={rem(12)} stroke={1.5} />
-                <Box ml={5}>Create a new community</Box>
+                <Box ml={5}>Starting a community?</Box>
               </Center>
             </Anchor>
             <Button

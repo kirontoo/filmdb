@@ -105,7 +105,7 @@ function NewCommunity() {
         <Title className={classes.title} align="center">
           Starting a new community?
         </Title>
-        <Text c="dimmed" fz="sm" ta="center">
+        <Text c="gray.4" fz="sm" ta="center">
           Just enter a name
         </Text>
         <Paper
@@ -120,7 +120,7 @@ function NewCommunity() {
           <TextInput label={`Name (${form.values.name.length}/30)`} required {...form.getInputProps("name")} />
           <Group position="apart" mt="lg" className={classes.controls}>
             <Anchor
-              color="dimmed"
+              color="gray.4"
               size="sm"
               className={classes.control}
               href="/community/join"
