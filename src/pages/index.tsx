@@ -161,80 +161,79 @@ export default function Home() {
     );
   };
 
+  if (isLoading || loadingData) {
+    return <LoadingOverlay visible={visible} overlayBlur={2} />;
+  }
+
   return (
     <>
       <Head>
         <title>Home | FilmDB</title>
       </Head>
-      {isLoading || loadingData ? (
-        <LoadingOverlay visible={visible} overlayBlur={2} />
-      ) : (
-        data &&
-        showcasedMedia && (
-          <>
-            <BackgroundImage
-              className={classes.showcaseImage}
-              src={getTMDBShowcaseImageUrl(
-                isDesktop
-                  ? (showcasedMedia!.backdrop_path as string)
-                  : (showcasedMedia!.poster_path as string),
-                isDesktop
-              )}
+      {data && showcasedMedia && (
+        <>
+          <BackgroundImage
+            className={classes.showcaseImage}
+            src={getTMDBShowcaseImageUrl(
+              isDesktop
+                ? (showcasedMedia!.backdrop_path as string)
+                : (showcasedMedia!.poster_path as string),
+              isDesktop
+            )}
+          >
+            <div className={classes.overlay} />
+            <Container
+              h="100%"
+              sx={{ position: "relative" }}
+              className={cx(classes.visibleContent, classes.showcaseContent)}
             >
-              <div className={classes.overlay} />
-              <Container
-                h="100%"
-                sx={{ position: "relative" }}
-                className={cx(classes.visibleContent, classes.showcaseContent)}
-              >
-                <Stack spacing="sm">
-                  <div>
-                    <Text>Trending Now</Text>
-                    <Title order={1}>
-                      {showcasedMedia!.title ??
-                        showcasedMedia!.name ??
-                        showcasedMedia!.original_name ??
-                        showcasedMedia!.original_title}
-                    </Title>
-                  </div>
-                  <Group>
-                    <Text>
-                      {dayjs(showcasedMedia!.release_date).format("YYYY")}
-                    </Text>
-                    <Button
-                      size="sm"
-                      color="gray.1"
-                      compact
-                      radius="xl"
-                      component={Link}
-                      href={`/media/${showcasedMedia.media_type}/${showcasedMedia.id}`}
-                      variant="outline"
-                    >
-                      Info
-                    </Button>
-                    <AddMediaButton
-                      media={showcasedMedia}
-                      menuProps={{ position: "bottom-start" }}
-                    />
-                  </Group>
-                </Stack>
-              </Container>
-            </BackgroundImage>
-            <Container className={classes.visibleContent}>
-              <Stack my={rem(32)}>
-                <Text fw="bold" tt="capitalize" fz="lg" component="h2">
-                  trending movies
-                </Text>
-                {trendingMediaCarousel("movie")}
-
-                <Text fw="bold" tt="capitalize" fz="lg" component="h2">
-                  trending tv shows
-                </Text>
-                {trendingMediaCarousel("tv")}
+              <Stack spacing="sm">
+                <div>
+                  <Text>Trending Now</Text>
+                  <Title order={1}>
+                    {showcasedMedia!.title ??
+                      showcasedMedia!.name ??
+                      showcasedMedia!.original_name ??
+                      showcasedMedia!.original_title}
+                  </Title>
+                </div>
+                <Group>
+                  <Text>
+                    {dayjs(showcasedMedia!.release_date).format("YYYY")}
+                  </Text>
+                  <Button
+                    size="sm"
+                    color="gray.1"
+                    compact
+                    radius="xl"
+                    component={Link}
+                    href={`/media/${showcasedMedia.media_type}/${showcasedMedia.id}`}
+                    variant="outline"
+                  >
+                    Info
+                  </Button>
+                  <AddMediaButton
+                    media={showcasedMedia}
+                    menuProps={{ position: "bottom-start" }}
+                  />
+                </Group>
               </Stack>
             </Container>
-          </>
-        )
+          </BackgroundImage>
+          <Container className={classes.visibleContent}>
+            <Stack my={rem(32)}>
+              <Text fw="bold" tt="capitalize" fz="lg" component="h2">
+                trending movies
+              </Text>
+              {trendingMediaCarousel("movie")}
+
+              <Text fw="bold" tt="capitalize" fz="lg" component="h2">
+                trending tv shows
+              </Text>
+              {trendingMediaCarousel("tv")}
+            </Stack>
+          </Container>
+        </>
       )}
     </>
   );
