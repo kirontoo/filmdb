@@ -11,6 +11,7 @@ import {
   Stack,
   Title,
   Divider,
+  CloseButton,
 } from "@mantine/core";
 import { IconLogin, IconLogout, IconMoodPlus } from "@tabler/icons-react";
 import { useRouter } from "next/router";
@@ -31,25 +32,25 @@ function ProfileAside() {
     image: string | null;
   }) => {
     return (
-      <Flex gap="sm" align="center">
+      <Flex gap="sm" align="center" justify="space-between">
         {session && (
-          <Avatar
-            size="md"
-            src={
-              image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`
-            }
-            radius="xl"
-          >
-            {name[0]}
-          </Avatar>
+          <Flex gap="md" align="center">
+            <Avatar
+              size="md"
+              src={
+                image ??
+                `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`
+              }
+              radius="xl"
+            >
+              {name[0]}
+            </Avatar>
+            <Title order={1} fz="lg">
+              {name}
+            </Title>
+          </Flex>
         )}
-        <Box>
-          {session && (
-            <>
-              <Title order={1} fz="lg">{name}</Title>
-            </>
-          )}
-        </Box>
+        <CloseButton onClick={asideSidebarControls.close} />
       </Flex>
     );
   };
