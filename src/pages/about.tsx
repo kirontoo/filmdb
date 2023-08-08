@@ -1,4 +1,13 @@
-import { Stack, Text, Center, Divider, Container, Title } from "@mantine/core";
+import {
+  Stack,
+  Text,
+  Center,
+  Divider,
+  Container,
+  Title,
+  Anchor,
+} from "@mantine/core";
+import Link from "next/link";
 
 export default function About() {
   return (
@@ -29,9 +38,13 @@ export default function About() {
         </Text>
 
         <Text>
-          So go ahead, sign up for our app, create your own community, and start
-          tracking your movie watching journey. We can&apos;t wait to see what
-          you&apos;ll watch next!
+          So go ahead,{" "}
+          <Anchor component={Link} href="/auth/signin">
+            sign up
+          </Anchor>{" "}
+          for our app, create your own community, and start tracking your movie
+          watching journey. We can&apos;t wait to see what you&apos;ll watch
+          next!
         </Text>
 
         <Center>
@@ -40,7 +53,8 @@ export default function About() {
         <Divider />
         <Text>
           This product uses the TMDb API but is not endorsed or certified by
-          TMDb.
+          TMDb. All info and images are sourced from{" "}
+          <Anchor href="https://www.themoviedb.org/">The Movie Database</Anchor>.
         </Text>
       </Stack>
     </Container>
