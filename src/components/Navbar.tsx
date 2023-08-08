@@ -151,7 +151,7 @@ export default function Navbar({ links }: HeaderSimpleProps) {
                 <Menu.Target>
                   <Link href="/community" className={classes.link}>
                     <Center>
-                      <span className={classes.linkLabel}>community</span>
+                      <span className={classes.linkLabel}>Community</span>
                       <IconChevronDown size="0.9rem" stroke={1.5} />
                     </Center>
                   </Link>
@@ -170,6 +170,18 @@ export default function Navbar({ links }: HeaderSimpleProps) {
                 </Menu.Dropdown>
               </Menu>
             )}
+
+            <Link
+              href="/about"
+              className={cx(classes.link, {
+                [classes.linkActive]: active === "/about",
+              })}
+              onClick={() => {
+                setActive("/about");
+              }}
+            >
+              About Us
+            </Link>
           </Group>
         </Group>
         <Group>
