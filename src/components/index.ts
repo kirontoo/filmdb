@@ -21,3 +21,4 @@ export { default as CommentList } from "./CommentList";
 export { default as CommentTextEditor } from "./CommentTextEditor";
 export { default as ProfileAside } from "./ProfileAside";
 export { default as NavSidebar } from "./NavSidebar";
+export { default as LinksGroup } from "./LinksGroup";

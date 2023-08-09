@@ -4,8 +4,8 @@ import {
   useCommunityContext,
 } from "@/context/CommunityProvider";
 import {
+  Text,
   NavLink,
-  Box,
   Flex,
   Avatar,
   Stack,
@@ -13,15 +13,28 @@ import {
   Divider,
   CloseButton,
 } from "@mantine/core";
-import { IconLogin, IconLogout, IconMoodPlus } from "@tabler/icons-react";
+import {
+  IconEdit,
+  IconLogin,
+  IconLogout,
+  IconMoodPlus,
+} from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useNavContext } from "@/context/NavProvider";
+import { useMemo } from "react";
+import LinksGroup from "./LinksGroup";
 
 function ProfileAside() {
   const { data: session } = useSession();
   const { communities, currentCommunity } = useCommunityContext();
   const { asideSidebarControls } = useNavContext();
   const router = useRouter();
+
+  const manageCommunityLinks = useMemo(() => {
+    return communities
+      .filter((c) => c.createdBy === session!.user!.id)
+      .map((c) => ({ label: c.name, link: `communities/manage/${c.slug}` }));
+  }, [session, communities]);
 
   const SidebarTitle = ({
     name,
@@ -97,15 +110,23 @@ function ProfileAside() {
       <Divider />
 
       {session ? (
-        <NavLink
-          sx={{ color: "white" }}
-          label="Logout"
-          icon={<IconLogout />}
-          onClick={() => {
-            signOut({ callbackUrl: "/auth/signin" });
-            asideSidebarControls.close();
-          }}
-        />
+        <>
+          <NavLink
+            sx={{ color: "white" }}
+            label="Logout"
+            icon={<IconLogout />}
+            onClick={() => {
+              signOut({ callbackUrl: "/auth/signin" });
+              asideSidebarControls.close();
+            }}
+          />
+          <LinksGroup
+            icon={IconEdit}
+            label="Manage Communities"
+            links={manageCommunityLinks}
+            iconSize={32}
+          />
+        </>
       ) : (
         <NavLink
           sx={{ color: "white" }}
