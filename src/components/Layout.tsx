@@ -17,9 +17,10 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-const useStyles = createStyles(() => ({
+const useStyles = createStyles((theme) => ({
   aside: {
     backgroundColor: "black",
+    borderLeft: `1px solid ${theme.colors.violet[6]}`,
   },
 }));
 
@@ -50,6 +51,7 @@ export default function Layout({ children }: LayoutProps) {
             zIndex={900}
           >
             <NavSidebar />
+            <div className="violet-fade" />
           </Nav>
         </MediaQuery>
       }
