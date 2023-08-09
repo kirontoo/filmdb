@@ -91,6 +91,11 @@ function ManageCommunitySlug() {
         const community = await fetchCommunityWithMediaFn.execute({
           slug: cSlug,
         });
+
+        if (community.createdBy !== session!.user!.id) {
+          router.push("/404");
+        }
+
         const filteredMedia = community.medias.filter(
           (m: Media) => !m.watched
         ) as MediaWithRequester[];
