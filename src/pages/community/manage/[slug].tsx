@@ -19,7 +19,7 @@ import { Media, User } from "@prisma/client";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Notify from "@/lib/notify";
 import Head from "next/head";
-import { CommunityForm } from "@/components";
+import { CommunityForm, NothingFoundBackground } from "@/components";
 import { IconEdit } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
@@ -68,7 +68,8 @@ function ManageCommunitySlug() {
   const [savingQueue, setSavingQueue] = useState<boolean>(false);
   const { classes, cx } = useStyles();
   const [queuedMedia, handlers] = useListState<MediaWithRequester>([]);
-  const [openedQueueForm, { toggle: toggleQueueForm }] = useDisclosure(false);
+  const [openedQueueForm, { close: closeQueueForm, toggle: toggleQueueForm }] =
+    useDisclosure(false);
   const [
     openedCommunityForm,
     { close: closeCommunityForm, toggle: toggleCommunityForm },
@@ -176,7 +177,7 @@ function ManageCommunitySlug() {
   }
 
   if (!fetchCommunityWithMediaFn.value) {
-    return <Text>Community does not exist</Text>;
+    return <NothingFoundBackground />;
   }
 
   return (
@@ -238,6 +239,9 @@ function ManageCommunitySlug() {
                   <DndList>{items}</DndList>
 
                   <Group position="right">
+                    <Button variant="subtle" onClick={closeQueueForm}>
+                      Cancel
+                    </Button>
                     <Button loading={savingQueue} onClick={saveQueue}>
                       Save Queue
                     </Button>
