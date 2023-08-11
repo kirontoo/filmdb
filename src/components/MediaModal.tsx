@@ -29,9 +29,7 @@ import {
 } from "@tabler/icons-react";
 import { TMDBMedia } from "@/lib/types";
 import { updateMedia } from "@/lib/util";
-import {
-  useMediaContext,
-} from "@/context/MediaProvider";
+import { useMediaContext } from "@/context/MediaProvider";
 import { useDisclosure } from "@mantine/hooks";
 import { CommentList } from ".";
 import { CommentProvider } from "@/context/CommentProvider";
@@ -245,7 +243,7 @@ export default function MediaModal({
       {!isLoading && (
         <>
           <Stack>
-            <Flex gap="md">
+            <Flex gap="md" direction={{ base: "column", lg: "row" }}>
               <div className={classes.imgContainer}>
                 <Image
                   src={buildTMDBImageURL(media.posterPath, 342)}
@@ -254,7 +252,7 @@ export default function MediaModal({
                 />
               </div>
               <Stack spacing="sm">
-                <Group>
+                <Flex gap="md" justify={{base: "space-between", lg: "flex-start"}}>
                   <Text fz="xl" component="h1">
                     {data?.title ?? data?.name}
                   </Text>
@@ -275,7 +273,7 @@ export default function MediaModal({
                     />
                     <Text>{media.rating}/5</Text>
                   </Group>
-                </Group>
+                </Flex>
                 <Text component="h3">
                   {data?.release_date ??
                     data?.first_air_date ??
