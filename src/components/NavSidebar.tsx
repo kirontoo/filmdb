@@ -164,6 +164,10 @@ function NavigationDrawer() {
           sx={{ color: "white" }}
           label="About us"
           icon={<IconInfoCircle />}
+          onClick={() => {
+            router.push("/about");
+            navSidebarControls.close();
+          }}
         />
       </Stack>
     </>
