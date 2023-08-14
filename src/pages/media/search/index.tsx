@@ -9,9 +9,9 @@ import {
   TextInput,
   Loader,
   useMantineTheme,
-  Skeleton,
   Divider,
   Transition,
+  Group,
 } from "@mantine/core";
 import InfiniteScroll from "react-infinite-scroller";
 import { IconSearch, IconStarFilled } from "@tabler/icons-react";
@@ -138,7 +138,6 @@ function SearchMedia() {
     }
   }, [debouncedSearchInput]);
 
-
   const onSearchMedias = async (input: string) => {
     if (searchMediaFn.loading) {
       return;
@@ -195,28 +194,9 @@ function SearchMedia() {
 
   const SkeletonLoader = () => {
     return (
-      <SimpleGrid
-        key="loader"
-        cols={2}
-        breakpoints={[
-          { minWidth: theme.breakpoints.md, cols: 5 },
-          { minWidth: theme.breakpoints.sm, cols: 4 },
-        ]}
-        mt="md"
-      >
-        <Skeleton>
-          <MediaImageCard />
-        </Skeleton>
-        <Skeleton>
-          <MediaImageCard />
-        </Skeleton>
-        <Skeleton>
-          <MediaImageCard />
-        </Skeleton>
-        <Skeleton>
-          <MediaImageCard />
-        </Skeleton>
-      </SimpleGrid>
+      <Group position="center" py={32}>
+        <Loader size="md" />
+      </Group>
     );
   };
 
