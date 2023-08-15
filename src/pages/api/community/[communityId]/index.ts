@@ -66,7 +66,7 @@ async function getCommunityById(req: NextApiRequest, res: NextApiResponse) {
         },
       })
       .catch(() => {
-        throw new Error("community not found");
+        throw new APIError("community not found", QueryError);
       });
     if (community) {
       res.status(200).json({
