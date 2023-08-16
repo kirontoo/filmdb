@@ -17,8 +17,8 @@ const useAsyncFn = <P extends Record<string, any>, T>(
       setValue(data);
       setError(undefined);
       return data;
-    } catch (error: any) {
-      setError(error);
+    } catch (err: any) {
+      setError(err.message);
       setValue(undefined);
       return await Promise.reject(error ?? "Error");
     } finally {
