@@ -15,11 +15,83 @@ import {
 } from "@/lib/errors";
 import { apiHandler } from "@/lib/apiHandler";
 import { getQueueCount } from "@/lib/apiUtil";
+import { ObjectId } from "bson";
 
 export default apiHandler({
+  get: getMediaFromCommunity,
   delete: deleteMedia,
   patch: updateMedia,
 });
+
+async function getMediaFromCommunity(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    const session = await getServerSession(req, res, authOptions);
+    const { query } = req;
+    const { mediaId } = query;
+    let communityId: string | null = Array.isArray(query.communityId)
+      ? query.communityId[0]
+      : query.communityId!;
+    const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
+
+    let slug = null;
+
+    // if mediaId is not valid, then media does not exist
+    if (!ObjectId.isValid(mId)) {
+      throw new APIError("media does not exist", QueryError);
+    }
+
+    // if communityId it's not a valid object id, then it's a slug
+    if (!ObjectId.isValid(communityId)) {
+      slug = communityId;
+      communityId = null;
+    }
+
+    // check permission
+    const community = await prisma.community.findFirstOrThrow({
+      where: {
+        AND: [
+          {
+            OR: [{ id: communityId || undefined }, { slug: slug || undefined }],
+          },
+          { members: { some: { id: session!.user!.id } } },
+        ],
+      },
+    });
+
+    if (community) {
+      const media = await prisma.media.findFirst({
+        where: { id: mId },
+      });
+
+      return res.status(200).json({
+        status: "success",
+        data: {
+          media,
+        },
+      });
+    } else {
+      throw new APIError("not authorized", UnauthorizedError);
+    }
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
+      // Record Not Found
+      if (e.code == "P2015") {
+        throw new APIError("media does not exist");
+      }
+
+      throw new APIError(e.message, QueryError);
+    }
+
+    if (e instanceof PrismaClientValidationError) {
+      throw new APIError(e.message, ValidationError);
+    }
+
+    throw e;
+  }
+}
 
 async function deleteMedia(req: NextApiRequest, res: NextApiResponse) {
   try {
