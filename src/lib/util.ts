@@ -1,4 +1,5 @@
 import { Media } from "@prisma/client";
+import dayjs from "dayjs";
 
 export function generateInviteCode(length: number): string {
   let result = "";
@@ -108,6 +109,7 @@ export function genericFilter<T>(object: T, filters: Array<Filter<T>>) {
       : !object[filter.property];
   });
 }
+
 // case insensitive search of n-number properties of type T
 // returns true if at least one of the property values includes the query value
 export function genericSearch<T>(
@@ -132,8 +134,19 @@ export function genericSearch<T>(
 export function formatDuration(duration: number): string {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
-  if(hours == 0) {
+  if (hours == 0) {
     return `${minutes}m`;
   }
   return `${hours}h ${minutes}m`;
+}
+
+// @return the returns a single value of a query from the route url
+export function getQueryValue(
+  property: string[] | string | undefined
+): string | undefined {
+  return Array.isArray(property) ? property[0] : property;
+}
+
+export function formatYear(date: string | null): string {
+  return date ? dayjs(date).format("YYYY") : "Release Date: N/A";
 }

@@ -31,6 +31,7 @@ import { IconCheck, IconCopy } from "@tabler/icons-react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
 import { fetchCommunityWithMedia } from "@/services/medias";
 import { useLoadingContext } from "@/context/LoadingProvider";
+import { getQueryValue } from "@/lib/util";
 
 const useStyles = createStyles((theme) => ({
   container: {
@@ -67,7 +68,7 @@ function CommunityDashboard() {
     }
 
     try {
-      const cSlug = Array.isArray(slug) ? slug[0] : slug;
+      const cSlug = getQueryValue(slug);
       const community = await fetchCommunityWithMediaFn.execute({
         slug: cSlug,
       });
@@ -78,12 +79,16 @@ function CommunityDashboard() {
   };
 
   const openMediaModal = (media: Media) => {
-    modals.openContextModal({
-      modal: "media",
-      title: `${media.title}`,
-      size: "xl",
-      innerProps: { media, communityId: fetchCommunityWithMediaFn.value!.id },
-    });
+    const cSlug = getQueryValue(slug);
+    router.push(
+      `/community/${cSlug}/media/${media.mediaType}/${media.tmdbId}/${media.id}`
+    );
+    // modals.openContextModal({
+    //   modal: "media",
+    //   title: `${media.title}`,
+    //   size: "xl",
+    //   innerProps: { media, communityId: fetchCommunityWithMediaFn.value!.id },
+    // });
   };
 
   const openInviteModal = () => {
