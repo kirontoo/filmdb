@@ -18,16 +18,16 @@ export type APIHandler = Record<
   (req: NextApiRequest, res: NextApiResponse) => Promise<void>
 >;
 
-export function apiHandler(handler: APIHandler) {
+export function createHandler(handlers: APIHandler) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const method = req.method!.toLowerCase();
     const session = await getServerSession(req, res, authOptions);
 
     // check handler supports HTTP method
-    if (!handler[method]) {
+    if (!handlers[method]) {
       res.setHeader(
         "Allow",
-        Object.keys(handler).map((k) => k.toUpperCase())
+        Object.keys(handlers).map((k) => k.toUpperCase())
       );
       return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
@@ -35,7 +35,7 @@ export function apiHandler(handler: APIHandler) {
     try {
       // route handler
       if (session) {
-        await handler[method](req, res);
+        await handlers[method](req, res);
       } else {
         throw new APIError("not authenticated", UnauthorizedError);
       }

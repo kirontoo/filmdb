@@ -4,10 +4,10 @@ import { authOptions } from "../auth/[...nextauth]";
 
 import prisma from "@/lib/prismadb";
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from "@prisma/client/runtime/library";
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 import { APIError, QueryError, ValidationError } from "@/lib/errors";
 
-export default apiHandler({
+export default createHandler({
   post: joinCommunity,
 });
 

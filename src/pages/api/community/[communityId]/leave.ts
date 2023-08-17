@@ -8,9 +8,9 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { APIError, QueryError, ValidationError } from "@/lib/errors";
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 
-export default apiHandler({
+export default createHandler({
   post: leaveCommunity,
 });
 

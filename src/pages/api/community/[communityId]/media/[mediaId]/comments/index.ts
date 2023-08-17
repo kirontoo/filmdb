@@ -13,10 +13,10 @@ import {
   ValidationError,
 } from "@/lib/errors";
 
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 import { ObjectId } from "bson";
 
-export default apiHandler({
+export default createHandler({
   get: getComments,
   post: createComment,
 });

@@ -10,7 +10,7 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 import {
   APIError,
   QueryError,
@@ -18,7 +18,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 
-export default apiHandler({
+export default createHandler({
   get: getCommunities,
   post: postCommunity,
 });

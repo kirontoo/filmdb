@@ -13,12 +13,12 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/errors";
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 import slugify from "slugify";
 import { getQueueCount } from "@/lib/apiUtil";
 import { ObjectId } from "bson";
 
-export default apiHandler({
+export default createHandler({
   get: getCommunityById,
   post: addMediaToCommunity,
   patch: updateCommunity,

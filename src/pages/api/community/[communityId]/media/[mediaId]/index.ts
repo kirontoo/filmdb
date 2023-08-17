@@ -13,11 +13,11 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/errors";
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 import { getQueueCount } from "@/lib/apiUtil";
 import { ObjectId } from "bson";
 
-export default apiHandler({
+export default createHandler({
   get: getMediaFromCommunity,
   delete: deleteMedia,
   patch: updateMedia,

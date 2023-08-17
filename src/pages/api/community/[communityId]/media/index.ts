@@ -9,11 +9,11 @@ import {
 } from "@prisma/client/runtime/library";
 import { APIError, QueryError, UnauthorizedError, ValidationError } from "@/lib/errors";
 
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 import { ObjectId } from "bson";
 import { Media } from "@prisma/client";
 
-export default apiHandler({
+export default createHandler({
   get: getMedias,
   patch: updateMedias,
 });

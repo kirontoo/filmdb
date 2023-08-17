@@ -13,9 +13,9 @@ import {
   ValidationError,
 } from "@/lib/errors";
 
-import { apiHandler } from "@/lib/apiHandler";
+import { createHandler } from "@/lib/api/handler";
 
-export default apiHandler({
+export default createHandler({
   patch: updateComment,
   delete: deleteComment,
 });
