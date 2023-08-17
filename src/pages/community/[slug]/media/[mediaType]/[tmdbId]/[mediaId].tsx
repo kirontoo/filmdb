@@ -2,8 +2,9 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
-import { getQueryValue } from "@/lib/util";
+import { updateMedia, getQueryValue } from "@/lib/util";
 import { useRouter } from "next/router";
+import { modals } from "@mantine/modals";
 import {
   Container,
   createStyles,
@@ -15,16 +16,68 @@ import {
   Text,
   Image,
   Divider,
+  Tooltip,
+  ActionIcon,
+  Transition,
+  Box,
 } from "@mantine/core";
 import { CommentList, NothingFoundBackground } from "@/components";
 import { buildTMDBImageURL, buildTMDBQuery } from "@/lib/tmdb";
 import { TMDBMedia } from "@/lib/types";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { CommentProvider } from "@/context/CommentProvider";
 import { Media } from "@prisma/client";
 import { useDisclosure } from "@mantine/hooks";
 import { useMediaContext } from "@/context/MediaProvider";
+import {
+  IconList,
+  IconBookmark,
+  IconTrash,
+  IconStarsFilled,
+} from "@tabler/icons-react";
+import Notify from "@/lib/notify";
+
+interface LoadingState {
+  loadingAddToWatchedList: boolean;
+  loadingAddToQueue: boolean;
+  loadingDeleteMedia: boolean;
+  loadingRateMedia: boolean;
+}
+
+type LoadingAction =
+  | { type: "isLoadingQueue" }
+  | { type: "stopLoadingQueue" }
+  | { type: "isLoadingWatchedList" }
+  | { type: "stopLoadingWatchedList" }
+  | { type: "isLoadingDeleteMedia" }
+  | { type: "stopLoadingDeleteMedia" }
+  | { type: "isLoadingRateMedia" }
+  | { type: "stopLoadingRateMedia" };
+
+function reducer(state: LoadingState, action: LoadingAction): LoadingState {
+  const { type } = action;
+  switch (type) {
+    case "isLoadingQueue":
+      return { ...state, loadingAddToQueue: true };
+    case "isLoadingWatchedList":
+      return { ...state, loadingAddToWatchedList: true };
+    case "isLoadingRateMedia":
+      return { ...state, loadingRateMedia: true };
+    case "isLoadingDeleteMedia":
+      return { ...state, loadingDeleteMedia: true };
+    case "stopLoadingQueue":
+      return { ...state, loadingAddToQueue: false };
+    case "stopLoadingWatchedList":
+      return { ...state, loadingAddToWatchedList: false };
+    case "stopLoadingDeleteMedia":
+      return { ...state, loadingDeleteMedia: false };
+    case "stopLoadingRateMedia":
+      return { ...state, loadingRateMedia: false };
+    default:
+      throw Error("Unknown action");
+  }
+}
 
 const useStyles = createStyles((theme) => ({
   imgContainer: {
@@ -87,6 +140,20 @@ function CommunityMediaPage() {
   const { classes } = useStyles();
   const [rateMedia, setRateMedia] = useState(1);
   const [opened, { close: closeRateInput, toggle }] = useDisclosure(false);
+  const [
+    {
+      loadingAddToQueue,
+      loadingAddToWatchedList,
+      loadingDeleteMedia,
+      loadingRateMedia,
+    },
+    dispatch,
+  ] = useReducer(reducer, {
+    loadingAddToQueue: false,
+    loadingAddToWatchedList: false,
+    loadingDeleteMedia: false,
+    loadingRateMedia: false,
+  });
 
   const { updateMedias, removeMedia } = useMediaContext();
 
@@ -110,13 +177,91 @@ function CommunityMediaPage() {
     loadData();
   }, [router.query]);
 
+  const openDeleteModal = () => {
+    modals.openConfirmModal({
+      title: `Delete ${getMediaFn.value!.title} from lists`,
+      centered: true,
+      children: (
+        <Text component="p">
+          Are you sure you want to delete{" "}
+          <strong>{getMediaFn.value!.title}</strong>? This action is destructive
+          and will delete it from <strong>all lists</strong>.
+        </Text>
+      ),
+      labels: {
+        confirm: "Delete",
+        cancel: "Cancel",
+      },
+      closeOnConfirm: false,
+      size: "md",
+      cancelProps: { variant: "subtle", color: "dark" },
+      confirmProps: {
+        color: "red",
+        loading: loadingDeleteMedia,
+        leftIcon: <IconTrash />,
+      },
+      onConfirm: deleteFromList,
+    });
+  };
+
+  const deleteFromList = async () => {
+    try {
+      dispatch({ type: "isLoadingDeleteMedia" });
+      const res = await fetch(`/api/community/${communitySlug}/media/${mId}`, {
+        method: "DELETE",
+      });
+
+      // const data = res.json();
+      if (res.ok) {
+        removeMedia(mId!);
+        Notify.success(`Deleted ${getMediaFn.value!.title}`);
+        modals.closeAll();
+      } else {
+        throw new Error(`Could not delete ${getMediaFn.value!.title}`);
+      }
+    } catch (error) {
+      Notify.error(error as string);
+    } finally {
+      dispatch({ type: "stopLoadingDeleteMedia" });
+      router.push(`/community/${communitySlug}`);
+    }
+  };
+
+  const addToList = async (watched: boolean) => {
+    const watchedText = watched ? "watched list" : "queue";
+    try {
+      dispatch({ type: watched ? "isLoadingWatchedList" : "isLoadingQueue" });
+
+      // API fetch
+      const media = { ...getMediaFn.value, watched };
+      const { res, data } = await updateMedia(media as Media);
+
+      if (res.ok) {
+        // update media state
+        updateMedias(getMediaFn.value!.id, data.data.media);
+
+        Notify.success(`Moved ${getMediaFn.value!.title} to ${watchedText}`);
+      } else {
+        throw new Error(
+          `Could not move ${getMediaFn.value!.title} to ${watchedText}`
+        );
+      }
+    } catch (error) {
+      Notify.error(error as string);
+    } finally {
+      dispatch({
+        type: watched ? "stopLoadingWatchedList" : "stopLoadingQueue",
+      });
+    }
+  };
+
   const updateRating = async (value: number) => {
     if (value < 0) {
       closeRateInput();
       return;
     }
 
-    // dispatch({ type: "isLoadingRateMedia" });
+    dispatch({ type: "isLoadingRateMedia" });
     setRateMedia(value);
 
     // api call
@@ -141,10 +286,11 @@ function CommunityMediaPage() {
         updateMedias(mId!, { ...getMediaFn.value });
       }
     } catch (error) {
+      Notify.error("Rating", "could not add rating");
     } finally {
       setRateMedia(0);
       closeRateInput();
-      // dispatch({ type: "stopLoadingRateMedia" });
+      dispatch({ type: "stopLoadingRateMedia" });
     }
   };
 
@@ -186,7 +332,7 @@ function CommunityMediaPage() {
                   {getTmdbMediaFn.value.title ?? getTmdbMediaFn.value.name}
                 </Text>
                 <Group
-                  sx={(theme) => ({
+                  sx={() => ({
                     padding: "0.2rem",
                   })}
                 >
@@ -205,6 +351,75 @@ function CommunityMediaPage() {
                   "Release Date: N/A"}
               </Text>
               <Text component="p">{getTmdbMediaFn.value.overview}</Text>
+
+              <Group>
+                <Tooltip label="Delete from all lists">
+                  <ActionIcon
+                    variant="subtle"
+                    loading={loadingDeleteMedia}
+                    onClick={openDeleteModal}
+                    color="red"
+                  >
+                    <IconTrash />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Move to queue">
+                  <ActionIcon
+                    variant="subtle"
+                    loading={loadingAddToQueue}
+                    onClick={() => addToList(false)}
+                    color="light"
+                  >
+                    <IconList />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Move to watched list">
+                  <ActionIcon
+                    variant="subtle"
+                    loading={loadingAddToWatchedList}
+                    onClick={() => addToList(true)}
+                    color="blue"
+                  >
+                    <IconBookmark />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label={`Rate ${getMediaFn.value.title}`}>
+                  <ActionIcon
+                    variant="subtle"
+                    color="yellow"
+                    onClick={toggle}
+                    loading={loadingRateMedia}
+                  >
+                    <IconStarsFilled />
+                  </ActionIcon>
+                </Tooltip>
+                <Transition
+                  mounted={opened}
+                  transition="slide-right"
+                  duration={200}
+                  timingFunction="ease-in-out"
+                >
+                  {(styles) => (
+                    <Box
+                      style={styles}
+                      sx={(theme) => ({
+                        background: theme.colors.gray[9],
+                        borderRadius: theme.radius.sm,
+                        padding: "0.2rem",
+                        border: `1px solid ${theme.colors.gray[7]}`,
+                      })}
+                    >
+                      <Rating
+                        fractions={2}
+                        value={rateMedia}
+                        onChange={updateRating}
+                        defaultValue={1}
+                        color="yellow.4"
+                      />
+                    </Box>
+                  )}
+                </Transition>
+              </Group>
             </Stack>
           </Flex>
 
