@@ -14,6 +14,7 @@ import {
 } from "@/lib/errors";
 
 import { apiHandler } from "@/lib/apiHandler";
+import { ObjectId } from "bson";
 
 export default apiHandler({
   post: createRating,
@@ -78,17 +79,29 @@ async function createRating(
 
     const { mediaId, communityId } = query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
-    const cId: string = Array.isArray(communityId)
+    let cId: string | null = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
 
-    const user = await prisma.user
-      .findFirst({
+    let slug = null;
+
+    if (!ObjectId.isValid(cId)) {
+      slug = cId;
+      cId = null;
+    }
+
+    const community = await prisma.community
+      .findFirstOrThrow({
         where: {
-          email: session!.user!.email,
-          communities: {
-            some: { id: cId },
-          },
+          AND: [
+            {
+              OR: [
+                { id: cId || undefined },
+                { slug: slug || undefined },
+              ],
+            },
+            { members: { some: { id: session!.user!.id } } },
+          ],
         },
       })
       .catch(() => {
@@ -98,7 +111,7 @@ async function createRating(
         );
       });
 
-    if (user) {
+    if (community) {
       const data = await prisma.$transaction(async () => {
         const rating = await prisma.rating.upsert({
           where: {
@@ -117,10 +130,10 @@ async function createRating(
             },
           },
           update: {
-            value: rateValue
-          }
+            value: rateValue,
+          },
         });
-       
+
         const avg = await prisma.rating.aggregate({
           where: {
             mediaId: mId,
