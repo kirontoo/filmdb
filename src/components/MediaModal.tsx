@@ -28,7 +28,7 @@ import {
   IconStarsFilled,
 } from "@tabler/icons-react";
 import { TMDBMedia } from "@/lib/types";
-import { updateMedia } from "@/lib/util";
+import { updateMedia } from "@/services/medias";
 import { useMediaContext } from "@/context/MediaProvider";
 import { useDisclosure } from "@mantine/hooks";
 import { CommentList } from ".";
