@@ -14,7 +14,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { createHandler } from "@/lib/api/handler";
-import { getQueueCount } from "@/lib/apiUtil";
+import { getQueueCount } from "@/lib/api/util";
 import { ObjectId } from "bson";
 
 export default createHandler({
