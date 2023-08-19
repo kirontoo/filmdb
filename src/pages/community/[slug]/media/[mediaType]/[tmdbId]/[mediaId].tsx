@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
-import { updateMedia, getQueryValue } from "@/lib/util";
+import { getQueryValue } from "@/lib/util";
 import { useRouter } from "next/router";
 import { modals } from "@mantine/modals";
 import {
@@ -37,6 +37,8 @@ import {
   IconStarsFilled,
 } from "@tabler/icons-react";
 import Notify from "@/lib/notify";
+import useCommunityPermissions from "@/lib/hooks/useCommunityPermissions";
+import { updateMedia } from "@/services/medias";
 
 interface LoadingState {
   loadingAddToWatchedList: boolean;
@@ -140,6 +142,13 @@ function CommunityMediaPage() {
   const { classes } = useStyles();
   const [rateMedia, setRateMedia] = useState(1);
   const [opened, { close: closeRateInput, toggle }] = useDisclosure(false);
+
+  // communities that the user has permission to modify
+  const permittedCommunities = useCommunityPermissions();
+  const isPermitted = permittedCommunities.some(
+    (c) => c.slug === communitySlug
+  );
+
   const [
     {
       loadingAddToQueue,
@@ -353,36 +362,40 @@ function CommunityMediaPage() {
               <Text component="p">{getTmdbMediaFn.value.overview}</Text>
 
               <Group>
-                <Tooltip label="Delete from all lists">
-                  <ActionIcon
-                    variant="subtle"
-                    loading={loadingDeleteMedia}
-                    onClick={openDeleteModal}
-                    color="red"
-                  >
-                    <IconTrash />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Move to queue">
-                  <ActionIcon
-                    variant="subtle"
-                    loading={loadingAddToQueue}
-                    onClick={() => addToList(false)}
-                    color="light"
-                  >
-                    <IconList />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Move to watched list">
-                  <ActionIcon
-                    variant="subtle"
-                    loading={loadingAddToWatchedList}
-                    onClick={() => addToList(true)}
-                    color="blue"
-                  >
-                    <IconBookmark />
-                  </ActionIcon>
-                </Tooltip>
+                {isPermitted && (
+                  <>
+                    <Tooltip label="Delete from all lists">
+                      <ActionIcon
+                        variant="subtle"
+                        loading={loadingDeleteMedia}
+                        onClick={openDeleteModal}
+                        color="red"
+                      >
+                        <IconTrash />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Move to queue">
+                      <ActionIcon
+                        variant="subtle"
+                        loading={loadingAddToQueue}
+                        onClick={() => addToList(false)}
+                        color="light"
+                      >
+                        <IconList />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Move to watched list">
+                      <ActionIcon
+                        variant="subtle"
+                        loading={loadingAddToWatchedList}
+                        onClick={() => addToList(true)}
+                        color="blue"
+                      >
+                        <IconBookmark />
+                      </ActionIcon>
+                    </Tooltip>
+                  </>
+                )}
                 <Tooltip label={`Rate ${getMediaFn.value.title}`}>
                   <ActionIcon
                     variant="subtle"
