@@ -4,7 +4,6 @@ import {
   useCommunityContext,
 } from "@/context/CommunityProvider";
 import {
-  Text,
   NavLink,
   Flex,
   Avatar,
@@ -21,20 +20,20 @@ import {
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useNavContext } from "@/context/NavProvider";
-import { useMemo } from "react";
 import LinksGroup from "./LinksGroup";
+import useCommunityPermissions from "@/lib/hooks/useCommunityPermissions";
 
 function ProfileAside() {
   const { data: session } = useSession();
   const { communities, currentCommunity } = useCommunityContext();
   const { asideSidebarControls } = useNavContext();
   const router = useRouter();
+  const permittedCommunities = useCommunityPermissions();
 
-  const manageCommunityLinks = useMemo(() => {
-    return communities
-      .filter((c) => c.createdBy === session!.user!.id)
-      .map((c) => ({ label: c.name, link: `communities/manage/${c.slug}` }));
-  }, [session, communities]);
+  const manageCommunityLinks = permittedCommunities.map((c) => ({
+    label: c.name,
+    link: `communities/manage/${c.slug}`,
+  }));
 
   const SidebarTitle = ({
     name,
