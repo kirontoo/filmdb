@@ -23,31 +23,12 @@ const useStyles = createStyles((theme) => ({
       boxShadow: theme.shadows.md,
       transform: "scale(1.02)",
     },
-    color: "black",
+    border: `1px solid ${theme.colors[theme.primaryColor][5]}`
   },
   title: {
     marginBottom: rem(16),
   },
 }));
-
-function pickRandColor() {
-  const colors = [
-    "blue",
-    "red",
-    "pink",
-    "grape",
-    "violet",
-    "indigo",
-    "cyan",
-    "teal",
-    "green",
-    "yellow",
-    "orange",
-    "lime",
-  ];
-
-  return colors[Math.floor(Math.random() * colors.length)];
-}
 
 function CommunityPage() {
   const { classes } = useStyles();
@@ -90,14 +71,12 @@ function CommunityPage() {
                 <Grid.Col sm={2} lg={1} key={c.slug}>
                   <Paper
                     className={classes.card}
-                    withBorder
                     shadow="sm"
                     p="md"
                     component={Link}
                     href={`/community/${c.slug}`}
-                    bg={`${pickRandColor()}.2`}
                   >
-                    <Title order={2} size="h3">
+                    <Title order={2} size="h3" color="violet.5">
                       {c.name}
                     </Title>
                     <Text>{c.description}</Text>
