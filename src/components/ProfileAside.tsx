@@ -106,26 +106,24 @@ function ProfileAside() {
           asideSidebarControls.close();
         }}
       />
+      <LinksGroup
+        icon={IconEdit}
+        label="Manage Communities"
+        links={manageCommunityLinks}
+        iconSize={32}
+      />
       <Divider />
 
       {session ? (
-        <>
-          <NavLink
-            sx={{ color: "white" }}
-            label="Logout"
-            icon={<IconLogout />}
-            onClick={() => {
-              signOut({ callbackUrl: "/auth/signin" });
-              asideSidebarControls.close();
-            }}
-          />
-          <LinksGroup
-            icon={IconEdit}
-            label="Manage Communities"
-            links={manageCommunityLinks}
-            iconSize={32}
-          />
-        </>
+        <NavLink
+          sx={{ color: "white" }}
+          label="Logout"
+          icon={<IconLogout />}
+          onClick={() => {
+            signOut({ callbackUrl: "/auth/signin" });
+            asideSidebarControls.close();
+          }}
+        />
       ) : (
         <NavLink
           sx={{ color: "white" }}
