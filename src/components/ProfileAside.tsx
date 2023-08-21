@@ -32,7 +32,7 @@ function ProfileAside() {
 
   const manageCommunityLinks = permittedCommunities.map((c) => ({
     label: c.name,
-    link: `communities/manage/${c.slug}`,
+    link: `/community/manage/${c.slug}`,
   }));
 
   const SidebarTitle = ({
