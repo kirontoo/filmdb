@@ -11,7 +11,7 @@ import {
   ActionIcon,
   rem,
 } from "@mantine/core";
-import { IconSearch, IconChevronDown } from "@tabler/icons-react";
+import { IconSearch, IconChevronDown, IconPlus } from "@tabler/icons-react";
 import Link from "next/link";
 import { LoginBtn } from ".";
 import { useSession } from "next-auth/react";
@@ -167,6 +167,10 @@ export default function Navbar({ links }: HeaderSimpleProps) {
                       {c.name}
                     </Menu.Item>
                   ))}
+                  <Menu.Divider/>
+                  <Menu.Item href="/community/join" component={Link}>
+                    Join Community
+                  </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
             )}
@@ -185,7 +189,18 @@ export default function Navbar({ links }: HeaderSimpleProps) {
           </Group>
         </Group>
         <Group>
-          <ActionIcon component={Link} href="/media/search">
+          <ActionIcon
+            component={Link}
+            href="/community/new"
+            title="create a community"
+          >
+            <IconPlus size="1.1rem" stroke={1.5} />
+          </ActionIcon>
+          <ActionIcon
+            component={Link}
+            href="/media/search"
+            title="search media"
+          >
             <IconSearch size="1.1rem" stroke={1.5} />
           </ActionIcon>
 

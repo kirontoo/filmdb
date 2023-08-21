@@ -16,7 +16,6 @@ import {
   IconLogout,
   IconMoodPlus,
   IconPencilPlus,
-  IconUsers,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useNavContext } from "@/context/NavProvider";
@@ -36,9 +35,18 @@ function NavigationDrawer() {
   const btns: ProfileBtns[] = [
     {
       icon: IconGlobe,
-      label: "Discover",
+      label: "Trending",
       onClick: () => {
         router.push("/");
+        navSidebarControls.close();
+      },
+      default: true,
+    },
+    {
+      icon: IconMoodPlus,
+      label: "Join a Community",
+      onClick: () => {
+        router.push("/community/join");
         navSidebarControls.close();
       },
       default: true,
@@ -53,19 +61,10 @@ function NavigationDrawer() {
       default: true,
     },
     {
-      icon: IconUsers,
-      label: "Manage Communities",
+      icon: IconInfoCircle,
+      label: "About Us",
       onClick: () => {
-        router.push("/community");
-        navSidebarControls.close();
-      },
-      default: false,
-    },
-    {
-      icon: IconMoodPlus,
-      label: "Join a Community",
-      onClick: () => {
-        router.push("/community/join");
+        router.push("/about");
         navSidebarControls.close();
       },
       default: true,
@@ -160,15 +159,6 @@ function NavigationDrawer() {
           />
         )}
         <Divider />
-        <NavLink
-          sx={{ color: "white" }}
-          label="About us"
-          icon={<IconInfoCircle />}
-          onClick={() => {
-            router.push("/about");
-            navSidebarControls.close();
-          }}
-        />
       </Stack>
     </>
   );
