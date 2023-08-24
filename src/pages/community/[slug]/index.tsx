@@ -32,6 +32,7 @@ import useAsyncFn from "@/lib/hooks/useAsyncFn";
 import { fetchCommunityWithMedia } from "@/services/medias";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { getQueryValue } from "@/lib/util";
+import Link from "next/link";
 
 const useStyles = createStyles((theme) => ({
   container: {
@@ -53,6 +54,7 @@ function CommunityDashboard() {
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
   const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
+  const cSlug = getQueryValue(slug);
 
   useEffect(() => {
     if (session && !isLoading) {
@@ -75,20 +77,14 @@ function CommunityDashboard() {
       const upcoming =
         community.medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
       setUpcomingMedia(upcoming);
-    } catch (error) {}
+    } catch (error) { }
   };
 
-  const openMediaModal = (media: Media) => {
+  const navigateToMediaPage = (media: Media) => {
     const cSlug = getQueryValue(slug);
     router.push(
       `/community/${cSlug}/media/${media.mediaType}/${media.tmdbId}/${media.id}`
     );
-    // modals.openContextModal({
-    //   modal: "media",
-    //   title: `${media.title}`,
-    //   size: "xl",
-    //   innerProps: { media, communityId: fetchCommunityWithMediaFn.value!.id },
-    // });
   };
 
   const openInviteModal = () => {
@@ -99,9 +95,8 @@ function CommunityDashboard() {
           <Group>
             <Text fz="xl">{fetchCommunityWithMediaFn.value!.inviteCode}</Text>
             <CopyButton
-              value={`${origin}/community/join?code=${
-                fetchCommunityWithMediaFn.value!.inviteCode
-              }`}
+              value={`${origin}/community/join?code=${fetchCommunityWithMediaFn.value!.inviteCode
+                }`}
               timeout={2000}
             >
               {({ copied, copy }) => (
@@ -156,15 +151,14 @@ function CommunityDashboard() {
             .filter((m) => m.watched === watched)
             .map((m) => (
               <Carousel.Slide key={m.id}>
-                <UnstyledButton onClick={() => openMediaModal(m)}>
+                <Link href={`/community/${cSlug}/media/${m.mediaType}/${m.tmdbId}/${m.id}`}>
                   <Image
                     radius="sm"
-                    src={`${TMDB_IMAGE_API_BASE_URL}/w${
-                      isDesktop ? "342" : "185"
-                    }/${m.posterPath}`}
+                    src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
+                      }/${m.posterPath}`}
                     alt={m.title}
                   />
-                </UnstyledButton>
+                </Link>
               </Carousel.Slide>
             ))}
       </Carousel>
@@ -188,10 +182,9 @@ function CommunityDashboard() {
     <>
       <Head>
         <title>
-          {`${
-            fetchCommunityWithMediaFn.value &&
+          {`${fetchCommunityWithMediaFn.value &&
             fetchCommunityWithMediaFn.value.name
-          }`}{" "}
+            }`}{" "}
           | FilmDB
         </title>
       </Head>
@@ -208,17 +201,16 @@ function CommunityDashboard() {
           </Group>
           <Group position="apart">
             <Title order={2} size="h3">
-              Upcoming
+              Up Next
             </Title>
           </Group>
           {upcomingMedia ? (
             <div className={classes.mediaCard}>
-              <UnstyledButton onClick={() => openMediaModal(upcomingMedia)}>
+              <UnstyledButton onClick={() => navigateToMediaPage(upcomingMedia)}>
                 <Image
                   radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
-                    isDesktop ? "342" : "185"
-                  }/${upcomingMedia.posterPath}`}
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
+                    }/${upcomingMedia.posterPath}`}
                   alt={upcomingMedia.title}
                 />
               </UnstyledButton>
