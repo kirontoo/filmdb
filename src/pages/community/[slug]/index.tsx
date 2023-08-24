@@ -14,6 +14,7 @@ import {
   LoadingOverlay,
   Card,
   Center,
+  Flex,
 } from "@mantine/core";
 import Head from "next/head";
 import { AvatarMemberList } from "@/components";
@@ -27,7 +28,12 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconCopy,
+  IconEdit,
+  IconUserPlus,
+} from "@tabler/icons-react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
 import { fetchCommunityWithMedia } from "@/services/medias";
 import { useLoadingContext } from "@/context/LoadingProvider";
@@ -77,7 +83,7 @@ function CommunityDashboard() {
       const upcoming =
         community.medias.find((m: Media) => m.queue ?? 0 > 0) ?? null;
       setUpcomingMedia(upcoming);
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const navigateToMediaPage = (media: Media) => {
@@ -95,8 +101,9 @@ function CommunityDashboard() {
           <Group>
             <Text fz="xl">{fetchCommunityWithMediaFn.value!.inviteCode}</Text>
             <CopyButton
-              value={`${origin}/community/join?code=${fetchCommunityWithMediaFn.value!.inviteCode
-                }`}
+              value={`${origin}/community/join?code=${
+                fetchCommunityWithMediaFn.value!.inviteCode
+              }`}
               timeout={2000}
             >
               {({ copied, copy }) => (
@@ -151,11 +158,14 @@ function CommunityDashboard() {
             .filter((m) => m.watched === watched)
             .map((m) => (
               <Carousel.Slide key={m.id}>
-                <Link href={`/community/${cSlug}/media/${m.mediaType}/${m.tmdbId}/${m.id}`}>
+                <Link
+                  href={`/community/${cSlug}/media/${m.mediaType}/${m.tmdbId}/${m.id}`}
+                >
                   <Image
                     radius="sm"
-                    src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                      }/${m.posterPath}`}
+                    src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                      isDesktop ? "342" : "185"
+                    }/${m.posterPath}`}
                     alt={m.title}
                   />
                 </Link>
@@ -182,35 +192,53 @@ function CommunityDashboard() {
     <>
       <Head>
         <title>
-          {`${fetchCommunityWithMediaFn.value &&
+          {`${
+            fetchCommunityWithMediaFn.value &&
             fetchCommunityWithMediaFn.value.name
-            }`}{" "}
+          }`}{" "}
           | FilmDB
         </title>
       </Head>
       <Container>
         <Stack className={classes.container}>
           <Title tt="capitalize">{fetchCommunityWithMediaFn.value.name}</Title>
-          <Group position="apart">
+          <Flex
+            justify={{ default: "flex-start", lg: "space-between" }}
+            gap="sm"
+            align="center"
+          >
             <AvatarMemberList
               members={fetchCommunityWithMediaFn.value.members}
             />
-            <Button compact onClick={openInviteModal}>
-              Invite
-            </Button>
-          </Group>
-          <Group position="apart">
-            <Title order={2} size="h3">
-              Up Next
-            </Title>
-          </Group>
+            <Flex gap="xs">
+              <Tooltip label="Invite members">
+                <ActionIcon onClick={openInviteModal}>
+                  <IconUserPlus />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Edit Community">
+                <ActionIcon
+                  component={Link}
+                  href={`/community/manage/${cSlug}`}
+                >
+                  <IconEdit />
+                </ActionIcon>
+              </Tooltip>
+            </Flex>
+          </Flex>
+          <Title order={2} size="h3">
+            Up Next
+          </Title>
           {upcomingMedia ? (
             <div className={classes.mediaCard}>
-              <UnstyledButton onClick={() => navigateToMediaPage(upcomingMedia)}>
+              <UnstyledButton
+                onClick={() => navigateToMediaPage(upcomingMedia)}
+              >
                 <Image
                   radius="sm"
-                  src={`${TMDB_IMAGE_API_BASE_URL}/w${isDesktop ? "342" : "185"
-                    }/${upcomingMedia.posterPath}`}
+                  src={`${TMDB_IMAGE_API_BASE_URL}/w${
+                    isDesktop ? "342" : "185"
+                  }/${upcomingMedia.posterPath}`}
                   alt={upcomingMedia.title}
                 />
               </UnstyledButton>
