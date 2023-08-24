@@ -245,7 +245,7 @@ function SearchMedia() {
                     <IconStarFilled
                       style={{ position: "relative", color: "yellow" }}
                     />
-                    <Text>{m.vote_average}</Text>
+                    <Text>{m.vote_average !== 0 ? m.vote_average.toFixed(1) : 0}</Text>
                   </MediaImageCardFooter>
                 </MediaImageCard>
               );
