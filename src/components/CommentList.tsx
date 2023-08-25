@@ -4,7 +4,7 @@ dayjs.extend(relativeTime);
 
 import { Comment, SkeletonComment } from ".";
 import { useCommentContext } from "@/context/CommentProvider";
-import { Stack, useMantineTheme, Button, Group } from "@mantine/core";
+import { Stack, Button, Group } from "@mantine/core";
 import { useState } from "react";
 import { CommentTextEditor } from ".";
 import { useSession } from "next-auth/react";
@@ -17,7 +17,6 @@ interface CommentListProps {
 
 // Should load more comments as needed
 function CommentList({ children }: CommentListProps) {
-  const theme = useMantineTheme();
   const [commentContent, setCommentContent] = useState<string>("");
   const { comments, loadingComments, context, addNewComment } =
     useCommentContext();
