@@ -216,6 +216,8 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
             </TypographyStylesProvider>
           </Spoiler>
         )}
+
+        {/*
         <Box>
           <Group>
             <Button
@@ -283,6 +285,7 @@ function Comment({ id, date, body, author, isOwner, _count }: CommentProps) {
               />
             ))}
         </Box>
+          */}
       </Stack>
 
       <Menu shadow="md" width={200}>
