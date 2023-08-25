@@ -1,12 +1,7 @@
 import { useSession, signOut } from "next-auth/react";
 import {
   NavLink,
-  Box,
-  Flex,
-  Avatar,
   Stack,
-  Title,
-  Divider,
 } from "@mantine/core";
 import {
   Icon,
@@ -80,48 +75,9 @@ function NavigationDrawer() {
     },
   ];
 
-  const DrawerTitle = ({
-    name,
-    image,
-  }: {
-    name: string;
-    image: string | null;
-  }) => {
-    return (
-      <Flex gap="sm" align="center">
-        {session && (
-          <Avatar
-            size="md"
-            src={
-              image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`
-            }
-            radius="xl"
-          >
-            {name[0]}
-          </Avatar>
-        )}
-        <Box>
-          {session && (
-            <>
-              <Title order={1}>Welcome {name.split(" ")[0]}</Title>
-            </>
-          )}
-        </Box>
-      </Flex>
-    );
-  };
-
   return (
     <>
       <Stack justify="space-between" p={16}>
-        {session ? (
-          <DrawerTitle
-            name={session!.user!.name}
-            image={session!.user!.image}
-          />
-        ) : (
-          <Title>Filmdb</Title>
-        )}
         {btns.map((b) => {
           if (b.default == true) {
             return (
@@ -158,7 +114,6 @@ function NavigationDrawer() {
             }}
           />
         )}
-        <Divider />
       </Stack>
     </>
   );
