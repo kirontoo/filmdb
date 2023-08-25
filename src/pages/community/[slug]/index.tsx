@@ -45,6 +45,11 @@ const useStyles = createStyles((theme) => ({
     paddingTop: theme.spacing.xl,
     paddingBottom: theme.spacing.xl,
   },
+  inviteCodeBox: {
+    border: `1px solid ${theme.colors.gray[7]}`,
+    borderRadius: theme.radius.md,
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`
+  },
   mediaCard: {
     [`@media (min-width:${theme.breakpoints.md})`]: {
       width: "27%",
@@ -95,39 +100,42 @@ function CommunityDashboard() {
 
   const openInviteModal = () => {
     modals.open({
-      title: "Invite Code",
+      title: `Invite friends to ${fetchCommunityWithMediaFn?.value?.name}`,
       children: (
         <>
-          <Group>
-            <Text fz="xl">{fetchCommunityWithMediaFn.value!.inviteCode}</Text>
-            <CopyButton
-              value={`${origin}/community/join?code=${
-                fetchCommunityWithMediaFn.value!.inviteCode
-              }`}
-              timeout={2000}
-            >
-              {({ copied, copy }) => (
-                <Tooltip
-                  label={copied ? "Copied" : "Copy"}
-                  withArrow
-                  withinPortal
-                >
-                  <ActionIcon
-                    color={copied ? "green" : "blue"}
-                    onClick={copy}
-                    size="lg"
-                    variant="subtle"
+          <Stack spacing="sm">
+            <Text component="span">Share this link to invite your friends:</Text>
+            <Flex align="center" gap="sm" className={classes.inviteCodeBox} justify="space-between">
+              <Text fz="lg">{origin}/community/join?code={fetchCommunityWithMediaFn.value!.inviteCode}</Text>
+              <CopyButton
+                value={`${origin}/community/join?code=${
+                  fetchCommunityWithMediaFn.value!.inviteCode
+                }`}
+                timeout={2000}
+              >
+                {({ copied, copy }) => (
+                  <Tooltip
+                    label={copied ? "Copied" : "Copy"}
+                    withArrow
+                    withinPortal
                   >
-                    {copied ? (
-                      <IconCheck size="1.5rem" />
-                    ) : (
-                      <IconCopy size="1.5rem" />
-                    )}
-                  </ActionIcon>
-                </Tooltip>
-              )}
-            </CopyButton>
-          </Group>
+                    <ActionIcon
+                      color={copied ? "green" : "blue"}
+                      onClick={copy}
+                      size="lg"
+                      variant="subtle"
+                    >
+                      {copied ? (
+                        <IconCheck size="1.5rem" />
+                      ) : (
+                        <IconCopy size="1.5rem" />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </CopyButton>
+            </Flex>
+          </Stack>
         </>
       ),
     });
