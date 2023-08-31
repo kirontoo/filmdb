@@ -48,11 +48,15 @@ const useStyles = createStyles((theme) => ({
   inviteCodeBox: {
     border: `1px solid ${theme.colors.gray[7]}`,
     borderRadius: theme.radius.md,
-    padding: `${theme.spacing.xs} ${theme.spacing.sm}`
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
   },
   mediaCard: {
+    width: "28%",
+    [`@media (min-width:${theme.breakpoints.xs})`]: {
+      width: "28.5%",
+    },
     [`@media (min-width:${theme.breakpoints.md})`]: {
-      width: "27%",
+      width: "26.8%",
     },
   },
 }));
@@ -104,9 +108,19 @@ function CommunityDashboard() {
       children: (
         <>
           <Stack spacing="sm">
-            <Text component="span">Share this link to invite your friends:</Text>
-            <Flex align="center" gap="sm" className={classes.inviteCodeBox} justify="space-between">
-              <Text fz="lg">{origin}/community/join?code={fetchCommunityWithMediaFn.value!.inviteCode}</Text>
+            <Text component="span">
+              Share this link to invite your friends:
+            </Text>
+            <Flex
+              align="center"
+              gap="sm"
+              className={classes.inviteCodeBox}
+              justify="space-between"
+            >
+              <Text fz="lg">
+                {origin}/community/join?code=
+                {fetchCommunityWithMediaFn.value!.inviteCode}
+              </Text>
               <CopyButton
                 value={`${origin}/community/join?code=${
                   fetchCommunityWithMediaFn.value!.inviteCode
@@ -155,7 +169,7 @@ function CommunityDashboard() {
             slideGap: "md",
           },
           {
-            maxWidth: "md",
+            maxWidth: "lg",
             slideSize: "30.333%",
             slideGap: "xs",
           },
@@ -234,12 +248,15 @@ function CommunityDashboard() {
               </Tooltip>
             </Flex>
           </Flex>
+
           <Title order={2} size="h3">
             Up Next
           </Title>
+
           {upcomingMedia ? (
             <div className={classes.mediaCard}>
               <UnstyledButton
+                w="100%"
                 onClick={() => navigateToMediaPage(upcomingMedia)}
               >
                 <Image
