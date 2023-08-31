@@ -183,7 +183,9 @@ function CommunityMediaPage() {
   };
 
   useEffect(() => {
-    loadData();
+    if (mediaType && tmdbId && communitySlug && mId) {
+      loadData();
+    }
   }, [router.query]);
 
   const openDeleteModal = () => {
@@ -307,7 +309,7 @@ function CommunityMediaPage() {
     return <LoadingOverlay visible={true} />;
   }
 
-  if (getTmdbMediaFn.error !== undefined || getMediaFn.error !== undefined) {
+  if (getTmdbMediaFn.error || getMediaFn.error) {
     return (
       <Container>
         <NothingFoundBackground
