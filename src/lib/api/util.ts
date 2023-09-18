@@ -1,4 +1,4 @@
-import prisma from "@/lib/prismadb";
+import prisma from "@/lib/prisma/client";
 
 export async function getQueueCount(communityId: string): Promise<number> {
   const queueAggregate = await prisma.media.aggregate({
