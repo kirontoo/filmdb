@@ -2,7 +2,7 @@ import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
-import prisma from "@/lib/prismadb";
+import prisma from "@/lib/prisma/client";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,

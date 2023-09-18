@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 import slugify from "slugify";
 
-import prisma from "@/lib/prismadb";
+import prisma from "@/lib/prisma/client";
 import { generateInviteCode } from "@/lib/util";
 import {
   PrismaClientKnownRequestError,

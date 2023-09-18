@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import DiscordProvider from "next-auth/providers/discord";
 import Auth0Provider from "next-auth/providers/auth0";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "../../../lib/prismadb";
+import prisma from "../../../lib/prisma/client";
 
 export const authOptions = {
   // Configure one or more authentication providers
