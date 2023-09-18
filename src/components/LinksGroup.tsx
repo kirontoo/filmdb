@@ -1,3 +1,4 @@
+import { useNavContext } from "@/context/NavProvider";
 import {
   Text,
   createStyles,
@@ -10,6 +11,7 @@ import {
   Flex,
 } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import Link from "next/link";
 import { useState } from "react";
 
 interface LinksGroupProps {
@@ -79,13 +81,14 @@ function LinksGroup({
   const hasLinks = Array.isArray(links);
   const [opened, setOpened] = useState(initiallyOpened || false);
   const ChevronIcon = theme.dir === "ltr" ? IconChevronRight : IconChevronLeft;
+  const { asideSidebarControls } = useNavContext();
   const items = (hasLinks ? links : []).map((link) => (
     <Text
-      component="a"
+      component={Link}
       className={classes.link}
       href={link.link}
       key={link.label}
-      onClick={(event) => event.preventDefault()}
+      onClick={asideSidebarControls.close}
     >
       {link.label}
     </Text>

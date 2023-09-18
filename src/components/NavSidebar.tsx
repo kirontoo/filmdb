@@ -1,12 +1,7 @@
 import { useSession, signOut } from "next-auth/react";
 import {
   NavLink,
-  Box,
-  Flex,
-  Avatar,
   Stack,
-  Title,
-  Divider,
 } from "@mantine/core";
 import {
   Icon,
@@ -16,7 +11,6 @@ import {
   IconLogout,
   IconMoodPlus,
   IconPencilPlus,
-  IconUsers,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useNavContext } from "@/context/NavProvider";
@@ -36,9 +30,18 @@ function NavigationDrawer() {
   const btns: ProfileBtns[] = [
     {
       icon: IconGlobe,
-      label: "Discover",
+      label: "Trending",
       onClick: () => {
         router.push("/");
+        navSidebarControls.close();
+      },
+      default: true,
+    },
+    {
+      icon: IconMoodPlus,
+      label: "Join a Community",
+      onClick: () => {
+        router.push("/community/join");
         navSidebarControls.close();
       },
       default: true,
@@ -53,19 +56,10 @@ function NavigationDrawer() {
       default: true,
     },
     {
-      icon: IconUsers,
-      label: "Manage Communities",
+      icon: IconInfoCircle,
+      label: "About Us",
       onClick: () => {
-        router.push("/community");
-        navSidebarControls.close();
-      },
-      default: false,
-    },
-    {
-      icon: IconMoodPlus,
-      label: "Join a Community",
-      onClick: () => {
-        router.push("/community/join");
+        router.push("/about");
         navSidebarControls.close();
       },
       default: true,
@@ -81,48 +75,9 @@ function NavigationDrawer() {
     },
   ];
 
-  const DrawerTitle = ({
-    name,
-    image,
-  }: {
-    name: string;
-    image: string | null;
-  }) => {
-    return (
-      <Flex gap="sm" align="center">
-        {session && (
-          <Avatar
-            size="md"
-            src={
-              image ?? `https://ui-avatars.com/api/?name=${encodeURI(name[0])}`
-            }
-            radius="xl"
-          >
-            {name[0]}
-          </Avatar>
-        )}
-        <Box>
-          {session && (
-            <>
-              <Title order={1}>Welcome {name.split(" ")[0]}</Title>
-            </>
-          )}
-        </Box>
-      </Flex>
-    );
-  };
-
   return (
     <>
       <Stack justify="space-between" p={16}>
-        {session ? (
-          <DrawerTitle
-            name={session!.user!.name}
-            image={session!.user!.image}
-          />
-        ) : (
-          <Title>Filmdb</Title>
-        )}
         {btns.map((b) => {
           if (b.default == true) {
             return (
@@ -159,16 +114,6 @@ function NavigationDrawer() {
             }}
           />
         )}
-        <Divider />
-        <NavLink
-          sx={{ color: "white" }}
-          label="About us"
-          icon={<IconInfoCircle />}
-          onClick={() => {
-            router.push("/about");
-            navSidebarControls.close();
-          }}
-        />
       </Stack>
     </>
   );

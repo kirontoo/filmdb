@@ -45,6 +45,7 @@ async function getComments(
             },
           },
         ],
+        deleted: false
       },
       orderBy: {
         updatedAt: "desc"

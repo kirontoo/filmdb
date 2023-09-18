@@ -14,6 +14,7 @@ import {
   LoadingOverlay,
   Card,
   Center,
+  Flex,
 } from "@mantine/core";
 import Head from "next/head";
 import { AvatarMemberList } from "@/components";
@@ -27,20 +28,35 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 
 import useIsDesktopDevice from "@/lib/hooks/useIsDesktopDevice";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconCopy,
+  IconEdit,
+  IconUserPlus,
+} from "@tabler/icons-react";
 import useAsyncFn from "@/lib/hooks/useAsyncFn";
 import { fetchCommunityWithMedia } from "@/services/medias";
 import { useLoadingContext } from "@/context/LoadingProvider";
 import { getQueryValue } from "@/lib/util";
+import Link from "next/link";
 
 const useStyles = createStyles((theme) => ({
   container: {
     paddingTop: theme.spacing.xl,
     paddingBottom: theme.spacing.xl,
   },
+  inviteCodeBox: {
+    border: `1px solid ${theme.colors.gray[7]}`,
+    borderRadius: theme.radius.md,
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+  },
   mediaCard: {
+    width: "28%",
+    [`@media (min-width:${theme.breakpoints.xs})`]: {
+      width: "28.5%",
+    },
     [`@media (min-width:${theme.breakpoints.md})`]: {
-      width: "27%",
+      width: "26.8%",
     },
   },
 }));
@@ -53,6 +69,7 @@ function CommunityDashboard() {
   const { data: session } = useSession();
   const isDesktop = useIsDesktopDevice();
   const [upcomingMedia, setUpcomingMedia] = useState<Media | null>(null);
+  const cSlug = getQueryValue(slug);
 
   useEffect(() => {
     if (session && !isLoading) {
@@ -78,54 +95,61 @@ function CommunityDashboard() {
     } catch (error) {}
   };
 
-  const openMediaModal = (media: Media) => {
+  const navigateToMediaPage = (media: Media) => {
     const cSlug = getQueryValue(slug);
     router.push(
       `/community/${cSlug}/media/${media.mediaType}/${media.tmdbId}/${media.id}`
     );
-    // modals.openContextModal({
-    //   modal: "media",
-    //   title: `${media.title}`,
-    //   size: "xl",
-    //   innerProps: { media, communityId: fetchCommunityWithMediaFn.value!.id },
-    // });
   };
 
   const openInviteModal = () => {
     modals.open({
-      title: "Invite Code",
+      title: `Invite friends to ${fetchCommunityWithMediaFn?.value?.name}`,
       children: (
         <>
-          <Group>
-            <Text fz="xl">{fetchCommunityWithMediaFn.value!.inviteCode}</Text>
-            <CopyButton
-              value={`${origin}/community/join?code=${
-                fetchCommunityWithMediaFn.value!.inviteCode
-              }`}
-              timeout={2000}
+          <Stack spacing="sm">
+            <Text component="span">
+              Share this link to invite your friends:
+            </Text>
+            <Flex
+              align="center"
+              gap="sm"
+              className={classes.inviteCodeBox}
+              justify="space-between"
             >
-              {({ copied, copy }) => (
-                <Tooltip
-                  label={copied ? "Copied" : "Copy"}
-                  withArrow
-                  withinPortal
-                >
-                  <ActionIcon
-                    color={copied ? "green" : "blue"}
-                    onClick={copy}
-                    size="lg"
-                    variant="subtle"
+              <Text fz="lg">
+                {origin}/community/join?code=
+                {fetchCommunityWithMediaFn.value!.inviteCode}
+              </Text>
+              <CopyButton
+                value={`${origin}/community/join?code=${
+                  fetchCommunityWithMediaFn.value!.inviteCode
+                }`}
+                timeout={2000}
+              >
+                {({ copied, copy }) => (
+                  <Tooltip
+                    label={copied ? "Copied" : "Copy"}
+                    withArrow
+                    withinPortal
                   >
-                    {copied ? (
-                      <IconCheck size="1.5rem" />
-                    ) : (
-                      <IconCopy size="1.5rem" />
-                    )}
-                  </ActionIcon>
-                </Tooltip>
-              )}
-            </CopyButton>
-          </Group>
+                    <ActionIcon
+                      color={copied ? "green" : "blue"}
+                      onClick={copy}
+                      size="lg"
+                      variant="subtle"
+                    >
+                      {copied ? (
+                        <IconCheck size="1.5rem" />
+                      ) : (
+                        <IconCopy size="1.5rem" />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </CopyButton>
+            </Flex>
+          </Stack>
         </>
       ),
     });
@@ -145,7 +169,7 @@ function CommunityDashboard() {
             slideGap: "md",
           },
           {
-            maxWidth: "md",
+            maxWidth: "lg",
             slideSize: "30.333%",
             slideGap: "xs",
           },
@@ -156,7 +180,9 @@ function CommunityDashboard() {
             .filter((m) => m.watched === watched)
             .map((m) => (
               <Carousel.Slide key={m.id}>
-                <UnstyledButton onClick={() => openMediaModal(m)}>
+                <Link
+                  href={`/community/${cSlug}/media/${m.mediaType}/${m.tmdbId}/${m.id}`}
+                >
                   <Image
                     radius="sm"
                     src={`${TMDB_IMAGE_API_BASE_URL}/w${
@@ -164,7 +190,7 @@ function CommunityDashboard() {
                     }/${m.posterPath}`}
                     alt={m.title}
                   />
-                </UnstyledButton>
+                </Link>
               </Carousel.Slide>
             ))}
       </Carousel>
@@ -198,22 +224,41 @@ function CommunityDashboard() {
       <Container>
         <Stack className={classes.container}>
           <Title tt="capitalize">{fetchCommunityWithMediaFn.value.name}</Title>
-          <Group position="apart">
+          <Flex
+            justify={{ default: "flex-start", lg: "space-between" }}
+            gap="sm"
+            align="center"
+          >
             <AvatarMemberList
               members={fetchCommunityWithMediaFn.value.members}
             />
-            <Button compact onClick={openInviteModal}>
-              Invite
-            </Button>
-          </Group>
-          <Group position="apart">
-            <Title order={2} size="h3">
-              Upcoming
-            </Title>
-          </Group>
+            <Flex gap="xs">
+              <Tooltip label="Invite members">
+                <ActionIcon onClick={openInviteModal}>
+                  <IconUserPlus />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Edit Community">
+                <ActionIcon
+                  component={Link}
+                  href={`/community/manage/${cSlug}`}
+                >
+                  <IconEdit />
+                </ActionIcon>
+              </Tooltip>
+            </Flex>
+          </Flex>
+
+          <Title order={2} size="h3">
+            Up Next
+          </Title>
+
           {upcomingMedia ? (
             <div className={classes.mediaCard}>
-              <UnstyledButton onClick={() => openMediaModal(upcomingMedia)}>
+              <UnstyledButton
+                w="100%"
+                onClick={() => navigateToMediaPage(upcomingMedia)}
+              >
                 <Image
                   radius="sm"
                   src={`${TMDB_IMAGE_API_BASE_URL}/w${
