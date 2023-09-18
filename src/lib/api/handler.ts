@@ -5,7 +5,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { authOptions } from "@/pages/api/auth/[...nextauth].api";
 
 export type ReturnPayload = {
   status: string;

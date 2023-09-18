@@ -1,6 +1,6 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { authOptions } from "../auth/[...nextauth].api";
 import slugify from "slugify";
 
 import prisma from "@/lib/prisma/client";

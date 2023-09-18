@@ -1,6 +1,6 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { authOptions } from "@/pages/api/auth/[...nextauth].api";
 import prisma from "@/lib/prisma/client";
 import {
   PrismaClientKnownRequestError,
