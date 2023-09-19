@@ -2,6 +2,7 @@ import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth].api";
 import slugify from "slugify";
+import * as CommunityService from "./community.service";
 
 import prisma from "@/lib/prisma/client";
 import { generateInviteCode } from "@/lib/util";
@@ -27,56 +28,22 @@ async function postCommunity(req: NextApiRequest, res: NextApiResponse) {
   // find user id
   try {
     const session = await getServerSession(req, res, authOptions);
-    const user = await prisma.user
-      .findFirstOrThrow({
-        where: {
-          AND: [
-            {
-              id: session!.user!.id,
-            },
-            {
-              communities: {
-                some: {
-                  members: { some: { id: session!.user!.id } },
-                },
-              },
-            },
-          ],
-        },
-      })
-      .catch(() => {
-        throw new APIError("not authorized", UnauthorizedError);
+
+    const { name, description } = req.body;
+    const community = await CommunityService.createCommunity(
+      session!.user!.id,
+      name,
+      description
+    );
+
+
+    if (community) {
+      return res.status(201).json({
+        status: "success",
+        data: { community },
       });
-
-    if (user) {
-      const { name, description } = req.body;
-      const inviteCode = generateInviteCode(5);
-      // TODO: retry if slug already exists
-      const slug = slugify(name, { lower: true });
-
-      const community = await prisma.community.create({
-        data: {
-          name,
-          createdBy: user.id,
-          description: description ?? "",
-          inviteCode,
-          slug,
-          members: {
-            connect: [{ id: user.id }],
-          },
-        },
-        include: {
-          members: true,
-        },
-      });
-
-      if (community) {
-        return res.status(201).json({
-          status: "success",
-          data: { community },
-        });
-      }
-    } else {
+    }
+    else {
       return res.status(500).send({
         status: "error",
         message: "could not create new community",
@@ -103,24 +70,8 @@ async function postCommunity(req: NextApiRequest, res: NextApiResponse) {
 async function getCommunities(req: NextApiRequest, res: NextApiResponse) {
   try {
     const session = await getServerSession(req, res, authOptions);
-    const communities = await prisma.community.findMany({
-      where: {
-        members: {
-          some: {
-            id: session!.user!.id,
-          },
-        },
-      },
-      include: {
-        members: {
-          select: {
-            name: true,
-            image: true,
-          },
-        },
-      },
-    });
-
+    const communities = CommunityService.getCommunities(session!.user!.id);
+  
     return res.status(200).json({
       status: "success",
       data: {
