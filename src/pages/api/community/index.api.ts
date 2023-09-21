@@ -1,11 +1,8 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth].api";
-import slugify from "slugify";
 import * as CommunityService from "./community.service";
 
-import prisma from "@/lib/prisma/client";
-import { generateInviteCode } from "@/lib/util";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
