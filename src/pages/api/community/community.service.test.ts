@@ -1,8 +1,8 @@
 import { prismaMock } from '@/lib/prisma/__mocks__/client';
 import * as CommunityService from './community.service';
-import { ObjectId } from "bson";
+import ObjectID from "bson-objectid";
 import slugify from 'slugify';
-
+import { APIError } from '@/lib/errors';
 
 // mock generate object id
 // jest.spyOn(ObjectId, 'generate').mockImplementation(() => {
@@ -22,7 +22,7 @@ test("should get all communities of a user", async () => {
       createdBy: userId,
       memberIds: [userId],
       currentlyWatching: null,
-      inviteCode: '3cerfg',
+      inviteCode: generateInviteCode(5),
       description: '',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -38,10 +38,10 @@ describe("CommunityService.createCommunity", () => {
   });
 
   test("should create a new community if it doesn't already exist", async () => {
-    const userId = ObjectId.generate();
+    const userId = ObjectID();
     const date = new Date();
     const expected = {
-      id: ObjectId.generate().toString(),
+      id: ObjectID(),
       name: "test",
       description: "Test community",
       slug: slugify("test", { lower: true }),
@@ -71,10 +71,10 @@ describe("CommunityService.createCommunity", () => {
   });
 
   test("should not create a new community with the same name", async () => {
-    const userId = ObjectId.generate();
+    const userId = ObjectID();
     const date = new Date();
     const expected = {
-      id: ObjectId.generate().toString(),
+      id: ObjectID(),
       name: "test",
       description: "Test community",
       slug: slugify("test", { lower: true }),
@@ -120,3 +120,43 @@ describe("CommunityService.createCommunity", () => {
 
   test.todo("should re-generate a new invite code if it already exists")
 });
+
+describe("CommunityService.addMemberToCommunity", () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  test("should add user to community", async () => {
+    const userId = ObjectID().toString();
+    const userIdToJoin = ObjectID().toString();
+    const inviteCode = generateInviteCode(5);
+    const date = new Date();
+    const community = {
+      id: ObjectID().toString(),
+      name: "test",
+      description: "Test community",
+      slug: slugify("test", { lower: true }),
+      inviteCode,
+      currentlyWatching: null,
+      createdAt: date,
+      updatedAt: date,
+      memberIds: [userId],
+      createdBy: userId
+    };
+
+    prismaMock.$transaction.mockImplementationOnce(callback => callback(prismaMock));
+    prismaMock.community.findUnique.mockResolvedValueOnce(community);
+    prismaMock.community.update.mockResolvedValueOnce({
+      ...community,
+      memberIds: [...community.memberIds, userIdToJoin]
+    });
+
+    const actual = await CommunityService.addUserToCommunity(inviteCode, userIdToJoin);
+    console.log(actual)
+
+    expect(actual.memberIds).toContain(userIdToJoin);
+  });
+
+  test.todo("should throw an error if user is already a member");
+  test.todo("should throw an error with a invalid invite code")
+})
