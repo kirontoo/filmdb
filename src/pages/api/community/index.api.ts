@@ -12,7 +12,6 @@ import { createHandler } from "@/lib/api/handler";
 import {
   APIError,
   QueryError,
-  UnauthorizedError,
   ValidationError,
 } from "@/lib/errors";
 
