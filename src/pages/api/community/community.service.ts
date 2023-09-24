@@ -83,7 +83,7 @@ export const addUserToCommunity = async (inviteCode: string, memberId: string) =
           },
         },
         include: { members: true },
-      })
+      });
 
     return updatedCommunity;
   });
