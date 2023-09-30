@@ -188,3 +188,23 @@ describe("CommunityService.addMemberToCommunity", () => {
     await expect(CommunityService.addUserToCommunity(inviteCode, userId)).rejects.toThrow('invalid invite code')
   })
 });
+
+describe("CommunityService.removeUserFromCommunity", () => {
+  test.todo("should remove user from a community");
+  test.todo("should return null for a user that does not exist");
+});
+
+describe("CommunityService.findCommunityWithSlugOrId", () => {
+  test.todo("should find a community with a id");
+  test.todo("should find a community with a slug");
+  test.todo("should throw an error with an invalid id");
+  test.todo("should throw an error with an invalid slug");
+});
+
+describe("CommunityService.updateCommunity", () => {
+  test.todo("should throw an error if the community does not exist");
+  test.todo("should not update if user is not the owner");
+  test.todo("should update only the community name");
+  test.todo("should update the slug if the name is updated");
+  test.todo("should update only the community description");
+});

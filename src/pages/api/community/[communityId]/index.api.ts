@@ -1,6 +1,7 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth].api";
+import * as CommunityService from '@/pages/api/community/community.service';
 
 import prisma from "@/lib/prisma/client";
 import {
@@ -40,34 +41,7 @@ async function getCommunityById(req: NextApiRequest, res: NextApiResponse) {
       cId = null;
     }
 
-    const community = await prisma.community
-      .findFirstOrThrow({
-        where: {
-          AND: [
-            { OR: [{ id: cId || undefined }, { slug: slug || undefined }] },
-            { members: { some: { id: session!.user!.id } } },
-          ],
-        },
-        include: {
-          medias: {
-            orderBy: {
-              title: "asc",
-            },
-            include: {
-              requestedBy: true,
-            },
-          },
-          members: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-      })
-      .catch(() => {
-        throw new APIError("community not found", QueryError);
-      });
+    const community = await CommunityService.findCommunityWithSlugOrId(cId, slug, session!.user!.id);
     if (community) {
       res.status(200).json({
         status: "success",
@@ -95,44 +69,19 @@ async function updateCommunity(req: NextApiRequest, res: NextApiResponse) {
       ? communityId[0]
       : communityId!;
     const session = await getServerSession(req, res, authOptions);
-    const user = await prisma.user.findFirstOrThrow({
-      where: {
-        AND: [
-          {
-            email: session!.user!.email,
-          },
-          {
-            communities: {
-              some: { AND: [{ id }, { createdBy: session!.user!.id }] },
-            },
-          },
-        ],
-      },
+
+    const updated = await CommunityService.updateCommunity(id, session!.user!.id, {
+      name: req.body["name"],
+      description: req.body["description"],
     });
 
-    if (user) {
-      const slug = req.body["name"]
-        ? slugify(req.body["name"], { lower: true })
-        : null;
-      const updated = await prisma.community.update({
-        where: { id },
-        data: {
-          name: req.body["name"] ?? undefined,
-          description: req.body["description"] ?? undefined,
-          slug: slug ?? undefined,
-        },
+    if (updated) {
+      return res.status(200).json({
+        status: "success",
+        data: { community: updated },
       });
-
-      if (updated) {
-        return res.status(200).json({
-          status: "success",
-          data: { community: updated },
-        });
-      } else {
-        throw new APIError("could not update community");
-      }
     } else {
-      throw new APIError("not authorized", UnauthorizedError);
+      throw new APIError("could not update community");
     }
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {

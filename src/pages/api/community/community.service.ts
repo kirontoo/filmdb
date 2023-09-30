@@ -1,4 +1,4 @@
-import { APIError, GenericError } from '@/lib/errors';
+import { APIError, GenericError, QueryError, UnauthorizedError } from '@/lib/errors';
 import prisma from '@/lib/prisma/client';
 import { generateInviteCode } from "@/lib/util";
 import slugify from 'slugify';
@@ -99,5 +99,68 @@ export const removeUserFromCommunity = async (communityId: string, userId: strin
         disconnect: [{ id: userId }]
       }
     }
-  }).catch(e => null)
+  }).catch(_ => null)
+}
+
+export const findCommunityWithSlugOrId = async (cId: string | null, slug: string | null, userId: string) => {
+  return await prisma.community
+    .findFirstOrThrow({
+      where: {
+        AND: [
+          { OR: [{ id: cId || undefined }, { slug: slug || undefined }] },
+          { members: { some: { id: userId } } },
+        ],
+      },
+      include: {
+        medias: {
+          orderBy: {
+            title: "asc",
+          },
+          include: {
+            requestedBy: true,
+          },
+        },
+        members: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    })
+    .catch(() => {
+      throw new APIError("community not found", QueryError);
+    });
+}
+
+export const updateCommunity = async (cId: string, userId: string, data: { name?: string, description?: string }) => {
+  // user must be ther owner to be able to update
+  await prisma.user.findFirstOrThrow({
+    where: {
+      AND: [
+        {
+          id: userId
+        },
+        {
+          communities: {
+            some: { AND: [{ id: cId }, { createdBy: userId }] },
+          },
+        },
+      ],
+    },
+  }).catch(e => { throw new APIError("not authorized", UnauthorizedError) })
+
+  // generate new slug if community name change
+  const slug = data.name
+    ? slugify(data.name, { lower: true })
+    : null;
+
+  return await prisma.community.update({
+    where: { id: cId },
+    data: {
+      name: data.name ?? undefined,
+      description: data.description ?? undefined,
+      slug: slug ?? undefined,
+    },
+  });
 }
