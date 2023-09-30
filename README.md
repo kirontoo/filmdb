@@ -137,7 +137,7 @@ This is an example of how to list things you need to use the software and how to
    ```
 3. Grab your TMDB API key at [TMDB](https://www.themoviedb.org/documentation/api)
 4. Create a `.env.local` file and add all of your keys. See the [`.env.example` file](./.env.example) for all envirnment variables that you'll need. For the `NEXTAUTH_SECRET`, generate a 256-bit secrety key.
-5. Run `npx prisma generate` 
+5. Run `npx prisma generate --schema=./src/prisma/schema.prisma` 
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
