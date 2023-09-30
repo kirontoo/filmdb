@@ -60,7 +60,7 @@ export const addUserToCommunity = async (inviteCode: string, memberId: string) =
       }
     });
 
-    if(!community) {
+    if (!community) {
       // could not find, invalid invite code
       throw new APIError("invalid invite code");
     }
@@ -87,4 +87,17 @@ export const addUserToCommunity = async (inviteCode: string, memberId: string) =
 
     return updatedCommunity;
   });
+}
+
+export const removeUserFromCommunity = async (communityId: string, userId: string) => {
+  return await prisma.community.update({
+    where: {
+      id: communityId,
+    },
+    data: {
+      members: {
+        disconnect: [{ id: userId }]
+      }
+    }
+  }).catch(e => null)
 }

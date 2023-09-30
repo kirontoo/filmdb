@@ -2,13 +2,13 @@ import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth].api";
 
-import prisma from "@/lib/prisma/client";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { APIError, QueryError, ValidationError } from "@/lib/errors";
 import { createHandler } from "@/lib/api/handler";
+import { removeUserFromCommunity } from "../community.service";
 
 export default createHandler({
   post: leaveCommunity,
@@ -22,20 +22,11 @@ async function leaveCommunity(req: NextApiRequest, res: NextApiResponse) {
       ? communityId[0]
       : communityId!;
 
-    const community = await prisma.user.update({
-      where: {
-        id: session!.user!.id,
-      },
-      data: {
-        communities: {
-          disconnect: [{ id: id }],
-        },
-      },
-    });
+    await removeUserFromCommunity(id, session!.user!.id);
 
     return res.status(200).json({
       status: "success",
-      message: `removed user from community: ${community.name}`,
+      message: `removed user from community`,
     });
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {
