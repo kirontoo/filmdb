@@ -102,6 +102,7 @@ export const removeUserFromCommunity = async (communityId: string, userId: strin
   }).catch(_ => null)
 }
 
+// only returns a community if the user is a member
 export const findCommunityWithSlugOrId = async (cId: string | null, slug: string | null, userId: string) => {
   return await prisma.community
     .findFirstOrThrow({
@@ -133,7 +134,26 @@ export const findCommunityWithSlugOrId = async (cId: string | null, slug: string
     });
 }
 
-export const updateCommunity = async (cId: string, userId: string, data: { name?: string, description?: string }) => {
+export const isCommunityOwner = async (
+  cId: string | null, 
+  slug: string | null,
+  userId: string, 
+) : Promise<boolean> => {
+    const c = await prisma.community.findFirst({
+      where: {
+        OR: [{ id: cId || undefined }, { slug: slug || undefined }],
+        createdBy: userId
+      },
+    }).catch(_ => null);
+
+    return c !== null ? true : false;
+}
+
+export const updateCommunity = async (
+  cId: string, 
+  userId: string, 
+  data: { name?: string, description?: string }
+) => {
   // user must be ther owner to be able to update
   await prisma.user.findFirstOrThrow({
     where: {

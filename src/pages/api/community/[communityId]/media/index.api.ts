@@ -12,6 +12,7 @@ import { APIError, QueryError, UnauthorizedError, ValidationError } from "@/lib/
 import { createHandler } from "@/lib/api/handler";
 import { ObjectId } from "bson";
 import { Media } from "@prisma/client";
+import { findCommunityWithSlugOrId, isCommunityOwner } from "../../community.service";
 
 export default createHandler({
   get: getMedias,
@@ -39,24 +40,7 @@ async function getMedias(
       communityId = null;
     }
 
-    const c = await prisma.community.findFirst({
-      where: {
-        OR: [{ id: communityId || undefined }, { slug: slug || undefined }],
-        members: {
-          some: { id: session!.user!.id },
-        },
-      },
-      include: {
-        medias: {
-          orderBy: {
-            title: "asc",
-          },
-          include: {
-            requestedBy: true,
-          },
-        },
-      },
-    });
+    const c = await findCommunityWithSlugOrId(communityId, slug, session!.user!.id);
 
     if (c) {
       return res.status(200).json({
@@ -98,6 +82,7 @@ async function updateMedias(
       : query.communityId!;
 
     let slug = null;
+    // TODO: no data validation
     const mediasToUpdate = body.medias;
 
     if (!mediasToUpdate) {
@@ -111,15 +96,9 @@ async function updateMedias(
     }
 
     // only the community owner can update the media
-    const c = await prisma.community.findFirst({
-      where: {
-        OR: [{ id: communityId || undefined }, { slug: slug || undefined }],
-        createdBy: session!.user!.id,
-      },
-    });
-
+    const isOwner = await isCommunityOwner(communityId, slug, session!.user!.id);
     // update all media data
-    if (c) {
+    if (isOwner) {
       const transaction = await prisma.$transaction(
         mediasToUpdate.map((m: Media) => {
           return prisma.media.update({
