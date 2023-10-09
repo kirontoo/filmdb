@@ -18,6 +18,7 @@ import { createHandler } from "@/lib/api/handler";
 import slugify from "slugify";
 import { getQueueCount } from "@/lib/api/util";
 import { ObjectId } from "bson";
+import { createMediaAndAddToCommunity } from "./media/media.service";
 
 export default createHandler({
   get: getCommunityById,
@@ -41,7 +42,12 @@ async function getCommunityById(req: NextApiRequest, res: NextApiResponse) {
       cId = null;
     }
 
-    const community = await CommunityService.findCommunityWithSlugOrId(cId, slug, session!.user!.id);
+    const community = await CommunityService.findCommunityWithSlugOrId(
+      cId,
+      slug,
+      session!.user!.id
+    );
+
     if (community) {
       res.status(200).json({
         status: "success",
@@ -70,10 +76,14 @@ async function updateCommunity(req: NextApiRequest, res: NextApiResponse) {
       : communityId!;
     const session = await getServerSession(req, res, authOptions);
 
-    const updated = await CommunityService.updateCommunity(id, session!.user!.id, {
-      name: req.body["name"],
-      description: req.body["description"],
-    });
+    const updated = await CommunityService.updateCommunity(
+      id,
+      session!.user!.id,
+      {
+        name: req.body["name"],
+        description: req.body["description"],
+      }
+    );
 
     if (updated) {
       return res.status(200).json({
@@ -95,10 +105,10 @@ async function updateCommunity(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
-  // add media to community lists
-  // query: api/community/[id]
 
+// add media to community lists
+// query: api/community/[id]
+async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
   const { communityId } = req.query;
   const { title, mediaType, posterPath, backdropPath, watched, tmdbId } =
     req.body;
@@ -107,64 +117,8 @@ async function addMediaToCommunity(req: NextApiRequest, res: NextApiResponse) {
     const cId: string = Array.isArray(communityId)
       ? communityId[0]
       : communityId!;
-    const { media } = await prisma.$transaction(async () => {
-      const community = await prisma.community.findUnique({
-        where: { id: cId },
-      });
 
-      const isMember = community?.memberIds.some(
-        (id) => id === session!.user!.id
-      );
-
-      // user is a member but NOT the community owner
-      if (isMember && community?.createdBy !== session!.user!.id) {
-        // community members can only add to the queued list
-        if (watched) {
-          throw new APIError(
-            "only the community owner can add to the watched list",
-            UnauthorizedError
-          );
-        }
-      } else if (!isMember) {
-        throw new APIError(
-          "must be a member of this community",
-          UnauthorizedError
-        );
-      }
-
-      const queueCount = await getQueueCount(cId);
-      const watchedPropExists = req.body.hasOwnProperty("watched");
-
-      const media = await prisma.media.upsert({
-        where: {
-          tmdbId_communityId: {
-            tmdbId: String(tmdbId),
-            communityId: cId,
-          },
-        },
-        update: {
-          watched: (watched as boolean) ?? undefined,
-          watchedAt: watchedPropExists ? new Date() : undefined,
-          queue: watchedPropExists && !req.body.watched ? queueCount + 1 : null,
-        },
-        create: {
-          title: title as string,
-          mediaType: mediaType,
-          tmdbId: String(tmdbId),
-          posterPath: posterPath as string,
-          backdropPath: backdropPath as string,
-          watched: (watched as boolean) ?? false,
-          requestedBy: {
-            connect: { id: session!.user!.id },
-          },
-          community: {
-            connect: { id: cId },
-          },
-        },
-      });
-
-      return { media };
-    });
+    const media = createMediaAndAddToCommunity(cId, session!.user!.id, req.body);
 
     return res.status(201).json({
       status: "success",
