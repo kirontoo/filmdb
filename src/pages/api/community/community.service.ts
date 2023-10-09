@@ -135,23 +135,23 @@ export const findCommunityWithSlugOrId = async (cId: string | null, slug: string
 }
 
 export const isCommunityOwner = async (
-  cId: string | null, 
+  cId: string | null,
   slug: string | null,
-  userId: string, 
-) : Promise<boolean> => {
-    const c = await prisma.community.findFirst({
-      where: {
-        OR: [{ id: cId || undefined }, { slug: slug || undefined }],
-        createdBy: userId
-      },
-    }).catch(_ => null);
+  userId: string,
+): Promise<boolean> => {
+  const c = await prisma.community.findFirst({
+    where: {
+      OR: [{ id: cId || undefined }, { slug: slug || undefined }],
+      createdBy: userId
+    },
+  }).catch(_ => null);
 
-    return c !== null ? true : false;
+  return c !== null ? true : false;
 }
 
 export const updateCommunity = async (
-  cId: string, 
-  userId: string, 
+  cId: string,
+  userId: string,
   data: { name?: string, description?: string }
 ) => {
   // user must be ther owner to be able to update
@@ -168,7 +168,7 @@ export const updateCommunity = async (
         },
       ],
     },
-  }).catch(e => { throw new APIError("not authorized", UnauthorizedError) })
+  }).catch(_ => { throw new APIError("not authorized", UnauthorizedError) })
 
   // generate new slug if community name change
   const slug = data.name

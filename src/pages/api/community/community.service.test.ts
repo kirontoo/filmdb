@@ -2,6 +2,7 @@ import { prismaMock } from '@/lib/prisma/__mocks__/client';
 import * as CommunityService from './community.service';
 import ObjectID from "bson-objectid";
 import slugify from 'slugify';
+import { APIError, UnauthorizedError } from '@/lib/errors';
 
 jest.mock("@/lib/prisma/client");
 const generateInviteCode = jest.fn().mockReturnValue('jT83c');
@@ -148,7 +149,6 @@ describe("CommunityService.addMemberToCommunity", () => {
     });
 
     const actual = await CommunityService.addUserToCommunity(inviteCode, userIdToJoin);
-    console.log(actual)
 
     expect(actual.memberIds).toContain(userIdToJoin);
   });
@@ -190,21 +190,135 @@ describe("CommunityService.addMemberToCommunity", () => {
 });
 
 describe("CommunityService.removeUserFromCommunity", () => {
-  test.todo("should remove user from a community");
-  test.todo("should return null for a user that does not exist");
-});
+  test("should remove user from a community", async () => {
+    const userIdA = ObjectID().toString();
+    const userIdB = ObjectID().toString();
+    const inviteCode = generateInviteCode(5);
+    const date = new Date();
+    const community = {
+      id: ObjectID().toString(),
+      name: "test",
+      description: "Test community",
+      slug: slugify("test", { lower: true }),
+      inviteCode,
+      currentlyWatching: null,
+      createdAt: date,
+      updatedAt: date,
+      memberIds: [userIdA],
+      createdBy: userIdA
+    };
 
-describe("CommunityService.findCommunityWithSlugOrId", () => {
-  test.todo("should find a community with a id");
-  test.todo("should find a community with a slug");
-  test.todo("should throw an error with an invalid id");
-  test.todo("should throw an error with an invalid slug");
+    prismaMock.community.update.mockResolvedValueOnce(community);
+
+    const expected = await CommunityService.removeUserFromCommunity(community.id, userIdB);
+
+    expect(expected!.memberIds).not.toContain(userIdB);
+  });
 });
 
 describe("CommunityService.updateCommunity", () => {
-  test.todo("should throw an error if the community does not exist");
-  test.todo("should not update if user is not the owner");
-  test.todo("should update only the community name");
-  test.todo("should update the slug if the name is updated");
-  test.todo("should update only the community description");
+  test("should not update if user is not the owner", async () => {
+    const userId = ObjectID().toString();
+    const cId = ObjectID().toString();
+    prismaMock.user.findFirstOrThrow.mockRejectedValue(new APIError("not authorized", UnauthorizedError));
+
+    await expect(CommunityService.updateCommunity(cId, userId, {
+      description: "new description"
+    })).rejects.toThrow('not authorized');
+  });
+
+  test("should update only the community name", async () => {
+    const userId = ObjectID().toString();
+    const inviteCode = generateInviteCode(5);
+    const date = new Date();
+    const community = {
+      id: ObjectID().toString(),
+      name: "test",
+      description: "Test community",
+      slug: slugify("test", { lower: true }),
+      inviteCode,
+      currentlyWatching: null,
+      createdAt: date,
+      updatedAt: date,
+      memberIds: [userId],
+      createdBy: userId
+    };
+
+    const newName = "My test community";
+    const newNameSlug = slugify("My test community", { lower: true });
+
+    prismaMock.user.findFirstOrThrow.mockResolvedValueOnce({
+      id: userId,
+      email: "test@test.com",
+      name: "testuser",
+      createdAt: date,
+      updatedAt: date,
+      communityIds: [community.id],
+      emailVerified: date,
+      image: "image string"
+    });
+
+    prismaMock.community.update.mockResolvedValue({
+      ...community,
+      name: newName,
+      slug: newNameSlug
+    })
+
+    const expected = await CommunityService.updateCommunity(
+      community.id,
+      userId,
+      { name: newName }
+    );
+
+    expect(expected.name).not.toEqual(community.name);
+    expect(expected.name).toEqual(newName);
+
+    expect(expected.slug).not.toEqual(community.slug);
+    expect(expected.slug).toEqual(newNameSlug);
+  });
+
+  test("should update only the community description", async () => {
+     const userId = ObjectID().toString();
+    const inviteCode = generateInviteCode(5);
+    const date = new Date();
+    const community = {
+      id: ObjectID().toString(),
+      name: "test",
+      description: "Test community",
+      slug: slugify("test", { lower: true }),
+      inviteCode,
+      currentlyWatching: null,
+      createdAt: date,
+      updatedAt: date,
+      memberIds: [userId],
+      createdBy: userId
+    };
+
+    const newDescription = "this is a updated description";
+
+    prismaMock.user.findFirstOrThrow.mockResolvedValueOnce({
+      id: userId,
+      email: "test@test.com",
+      name: "testuser",
+      createdAt: date,
+      updatedAt: date,
+      communityIds: [community.id],
+      emailVerified: date,
+      image: "image string"
+    });
+
+    prismaMock.community.update.mockResolvedValue({
+      ...community,
+      description: newDescription,
+    })
+
+    const expected = await CommunityService.updateCommunity(
+      community.id,
+      userId,
+      { description: newDescription }
+    );
+
+    expect(expected.description).not.toEqual(community.description);
+    expect(expected.description).toEqual(newDescription);
+  });
 });
