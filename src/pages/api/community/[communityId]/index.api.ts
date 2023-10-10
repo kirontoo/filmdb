@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth].api";
 import * as CommunityService from '@/pages/api/community/community.service';
 
-import prisma from "@/lib/prisma/client";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
@@ -11,12 +10,9 @@ import {
 import {
   APIError,
   QueryError,
-  UnauthorizedError,
   ValidationError,
 } from "@/lib/errors";
 import { createHandler } from "@/lib/api/handler";
-import slugify from "slugify";
-import { getQueueCount } from "@/lib/api/util";
 import { ObjectId } from "bson";
 import { createMediaAndAddToCommunity } from "./media/media.service";
 
