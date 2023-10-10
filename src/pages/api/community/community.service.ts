@@ -49,6 +49,25 @@ export const createCommunity = async (id: string, name: string, description?: st
   });
 }
 
+export async function isAMemberOfCommunity(
+  communityId: string | null,
+  slug: string | null,
+  userId: string
+) {
+  const community = await prisma.community.findFirstOrThrow({
+    where: {
+      AND: [
+        {
+          OR: [{ id: communityId || undefined }, { slug: slug || undefined }],
+        },
+        { members: { some: { id: userId } } },
+      ],
+    },
+  }).catch(_ => null);
+
+  return community ? true : false;
+}
+
 export const addUserToCommunity = async (inviteCode: string, memberId: string) => {
   return await prisma.$transaction(async tx => {
     const community = await tx.community.findUnique({

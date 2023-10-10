@@ -103,3 +103,9 @@ export async function createMediaAndAddToCommunity(
 
   return media;
 }
+
+export async function findMediaById(mediaId: string) {
+  return await prisma.media.findFirst({
+    where: { id: mediaId },
+  });
+}

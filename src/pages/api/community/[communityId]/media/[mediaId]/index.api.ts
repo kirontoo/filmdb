@@ -16,6 +16,8 @@ import {
 import { createHandler } from "@/lib/api/handler";
 import { getQueueCount } from "@/lib/api/util";
 import { ObjectId } from "bson";
+import { findMediaById } from "@/pages/api/community/[communityId]/media/media.service";
+import { isAMemberOfCommunity } from "@/pages/api/community/community.service";
 
 export default createHandler({
   get: getMediaFromCommunity,
@@ -50,22 +52,14 @@ async function getMediaFromCommunity(
     }
 
     // check permission
-    const community = await prisma.community.findFirstOrThrow({
-      where: {
-        AND: [
-          {
-            OR: [{ id: communityId || undefined }, { slug: slug || undefined }],
-          },
-          { members: { some: { id: session!.user!.id } } },
-        ],
-      },
-    });
+    const isAMember = await isAMemberOfCommunity(
+      communityId,
+      slug,
+      session!.user!.id
+    );
 
-    if (community) {
-      const media = await prisma.media.findFirst({
-        where: { id: mId },
-      });
-
+    if (isAMember) {
+      const media = findMediaById(mId);
       return res.status(200).json({
         status: "success",
         data: {
