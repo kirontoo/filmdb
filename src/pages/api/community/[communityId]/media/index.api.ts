@@ -13,6 +13,7 @@ import { createHandler } from "@/lib/api/handler";
 import { ObjectId } from "bson";
 import { Media } from "@prisma/client";
 import { findCommunityWithSlugOrId, isCommunityOwner } from "../../community.service";
+import { updateMediaQueue } from "./media.service";
 
 export default createHandler({
   get: getMedias,
@@ -97,24 +98,14 @@ async function updateMedias(
 
     // only the community owner can update the media
     const isOwner = await isCommunityOwner(communityId, slug, session!.user!.id);
+
     // update all media data
     if (isOwner) {
-      const transaction = await prisma.$transaction(
-        mediasToUpdate.map((m: Media) => {
-          return prisma.media.update({
-            where: {
-              id: m.id,
-            },
-            data: {
-              queue: m.queue || undefined,
-            },
-          });
-        })
-      );
+      const medias = await updateMediaQueue(mediasToUpdate);
       return res.status(200).json({
         status: "success",
         data: {
-          medias: transaction,
+          medias,
         },
       });
     } else {
