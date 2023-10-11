@@ -2,7 +2,6 @@ import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth].api";
 
-import prisma from "@/lib/prisma/client";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
@@ -11,7 +10,6 @@ import { APIError, QueryError, UnauthorizedError, ValidationError } from "@/lib/
 
 import { createHandler } from "@/lib/api/handler";
 import { ObjectId } from "bson";
-import { Media } from "@prisma/client";
 import { findCommunityWithSlugOrId, isCommunityOwner } from "../../community.service";
 import { updateMediaQueue } from "./media.service";
 
