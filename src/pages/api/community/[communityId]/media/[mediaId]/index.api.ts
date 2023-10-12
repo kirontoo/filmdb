@@ -14,8 +14,8 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { createHandler } from "@/lib/api/handler";
-import { parseCommunityIdAndSlugFromQuery, getQueueCount, parseMediaIdFromQuery } from "@/lib/api/util";
-import { findMediaById } from "@/pages/api/community/[communityId]/media/media.service";
+import { parseCommunityIdAndSlugFromQuery, parseMediaIdFromQuery } from "@/lib/api/util";
+import { findMediaById, updateMediaData } from "@/pages/api/community/[communityId]/media/media.service";
 import { isAMemberOfCommunity } from "@/pages/api/community/community.service";
 
 export default createHandler({
@@ -24,6 +24,7 @@ export default createHandler({
   patch: updateMedia,
 });
 
+// GET: /api/community/[communityId]/media/[mediaId]?slug={slug}
 async function getMediaFromCommunity(
   req: NextApiRequest,
   res: NextApiResponse
@@ -74,6 +75,7 @@ async function getMediaFromCommunity(
   }
 }
 
+// DELETE: /api/community/[communityId]/media/[mediaId]?slug={slug}
 async function deleteMedia(req: NextApiRequest, res: NextApiResponse) {
   try {
     const session = await getServerSession(req, res, authOptions);
@@ -122,60 +124,29 @@ async function deleteMedia(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
+// PATCH: /api/community/[communityId]/media/[mediaId]
+// body: {
+//  watched: boolean,
+//  watchedAt: Date,
+//  queue: number
+// }
 async function updateMedia(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { query, body } = req;
-    const { mediaId, communityId } = query;
-    const id: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
-    const cId: string = Array.isArray(communityId)
-      ? communityId[0]
-      : communityId!;
+    const { body } = req;
     const session = await getServerSession(req, res, authOptions);
 
-    const { media } = await prisma.$transaction(async () => {
-      // make sure user has permission
-      // user is a member of the community
-      const community = await prisma.community.findUnique({
-        where: { id: cId },
-      });
+    const { communityId } = parseCommunityIdAndSlugFromQuery(req.query);
+    if (!communityId) {
+      throw new APIError("community does not exist", QueryError);
+    }
 
-      const isMember = community?.memberIds.some(
-        (id) => id === session!.user!.id
-      );
+    const mId = parseMediaIdFromQuery(req.query);
+    if (!mId) {
+      throw new APIError("media does not exist", QueryError);
+    }
 
-      // user is a member but NOT the community owner
-      if (isMember && community?.createdBy !== session!.user!.id) {
-        // community members can only add to the queued list
-        if (body.watched) {
-          throw new APIError(
-            "only the community owner can add to the watched list",
-            UnauthorizedError
-          );
-        }
-      } else if (!isMember) {
-        throw new APIError(
-          "must be a member of this community",
-          UnauthorizedError
-        );
-      }
-
-      const queueCount = await getQueueCount(cId);
-
-      const watchedPropExists = body.hasOwnProperty("watched");
-      const media = await prisma.media.update({
-        where: {
-          id: id,
-        },
-        data: {
-          watched: body.watched,
-          watchedAt: watchedPropExists ? new Date() : undefined,
-          queue: watchedPropExists && !body.watched ? queueCount + 1 : null,
-        },
-      });
-
-      return { media };
-    });
-
+    // TODO: validate media data
+    const media = await updateMediaData(communityId, mId, session!.user!.id, body);
     if (media) {
       return res.status(200).json({
         status: "success",
