@@ -1,8 +1,6 @@
 import prisma from "@/lib/prisma/client";
 import { ObjectId } from "bson";
-import { NextApiRequest } from "next";
 import { NextApiRequestQuery } from "next/dist/server/api-utils";
-import { APIError, QueryError } from "../errors";
 
 export async function getQueueCount(communityId: string): Promise<number> {
   const queueAggregate = await prisma.media.aggregate({
