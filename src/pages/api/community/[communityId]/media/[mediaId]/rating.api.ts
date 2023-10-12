@@ -15,6 +15,7 @@ import {
 
 import { createHandler } from "@/lib/api/handler";
 import { ObjectId } from "bson";
+import * as RatingService from "./rating.service";
 
 export default createHandler({
   post: createRating,
@@ -195,34 +196,7 @@ async function deleteRating(
     const { mediaId } = req.query;
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
 
-    const data = await prisma.$transaction(async () => {
-      const rating = await prisma.rating.delete({
-        where: {
-          userId_mediaId: {
-            userId: session!.user!.id,
-            mediaId: mId,
-          },
-        },
-      });
-
-      const avg = await prisma.rating.aggregate({
-        where: {
-          mediaId: mId,
-        },
-        _avg: {
-          value: true,
-        },
-      });
-
-      const media = await prisma.media.update({
-        where: { id: mId },
-        data: {
-          rating: avg._avg.value !== null ? avg._avg.value : undefined,
-        },
-      });
-
-      return { rating, media };
-    });
+    const data = await RatingService.deleteARatingFromMedia(mId, session!.user!.id);
 
     return res.status(200).json({
       status: "success",
@@ -272,47 +246,11 @@ async function updateRating(
 
     const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
 
-    const data = await prisma.$transaction(async () => {
-      const rating = await prisma.rating.update({
-        where: {
-          userId_mediaId: {
-            userId: session!.user!.id,
-            mediaId: mId,
-          },
-        },
-        data: {
-          value: rateValue,
-        },
-      });
-
-      const avg = await prisma.rating.aggregate({
-        where: {
-          mediaId: mId,
-        },
-        _avg: {
-          value: true,
-        },
-      });
-
-      const media = await prisma.media.update({
-        where: { id: mId },
-        data: {
-          rating: avg._avg.value !== null ? avg._avg.value : undefined,
-        },
-        include: {
-          _count: {
-            select: { ratings: true },
-          },
-          ratings: {
-            where: {
-              userId: session!.user!.id,
-            },
-          },
-        },
-      });
-
-      return { rating, media };
-    });
+    const data = await RatingService.updateUserRating(
+      mId, 
+      session!.user!.id, 
+      rateValue
+    );
 
     return res.status(200).json({
       status: "success",
