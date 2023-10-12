@@ -14,8 +14,7 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { createHandler } from "@/lib/api/handler";
-import { getQueueCount } from "@/lib/api/util";
-import { ObjectId } from "bson";
+import { parseCommunityIdAndSlugFromQuery, getQueueCount, parseMediaIdFromQuery } from "@/lib/api/util";
 import { findMediaById } from "@/pages/api/community/[communityId]/media/media.service";
 import { isAMemberOfCommunity } from "@/pages/api/community/community.service";
 
@@ -31,24 +30,12 @@ async function getMediaFromCommunity(
 ) {
   try {
     const session = await getServerSession(req, res, authOptions);
-    const { query } = req;
-    const { mediaId } = query;
-    let communityId: string | null = Array.isArray(query.communityId)
-      ? query.communityId[0]
-      : query.communityId!;
-    const mId: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
+    const { communityId, slug } = parseCommunityIdAndSlugFromQuery(req.query);
+    const mId = parseMediaIdFromQuery(req.query);
 
-    let slug = null;
-
-    // if mediaId is not valid, then media does not exist
-    if (!ObjectId.isValid(mId)) {
+    // if media id is not valid, then media does not exist
+    if (!mId) {
       throw new APIError("media does not exist", QueryError);
-    }
-
-    // if communityId it's not a valid object id, then it's a slug
-    if (!ObjectId.isValid(communityId)) {
-      slug = communityId;
-      communityId = null;
     }
 
     // check permission
@@ -90,20 +77,22 @@ async function getMediaFromCommunity(
 async function deleteMedia(req: NextApiRequest, res: NextApiResponse) {
   try {
     const session = await getServerSession(req, res, authOptions);
-    const { query } = req;
-    const { mediaId } = query;
-    const id: string = Array.isArray(mediaId) ? mediaId[0] : mediaId!;
+
+    const { communityId, slug } = parseCommunityIdAndSlugFromQuery(req.query);
+    const mId = parseMediaIdFromQuery(req.query);
+
+    // if media id is not valid, then media does not exist
+    if (!mId) {
+      throw new APIError("media does not exist", QueryError);
+    }
 
     // check permission
-    const community = await prisma.community.findFirstOrThrow({
-      where: {
-        members: { some: { id: session!.user!.id } },
-      },
-    });
+    // TODO: only the requester OR the owner of community can delete
+    const isAMember = await isAMemberOfCommunity(communityId, slug, session!.user!.id);
 
-    if (community) {
+    if (isAMember) {
       const media = await prisma.media.delete({
-        where: { id: id },
+        where: { id: mId },
       });
 
       if (media) {
