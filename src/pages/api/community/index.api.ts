@@ -66,12 +66,12 @@ async function postCommunity(req: NextApiRequest, res: NextApiResponse) {
 async function getCommunities(req: NextApiRequest, res: NextApiResponse) {
   try {
     const session = await getServerSession(req, res, authOptions);
-    const communities = CommunityService.getCommunities(session!.user!.id);
+    const communities = await CommunityService.getCommunities(session!.user!.id);
   
     return res.status(200).json({
       status: "success",
       data: {
-        communities: JSON.parse(JSON.stringify(communities)),
+        communities,
       },
     });
   } catch (e) {
