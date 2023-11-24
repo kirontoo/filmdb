@@ -49,12 +49,12 @@ export async function createMediaAndAddToCommunity(
 
     // is the user a member or the owner of the community
     const isMember = community?.memberIds.some(
-      (id) => id === userId
+      (id: string) => id === userId
     );
 
     // user is a member but NOT the community owner
     if (isMember && community?.createdBy !== userId) {
-      // community members can only add to the queued list
+      // community members can only add to the watched list
       if (watched) {
         throw new APIError(
           "only the community owner can add to the watched list",
@@ -71,7 +71,7 @@ export async function createMediaAndAddToCommunity(
     const queueCount = await getQueueCount(cId);
     const watchedPropExists = mediaData.hasOwnProperty("watched");
 
-    const media = await tx.media.upsert({
+    return await tx.media.upsert({
       where: {
         tmdbId_communityId: {
           tmdbId: String(tmdbId),
@@ -98,7 +98,6 @@ export async function createMediaAndAddToCommunity(
         },
       },
     });
-    return media;
   });
 
   return media;
@@ -145,7 +144,7 @@ export async function updateMediaData(
 
     const queueCount = await getQueueCount(communityId);
     const watchedPropExists = data.hasOwnProperty("watched");
-
+    
     return await tx.media.update({
       where: {
         id: mediaId,
