@@ -30,7 +30,7 @@
 <h3 align="center">FilmDB</h3>
 
   <p align="center">
-    Keep track of your watch parties with FilmDB. 
+    Keep forgetting what you've been meaning to watch? Create your own community and plan a watch party!
     <br />
     <a href="https://filmdb.vercel.app">View Demo</a>
     ·
@@ -76,8 +76,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://filmdb.vercel.app)
 
-This is FilmDb, a full-stack web app designed to help you keep track of your watch parties. Keep forgetting 
-what you've been meaning to watch? Create your own community and plan your next one!
+This is FilmDb, a full-stack web app designed for communities keep track of watch parties.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
