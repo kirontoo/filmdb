@@ -23,23 +23,14 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 
 
 <!-- PROJECT LOGO -->
 <br />
-<div align="center">
-  <a href="https://github.com/kirontoo/filmdb">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
 <h3 align="center">FilmDB</h3>
 
   <p align="center">
     Keep track of your watch parties with FilmDB. 
-    <br />
-    <a href="https://github.com/kirontoo/filmdb"><strong>Explore the docs »</strong></a>
-    <br />
     <br />
     <a href="https://filmdb.vercel.app">View Demo</a>
     ·
@@ -58,6 +49,7 @@
     <li>
       <a href="#about-the-project">About The Project</a>
       <ul>
+        <li><a href="#why">Why</a></li>
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
@@ -84,9 +76,15 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://filmdb.vercel.app)
 
-A full-stack web app for communities to keep track of movies and shows they've seen.  And if you can't figure out what to watch next? Add it to the queue!
+This is FilmDb, a full-stack web app designed to help you keep track of your watch parties. Keep forgetting 
+what you've been meaning to watch? Create your own community and plan your next one!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Why
+As a member of many online communities, I've noticed there's been a rise in online watch parties. Whether you 
+are a twitch streamer or just want to keep track of the movies you've watched with your friend group, this is the place to be.
+I wanted a way to be able to not only track watch requests, but to also schedule and rate them.
 
 
 ### Built With
