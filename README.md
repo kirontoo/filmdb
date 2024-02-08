@@ -76,7 +76,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://filmdb.vercel.app)
 
-This is FilmDb, a full-stack web app designed for communities keep track of watch parties.
+This is FilmDb, a full-stack web app designed for communities to keep track of watch parties.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
